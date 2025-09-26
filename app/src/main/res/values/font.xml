@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Font Sizes -->
+    <dimen name="giant">40sp</dimen>
+    <dimen name="big">25sp</dimen>
+    <dimen name="mid">17sp</dimen>
+    <dimen name="reg">15sp</dimen>
+    <dimen name="small">13sp</dimen>
+
+    <dimen name="otp">25sp</dimen>
+
+</resources>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">SafeSpace_App</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="header">Lorem Ipsum</string>
+    <string name="para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris sodales convallis viverra. Morbi non commodo erat. Donec vitae laoreet turpis, eu rutrum augue. Sed egestas urna quis purus iaculis facilisis.</string>
+    <string name="name">John Doe</string>
+    <string name="email">abc@students.nu-fairview.edu.ph</string>
+    <string name="number">0900 000 0000</string>
+    <string name="date">Month 00, 2025</string>
+    <string name="room">Room 000</string>
+    <string name="program">--program--</string>
+    <string name="yearlevel">Nth Year Student</string>
+    <string name="timerange">0:00 XX - 0:00 XX</string>
+    
+    <string name="forgotverify">
+        Please check your inbox and enter the\n
+        verification code below to verify your\n
+        student email address.\n
+        \n
+        The code will expire in 5 minutes
+    </string>
+</resources>
