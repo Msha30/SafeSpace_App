@@ -11,13 +11,18 @@
     <string name="program">--program--</string>
     <string name="yearlevel">Nth Year Student</string>
     <string name="timerange">0:00 XX - 0:00 XX</string>
-    
+
     <string name="forgotverify">
         Please check your inbox and enter the\n
         verification code below to verify your\n
         student email address.\n
         \n
         The code will expire in 5 minutes
+    </string>
+
+    <string name="emailverify">
+        Student Email\n
+        Verification
     </string>
 
     <array name="programs">
@@ -45,4 +50,21 @@
         <item>3rd Year</item>
         <item>4th Year</item>
     </array>
+
+    <string name="longlorem">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eleifend pharetra odio vel cursus. Aliquam sit amet placerat massa. Fusce sit amet urna vestibulum, hendrerit tortor ac, tempus augue. Nam aliquam justo quis ligula tempus, eget feugiat risus sodales. Proin a velit quam. Nam mollis pretium tortor non viverra. Vivamus vitae condimentum purus, a venenatis ipsum. Duis dignissim elementum arcu, vitae vestibulum orci euismod nec. Pellentesque quis lacinia turpis.
+        \n\nVestibulum eget metus sed enim aliquet tincidunt. Donec tempus nulla dignissim, vestibulum enim non, sagittis leo. Phasellus sollicitudin eros ac pulvinar egestas. Praesent nec ultrices sem. Integer dapibus mi id semper feugiat. Ut blandit egestas metus, ac tincidunt lacus egestas at. Fusce aliquet magna pretium, maximus leo eu, eleifend lorem. Nullam quis urna elementum, accumsan dui non, sodales ex. Vivamus quis magna dolor. Fusce eu imperdiet purus, vel tincidunt sem. Aenean auctor, neque vel tristique accumsan, dolor massa tempus augue, vel tincidunt massa tellus ac augue. Sed mollis turpis vel lorem auctor, non laoreet eros blandit. Integer hendrerit gravida interdum. Nunc iaculis ac nulla id malesuada. Nunc tristique auctor metus ornare molestie.
+        \n\nSed maximus ipsum et ipsum placerat, non tincidunt elit pretium. Pellentesque vehicula ultricies scelerisque. Duis eleifend, mauris in facilisis bibendum, nunc est accumsan mauris, id ornare dui diam eu tortor. Duis mattis neque ut turpis eleifend sagittis. Cras non est interdum, commodo mi non, viverra orci. Mauris a justo quam. Curabitur ac tempor leo.
+        \n\nSuspendisse porta tincidunt urna ut aliquet. Morbi eu risus nulla. Praesent pharetra molestie dui vel laoreet. Nullam odio dui, varius vitae elit quis, accumsan sollicitudin dui. Quisque ultrices gravida dui, id interdum enim scelerisque in. Nullam sed convallis magna. Sed ante diam, commodo sit amet posuere sed, dapibus id est. Nulla molestie scelerisque neque, a placerat nisl cursus eu.
+        \n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eleifend pharetra odio vel cursus. Aliquam sit amet placerat massa. Fusce sit amet urna vestibulum, hendrerit tortor ac, tempus augue. Nam aliquam justo quis ligula tempus, eget feugiat risus sodales. Proin a velit quam. Nam mollis pretium tortor non viverra. Vivamus vitae condimentum purus, a venenatis ipsum. Duis dignissim elementum arcu, vitae vestibulum orci euismod nec. Pellentesque quis lacinia turpis.
+        \n\nVestibulum eget metus sed enim aliquet tincidunt. Donec tempus nulla dignissim, vestibulum enim non, sagittis leo. Phasellus sollicitudin eros ac pulvinar egestas. Praesent nec ultrices sem. Integer dapibus mi id semper feugiat. Ut blandit egestas metus, ac tincidunt lacus egestas at. Fusce aliquet magna pretium, maximus leo eu, eleifend lorem. Nullam quis urna elementum, accumsan dui non, sodales ex. Vivamus quis magna dolor. Fusce eu imperdiet purus, vel tincidunt sem. Aenean auctor, neque vel tristique accumsan, dolor massa tempus augue, vel tincidunt massa tellus ac augue. Sed mollis turpis vel lorem auctor, non laoreet eros blandit. Integer hendrerit gravida interdum. Nunc iaculis ac nulla id malesuada. Nunc tristique auctor metus ornare molestie.
+        \n\nSed maximus ipsum et ipsum placerat, non tincidunt elit pretium. Pellentesque vehicula ultricies scelerisque. Duis eleifend, mauris in facilisis bibendum, nunc est accumsan mauris, id ornare dui diam eu tortor. Duis mattis neque ut turpis eleifend sagittis. Cras non est interdum, commodo mi non, viverra orci. Mauris a justo quam. Curabitur ac tempor leo.
+    </string>
+
+    <string name="title_activity_main_navigation">MainNavigation</string>
+    <string name="title_home">Home</string>
+    <string name="title_peers">Peers</string>
+    <string name="title_chat">Chat</string>
+    <string name="title_profile">Profile</string>
+
 </resources>

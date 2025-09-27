@@ -1,14 +1,206 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:scaleType="centerCrop"
+    android:background="@drawable/main_background"
     tools:context=".signup.SignupVerification">
 
-    <!-- TODO: Update blank fragment layout -->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:text="@string/emailverify"
+        android:textColor="@color/white"
+        android:fontFamily="@font/PSBold"
+        android:textAlignment="center"
+        android:textSize="@dimen/giant"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginTop="110dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-</FrameLayout>
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="1"
+        app:layout_constraintDimensionRatio="1:1.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:paddingTop="60dp"
+        android:paddingBottom="60dp"
+        android:background="@drawable/f_rounded_start"
+        android:scaleType="centerCrop"
+        android:orientation="vertical"
+        app:flow_horizontalAlign="center"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:fontFamily="@font/PS"
+            android:textSize="@dimen/mid"
+            android:gravity="center"
+            android:text="A verification code has been sent to "/>
+
+        <TextView
+            android:id="@+id/email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:fontFamily="@font/PSBold"
+            android:textSize="@dimen/mid"
+            android:gravity="center"
+            android:text="@string/email"
+            android:clickable="true"
+            android:focusable="true"
+            android:linksClickable="true"/>
+
+        <TextView
+            android:id="@+id/Terms"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/PS"
+            android:textSize="@dimen/mid"
+            android:gravity="center"
+            android:text="@string/forgotverify"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="35dp"
+            android:gravity="center">
+
+            <EditText
+                android:id="@+id/editText1"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginRight="8dp"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="@dimen/otp"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/darkblue"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"/>
+
+            <EditText
+                android:id="@+id/editText2"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginRight="8dp"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="@dimen/otp"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/darkblue"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"/>
+
+            <EditText
+                android:id="@+id/editText3"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginRight="8dp"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="@dimen/otp"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/darkblue"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"/>
+
+            <EditText
+                android:id="@+id/editText4"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginRight="8dp"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="@dimen/otp"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/darkblue"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"/>
+
+            <EditText
+                android:id="@+id/editText5"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginRight="8dp"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="@dimen/otp"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/darkblue"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"/>
+
+            <EditText
+                android:id="@+id/editText6"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="@dimen/otp"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/darkblue"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"/>
+
+
+
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnlogin"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="50dp"
+            android:padding="0dp"
+            android:text="Verify"
+            android:fontFamily="@font/PSBold"
+            android:textSize="@dimen/reg"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            android:background="@drawable/f_rounded_blue"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/resendcode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:padding="0dp"
+            android:text="Resend Code"
+            android:fontFamily="@font/PSBold"
+            android:textSize="@dimen/small"
+            android:textColor="@color/midblue"
+            app:backgroundTint="@null"
+            android:background="@drawable/f_transparent"/>
+
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
