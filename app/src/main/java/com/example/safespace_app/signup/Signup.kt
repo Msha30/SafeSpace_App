@@ -1,6 +1,8 @@
 package com.example.safespace_app.signup
 
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,5 +19,11 @@ class Signup : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val items = resources.getStringArray(R.array.programs)
+        val adapter = ArrayAdapter(this, R.layout.f_list_item, items)
+        val autoCompleteTextView = findViewById<AutoCompleteTextView>(R.id.program)
+        autoCompleteTextView.setAdapter(adapter)
     }
+
 }

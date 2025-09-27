@@ -28,7 +28,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnlogin"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="55dp"
             android:padding="10dp"
             android:layout_marginTop="25dp"
             android:layout_marginLeft="10dp"
@@ -43,9 +43,9 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnsignup"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="55dp"
             android:padding="10dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="20dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:text="Create an account"
