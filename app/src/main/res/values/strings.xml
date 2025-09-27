@@ -67,4 +67,18 @@
     <string name="title_chat">Chat</string>
     <string name="title_profile">Profile</string>
 
+    <style name="CircleImage">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">9dp</item> <!-- makes it circle -->
+    </style>
+
+    <string name="counselingbtn">
+        Guidance Counseling\nSession
+    </string>
+
+    <string name="sessionbtn">
+        Peer Support\nSession
+    </string>
+
+
 </resources>
