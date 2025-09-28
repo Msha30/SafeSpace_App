@@ -197,7 +197,7 @@
                 android:padding="0dp"
                 android:text="Join"
                 android:fontFamily="@font/PSBold"
-                android:textSize="@dimen/small"
+                android:textSize="@dimen/smaller"
                 android:textColor="@color/white"
                 app:backgroundTint="@null"
                 android:background="@drawable/f_rounded_green"/>
@@ -288,7 +288,7 @@
                 android:padding="0dp"
                 android:text="Cancel"
                 android:fontFamily="@font/PSBold"
-                android:textSize="@dimen/small"
+                android:textSize="@dimen/smaller"
                 android:textColor="@color/white"
                 app:backgroundTint="@null"
                 android:background="@drawable/f_cancel_btn"/>
