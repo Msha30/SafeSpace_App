@@ -12,6 +12,13 @@
     android:orientation="vertical"
     tools:context=".home.Home">
 
+    <ImageView
+        android:layout_width="110dp"
+        android:layout_height="30dp"
+        android:src="@drawable/logo"
+        android:layout_marginBottom="20dp"
+        android:padding="0dp"/>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -111,6 +118,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:elevation="1dp"
             android:orientation="vertical"
             android:background="@drawable/f_rounded_white">
 
@@ -200,6 +208,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:elevation="1dp"
             android:orientation="vertical"
             android:layout_marginStart="15dp"
             android:background="@drawable/f_rounded_white">
@@ -312,6 +321,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:elevation="1dp"
                 android:background="@drawable/f_rounded_white"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
@@ -355,6 +365,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:elevation="1dp"
                 android:layout_marginTop="15dp"
                 android:background="@drawable/f_rounded_white"
                 android:paddingStart="15dp"
@@ -399,6 +410,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:elevation="1dp"
                 android:layout_marginTop="15dp"
                 android:background="@drawable/f_rounded_white"
                 android:paddingStart="15dp"
@@ -443,6 +455,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+
+                android:elevation="1dp"
                 android:layout_marginTop="15dp"
                 android:background="@drawable/f_rounded_white"
                 android:paddingStart="15dp"

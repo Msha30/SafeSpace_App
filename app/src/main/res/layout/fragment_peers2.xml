@@ -10,7 +10,7 @@
     android:paddingStart="25dp"
     android:paddingEnd="25dp"
     android:orientation="vertical"
-    tools:context=".peers.Peers">
+    tools:context=".peers.Peers2">
 
     <ImageView
         android:layout_width="110dp"
@@ -89,18 +89,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="30dp"
                         android:padding="0dp"
-                        android:text="Message"
-                        android:fontFamily="@font/PSBold"
-                        android:textSize="@dimen/smaller"
-                        android:textColor="@color/white"
-                        app:backgroundTint="@null"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/f_rounded_blue"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:padding="0dp"
                         android:text="See Info"
                         android:fontFamily="@font/PSBold"
                         android:textSize="@dimen/smaller"
@@ -161,18 +149,6 @@
                         android:textColor="@color/black"
                         android:fontFamily="@font/PSBold"
                         android:layout_marginBottom="10dp"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:padding="0dp"
-                        android:text="Message"
-                        android:fontFamily="@font/PSBold"
-                        android:textSize="@dimen/smaller"
-                        android:textColor="@color/white"
-                        app:backgroundTint="@null"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/f_rounded_blue"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:layout_width="match_parent"
@@ -250,18 +226,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="30dp"
                         android:padding="0dp"
-                        android:text="Message"
-                        android:fontFamily="@font/PSBold"
-                        android:textSize="@dimen/smaller"
-                        android:textColor="@color/white"
-                        app:backgroundTint="@null"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/f_rounded_blue"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:padding="0dp"
                         android:text="See Info"
                         android:fontFamily="@font/PSBold"
                         android:textSize="@dimen/smaller"
@@ -322,18 +286,6 @@
                         android:textColor="@color/black"
                         android:fontFamily="@font/PSBold"
                         android:layout_marginBottom="10dp"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:padding="0dp"
-                        android:text="Message"
-                        android:fontFamily="@font/PSBold"
-                        android:textSize="@dimen/smaller"
-                        android:textColor="@color/white"
-                        app:backgroundTint="@null"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/f_rounded_blue"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:layout_width="match_parent"
@@ -410,18 +362,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="30dp"
                         android:padding="0dp"
-                        android:text="Message"
-                        android:fontFamily="@font/PSBold"
-                        android:textSize="@dimen/smaller"
-                        android:textColor="@color/white"
-                        app:backgroundTint="@null"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/f_rounded_blue"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:padding="0dp"
                         android:text="See Info"
                         android:fontFamily="@font/PSBold"
                         android:textSize="@dimen/smaller"
@@ -482,18 +422,6 @@
                         android:textColor="@color/black"
                         android:fontFamily="@font/PSBold"
                         android:layout_marginBottom="10dp"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:padding="0dp"
-                        android:text="Message"
-                        android:fontFamily="@font/PSBold"
-                        android:textSize="@dimen/smaller"
-                        android:textColor="@color/white"
-                        app:backgroundTint="@null"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/f_rounded_blue"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:layout_width="match_parent"
