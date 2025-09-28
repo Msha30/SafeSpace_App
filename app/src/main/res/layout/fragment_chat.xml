@@ -1,13 +1,277 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/light"
+    android:paddingTop="50dp"
+    android:paddingBottom="50dp"
+    android:paddingStart="25dp"
+    android:paddingEnd="25dp"
+    android:orientation="vertical"
     tools:context=".chat.Chat">
+
+    <ImageView
+        android:layout_width="110dp"
+        android:layout_height="30dp"
+        android:src="@drawable/logo"
+        android:layout_marginBottom="20dp"
+        android:padding="0dp"/>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello" />
+        android:layout_height="wrap_content"
+        android:text="Support Groups"
+        android:fontFamily="@font/PSBold"
+        android:textSize="@dimen/small"
+        android:textColor="@color/textgrey"
+        android:layout_marginBottom="10dp"/>
 
-</FrameLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/f_rounded_white"
+        android:elevation="1.5dp"
+        android:padding="15dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearanceOverlay="@style/RoundedImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/header"
+                android:textColor="@color/black"
+                android:fontFamily="@font/PSBold"
+                android:textSize="@dimen/reg"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="00 Members  |  Join Now!"
+                android:textStyle="italic"
+                android:textColor="@color/textgrey"
+                android:fontFamily="@font/PS"
+                android:textSize="@dimen/small"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/f_rounded_white"
+        android:elevation="1.5dp"
+        android:padding="15dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearanceOverlay="@style/RoundedImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/header"
+                android:textColor="@color/black"
+                android:fontFamily="@font/PSBold"
+                android:textSize="@dimen/reg"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="00 Members  |  Join Now!"
+                android:textStyle="italic"
+                android:textColor="@color/textgrey"
+                android:fontFamily="@font/PS"
+                android:textSize="@dimen/small"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/f_rounded_white"
+        android:elevation="1.5dp"
+        android:padding="15dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearanceOverlay="@style/RoundedImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/header"
+                android:textColor="@color/black"
+                android:fontFamily="@font/PSBold"
+                android:textSize="@dimen/reg"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="00 Members  |  Join Now!"
+                android:textStyle="italic"
+                android:textColor="@color/textgrey"
+                android:fontFamily="@font/PS"
+                android:textSize="@dimen/small"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Messages"
+        android:fontFamily="@font/PSBold"
+        android:textSize="@dimen/small"
+        android:textColor="@color/textgrey"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="10dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/f_rounded_white"
+        android:elevation="1.5dp"
+        android:padding="15dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/header"
+                android:textColor="@color/black"
+                android:fontFamily="@font/PSMedium"
+                android:textSize="@dimen/reg"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/header"
+                android:textStyle="italic"
+                android:textColor="@color/textgrey"
+                android:fontFamily="@font/PS"
+                android:textSize="@dimen/small"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1m"
+            android:textSize="@dimen/smaller"
+            android:textColor="@color/textgrey"
+            android:fontFamily="@font/PS"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/f_rounded_white"
+        android:elevation="1.5dp"
+        android:padding="15dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/header"
+                android:textColor="@color/black"
+                android:fontFamily="@font/PSMedium"
+                android:textSize="@dimen/reg"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/header"
+                android:textStyle="italic"
+                android:textColor="@color/textgrey"
+                android:fontFamily="@font/PS"
+                android:textSize="@dimen/small"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1m"
+            android:textSize="@dimen/smaller"
+            android:textColor="@color/textgrey"
+            android:fontFamily="@font/PS"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -3,6 +3,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="header">Lorem Ipsum</string>
     <string name="para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris sodales convallis viverra. Morbi non commodo erat. Donec vitae laoreet turpis, eu rutrum augue. Sed egestas urna quis purus iaculis facilisis.</string>
+    <string name="para2">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris sodales convallis viverra. Morbi non commodo erat. Donec vitae laoreet turpis, eu rutrum augue. Sed egestas urna quis purus iaculis facilisis.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris sodales convallis viverra. Morbi non commodo erat. Donec vitae laoreet turpis, eu rutrum augue. Sed egestas urna quis purus iaculis facilisis.</string>
     <string name="name">John Doe</string>
     <string name="email">abc@students.nu-fairview.edu.ph</string>
     <string name="number">0900 000 0000</string>
