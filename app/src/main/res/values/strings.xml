@@ -11,6 +11,7 @@
     <string name="program">--program--</string>
     <string name="yearlevel">Nth Year Student</string>
     <string name="timerange">0:00 AM to\n0:00 AM</string>
+    <string name="timerange2">0:00 AM to 0:00 AM</string>
 
     <string name="forgotverify">
         Please check your inbox and enter the\n

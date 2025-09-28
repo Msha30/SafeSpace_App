@@ -1,13 +1,271 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:scaleType="centerCrop"
+    android:background="@drawable/main_background"
     tools:context=".home.HomePeerSupportForm1">
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/header"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_vertical">
 
-</FrameLayout>
+        <ImageView
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/ic_return"
+            android:backgroundTint="@color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Peer Support Session"
+            android:fontFamily="@font/PSBold"
+            android:textColor="@color/white"
+            android:textSize="@dimen/mid"/>
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/f_rounded_start"
+        android:orientation="vertical"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp"
+        android:paddingTop="30dp"
+        android:paddingBottom="50dp"
+        android:scaleType="centerCrop"
+        android:scrollbars="none"
+        app:flow_horizontalAlign="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1.9"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="100dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose a Peer"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/black"
+                android:textSize="@dimen/small"
+                android:layout_marginBottom="8dp"/>
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Lorem Ipsum"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Lorem Ipsum"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Lorem Ipsum"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Lorem Ipsum"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Lorem Ipsum"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Lorem Ipsum"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Preffered mode of platform "
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/black"
+                android:textSize="@dimen/small"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="8dp"/>
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Call"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Video Call"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Face to Face"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Topic of Concern"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/black"
+                android:textSize="@dimen/small"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="8dp"/>
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  School Related"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Family Related"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Personal Problem"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:text="  Other"
+                    android:fontFamily="@font/PS"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/reg"/>
+
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Specify general concern"
+                android:fontFamily="@font/PSBold"
+                android:textColor="@color/black"
+                android:textSize="@dimen/small"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="8dp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:elevation="1.5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:gravity="top|start"
+                    android:background="@drawable/f_transparent"
+                    android:fontFamily="@font/PS"
+                    android:hint="Enter your Answer"
+                    android:inputType="textMultiLine"
+                    android:scrollbars="vertical"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/textgrey"
+                    android:textSize="@dimen/reg"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnlogin"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="25dp"
+                android:padding="0dp"
+                android:text="Next"
+                android:fontFamily="@font/PSBold"
+                android:textSize="@dimen/reg"
+                android:textColor="@color/white"
+                app:backgroundTint="@null"
+                android:background="@drawable/f_rounded_blue"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
