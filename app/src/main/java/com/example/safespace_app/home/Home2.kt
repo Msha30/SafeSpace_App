@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
+import com.google.android.material.imageview.ShapeableImageView
 
 class Home2 : Fragment() {
 
@@ -27,5 +29,20 @@ class Home2 : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(R.layout.fragment_home2, container, false)
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Now we can safely find views
+        val btnPeerSupport = view.findViewById<ShapeableImageView>(R.id.peersupport)
+        val btnCounseling = view.findViewById<ShapeableImageView>(R.id.counseling)
+
+        btnCounseling.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_home2_to_homeCounseling)
+        }
+
+        btnPeerSupport.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_home2_to_homePeerSupport)
+        }
     }
 }

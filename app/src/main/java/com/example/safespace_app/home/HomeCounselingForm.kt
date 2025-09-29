@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
+import com.google.android.material.button.MaterialButton
 
 class HomeCounselingForm : Fragment() {
 
@@ -27,5 +29,19 @@ class HomeCounselingForm : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(R.layout.fragment_home_counseling_form, container, false)
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val btnSubmit = view.findViewById<MaterialButton>(R.id.btnsubmit)
+        btnSubmit.setOnClickListener {
+            findNavController().navigate(
+                findNavController().graph.startDestinationId,
+                null,
+                androidx.navigation.navOptions {
+                    popUpTo(findNavController().graph.startDestinationId) { inclusive = true }
+                }
+            )
+        }
     }
 }

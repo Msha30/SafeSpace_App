@@ -1,13 +1,11 @@
 package com.example.safespace_app.signup
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.safespace_app.R
 
@@ -61,7 +59,11 @@ class Signup : AppCompatActivity() {
                         .commit()
                 }
                 else -> {
-                    Toast.makeText(this, "Please select Student or Peer", Toast.LENGTH_SHORT).show()
+                    val fragment = SignupPeer()
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment) // make sure activity_signup.xml has FrameLayout with this id
+                        .addToBackStack(null)
+                        .commit()
                 }
             }
         }

@@ -1,11 +1,11 @@
 package com.example.safespace_app
 
 import android.os.Bundle
+import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.safespace_app.databinding.ActivityMainNavigation2Binding
 
@@ -29,6 +29,14 @@ class MainNavigation2 : AppCompatActivity() {
                 R.id.nav_home2, R.id.nav_peers2, R.id.nav_chat, R.id.nav_profile
             )
         )
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.homeCounseling,R.id.homeCounselingForm,R.id.homePeerSupportForm1,
+                R.id.homePeerSupportForm2,
+                R.id.homePeerSupport -> binding.navView.visibility = View.GONE
+                else -> binding.navView.visibility = View.VISIBLE
+            }
+        }
 
         navView.setupWithNavController(navController)
     }

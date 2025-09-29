@@ -9,7 +9,14 @@
         android:id="@+id/nav_home"
         android:name="com.example.safespace_app.home.Home"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_nav_home_to_homeCounseling"
+            app:destination="@id/homeCounseling" />
+        <action
+            android:id="@+id/action_nav_home_to_homePeerSupport"
+            app:destination="@id/homePeerSupport" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_peers"
@@ -28,4 +35,41 @@
         android:name="com.example.safespace_app.profile.Profile"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/homeCounseling"
+        android:name="com.example.safespace_app.home.HomeCounseling"
+        android:label="fragment_home_counseling"
+        tools:layout="@layout/fragment_home_counseling" >
+        <action
+            android:id="@+id/action_homeCounseling_to_homeCounselingForm"
+            app:destination="@id/homeCounselingForm" />
+    </fragment>
+    <fragment
+        android:id="@+id/homePeerSupport"
+        android:name="com.example.safespace_app.home.HomePeerSupport"
+        android:label="fragment_home_peer_support"
+        tools:layout="@layout/fragment_home_peer_support" >
+        <action
+            android:id="@+id/action_homePeerSupport_to_homePeerSupportForm1"
+            app:destination="@id/homePeerSupportForm1" />
+    </fragment>
+    <fragment
+        android:id="@+id/homeCounselingForm"
+        android:name="com.example.safespace_app.home.HomeCounselingForm"
+        android:label="fragment_home_counseling_form"
+        tools:layout="@layout/fragment_home_counseling_form" />
+    <fragment
+        android:id="@+id/homePeerSupportForm1"
+        android:name="com.example.safespace_app.home.HomePeerSupportForm1"
+        android:label="fragment_home_peer_support_form1"
+        tools:layout="@layout/fragment_home_peer_support_form1" >
+        <action
+            android:id="@+id/action_homePeerSupportForm1_to_homePeerSupportForm2"
+            app:destination="@id/homePeerSupportForm2" />
+    </fragment>
+    <fragment
+        android:id="@+id/homePeerSupportForm2"
+        android:name="com.example.safespace_app.home.HomePeerSupportForm2"
+        android:label="fragment_home_peer_support_form2"
+        tools:layout="@layout/fragment_home_peer_support_form2" />
 </navigation>

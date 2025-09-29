@@ -5,7 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
+import com.google.android.material.button.MaterialButton
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -33,11 +36,21 @@ class HomePeerSupport : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home_peer_support, container, false)
-    }
+    ): View {
+        val rootView = inflater.inflate(R.layout.fragment_home_peer_support, container, false)
 
+        val backBtn = rootView.findViewById<ImageView>(R.id.backbtn)
+        backBtn.setOnClickListener {
+            findNavController().navigateUp()
+        }
+        val btnStart = rootView.findViewById<MaterialButton>(R.id.btnstart)
+        btnStart.setOnClickListener {
+            // Make sure you have this action in nav_graph.xml
+            findNavController().navigate(R.id.action_homePeerSupport_to_homePeerSupportForm1)
+        }
+
+        return rootView
+    }
     companion object {
         /**
          * Use this factory method to create a new instance of
