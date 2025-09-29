@@ -11,7 +11,7 @@
     <TextView
         android:text="@string/emailverify"
         android:textColor="@color/white"
-        android:fontFamily="@font/PSBold"
+        android:fontFamily="@font/psbold"
         android:textAlignment="center"
         android:textSize="@dimen/giant"
         android:layout_height="wrap_content"
@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:fontFamily="@font/PS"
+            android:fontFamily="@font/ps"
             android:textSize="@dimen/mid"
             android:gravity="center"
             android:text="A verification code has been sent to "/>
@@ -53,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/mid"
             android:gravity="center"
             android:text="@string/email"
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:textColor="@color/black"
-            android:fontFamily="@font/PS"
+            android:fontFamily="@font/ps"
             android:textSize="@dimen/mid"
             android:gravity="center"
             android:text="@string/forgotverify"/>
@@ -89,7 +89,7 @@
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="@dimen/otp"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/darkblue"
                 android:background="@drawable/f_rounded_white"
                 android:elevation="1.5dp"/>
@@ -104,7 +104,7 @@
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="@dimen/otp"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/darkblue"
                 android:background="@drawable/f_rounded_white"
                 android:elevation="1.5dp"/>
@@ -119,7 +119,7 @@
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="@dimen/otp"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/darkblue"
                 android:background="@drawable/f_rounded_white"
                 android:elevation="1.5dp"/>
@@ -134,7 +134,7 @@
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="@dimen/otp"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/darkblue"
                 android:background="@drawable/f_rounded_white"
                 android:elevation="1.5dp"/>
@@ -149,7 +149,7 @@
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="@dimen/otp"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/darkblue"
                 android:background="@drawable/f_rounded_white"
                 android:elevation="1.5dp"/>
@@ -163,7 +163,7 @@
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="@dimen/otp"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/darkblue"
                 android:background="@drawable/f_rounded_white"
                 android:elevation="1.5dp"/>
@@ -174,13 +174,13 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnlogin"
+            android:id="@+id/btn"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginTop="50dp"
             android:padding="0dp"
             android:text="Verify"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"
             android:textColor="@color/white"
             app:backgroundTint="@null"
@@ -193,7 +193,7 @@
             android:layout_marginTop="10dp"
             android:padding="0dp"
             android:text="Resend Code"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/small"
             android:textColor="@color/midblue"
             app:backgroundTint="@null"

@@ -77,7 +77,7 @@
             android:layout_marginBottom="15dp"
             android:text="@string/counselingbtn"
             android:textColor="@color/white"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/small"/>
 
         <com.google.android.material.imageview.ShapeableImageView
@@ -113,7 +113,7 @@
             android:layout_marginBottom="15dp"
             android:text="@string/sessionbtn2"
             android:textColor="@color/white"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/small"/>
 
 
@@ -124,7 +124,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Upcoming"
-        android:fontFamily="@font/PSBold"
+        android:fontFamily="@font/psbold"
         android:textSize="@dimen/small"
         android:textColor="@color/textgrey"
         android:layout_marginTop="25dp"
@@ -162,7 +162,7 @@
                     android:text="Peer Support Session"
                     android:textColor="@color/white"
                     android:textSize="@dimen/smaller"
-                    android:fontFamily="@font/PSBold"
+                    android:fontFamily="@font/psbold"
                     android:layout_marginStart="8dp"/>
 
             </LinearLayout>
@@ -191,7 +191,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/date"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSBold"
+                        android:fontFamily="@font/psbold"
                         android:textSize="@dimen/small"/>
 
                     <TextView
@@ -199,7 +199,7 @@
                         android:layout_height="wrap_content"
                         android:text="NOW"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PS"
+                        android:fontFamily="@font/ps"
                         android:textSize="@dimen/small"/>
 
 
@@ -216,7 +216,7 @@
                 android:layout_marginBottom="10dp"
                 android:padding="0dp"
                 android:text="Start Call"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/smaller"
                 android:textColor="@color/white"
                 app:backgroundTint="@null"
@@ -252,7 +252,7 @@
                     android:text="Guidance Counseling"
                     android:textColor="@color/white"
                     android:textSize="@dimen/smaller"
-                    android:fontFamily="@font/PSBold"
+                    android:fontFamily="@font/psbold"
                     android:layout_marginStart="8dp"/>
 
             </LinearLayout>
@@ -281,7 +281,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/date"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSBold"
+                        android:fontFamily="@font/psbold"
                         android:textSize="@dimen/small"/>
 
                     <TextView
@@ -289,7 +289,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/timerange"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PS"
+                        android:fontFamily="@font/ps"
                         android:textSize="@dimen/smaller"/>
 
 
@@ -306,7 +306,7 @@
                 android:layout_marginBottom="10dp"
                 android:padding="0dp"
                 android:text="Cancel"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/smaller"
                 android:textColor="@color/white"
                 app:backgroundTint="@null"
@@ -320,7 +320,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Notifications"
-        android:fontFamily="@font/PSBold"
+        android:fontFamily="@font/psbold"
         android:textSize="@dimen/small"
         android:textColor="@color/textgrey"
         android:layout_marginTop="25dp"
@@ -364,7 +364,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSBold"
+                        android:fontFamily="@font/psbold"
                         android:textSize="@dimen/small"/>
 
                     <TextView
@@ -373,7 +373,7 @@
                         android:justificationMode="inter_word"
                         android:text="@string/para"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PS"
+                        android:fontFamily="@font/ps"
                         android:textSize="@dimen/small"/>
 
                 </LinearLayout>
@@ -408,7 +408,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSBold"
+                        android:fontFamily="@font/psbold"
                         android:textSize="@dimen/small"/>
 
                     <TextView
@@ -417,7 +417,7 @@
                         android:justificationMode="inter_word"
                         android:text="@string/para"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PS"
+                        android:fontFamily="@font/ps"
                         android:textSize="@dimen/small"/>
 
                 </LinearLayout>
@@ -452,7 +452,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSBold"
+                        android:fontFamily="@font/psbold"
                         android:textSize="@dimen/small"/>
 
                     <TextView
@@ -461,7 +461,7 @@
                         android:justificationMode="inter_word"
                         android:text="@string/para"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PS"
+                        android:fontFamily="@font/ps"
                         android:textSize="@dimen/small"/>
 
                 </LinearLayout>
@@ -496,7 +496,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSBold"
+                        android:fontFamily="@font/psbold"
                         android:textSize="@dimen/small"/>
 
                     <TextView
@@ -505,7 +505,7 @@
                         android:justificationMode="inter_word"
                         android:text="@string/para"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PS"
+                        android:fontFamily="@font/ps"
                         android:textSize="@dimen/small"/>
 
                 </LinearLayout>

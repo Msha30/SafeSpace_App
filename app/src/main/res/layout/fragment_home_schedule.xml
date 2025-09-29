@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Edit Schedule Availability"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textColor="@color/midblue"
             android:textSize="@dimen/mid"/>
 
@@ -51,7 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Day"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginBottom="10dp"/>
@@ -71,7 +71,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -84,7 +84,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -104,7 +104,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -117,7 +117,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -125,7 +125,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Day"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="15dp"
@@ -146,7 +146,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -159,7 +159,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -179,7 +179,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -192,7 +192,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -200,7 +200,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Day"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="15dp"
@@ -221,7 +221,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -234,7 +234,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -254,7 +254,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -267,7 +267,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -275,7 +275,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Day"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="15dp"
@@ -296,7 +296,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -309,7 +309,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -329,7 +329,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -342,7 +342,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -350,7 +350,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Day"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="15dp"
@@ -371,7 +371,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -384,7 +384,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -404,7 +404,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -417,7 +417,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -425,7 +425,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Day"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="15dp"
@@ -446,7 +446,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -459,7 +459,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -479,7 +479,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
                 <TextView
                     android:layout_marginLeft="15dp"
@@ -492,7 +492,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:textSize="@dimen/small"
-                    android:fontFamily="@font/PS"/>
+                    android:fontFamily="@font/ps"/>
 
             </LinearLayout>
 
@@ -506,7 +506,7 @@
         android:layout_marginTop="25dp"
         android:padding="0dp"
         android:text="Save Availability"
-        android:fontFamily="@font/PSBold"
+        android:fontFamily="@font/psbold"
         android:textSize="@dimen/reg"
         android:textColor="@color/white"
         app:backgroundTint="@null"

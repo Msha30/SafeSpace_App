@@ -13,4 +13,12 @@
         <item name="strokeColor">@color/btngrey</item>
     </style>
 
+    <style name="CustomDropDownListView" parent="Widget.AppCompat.ListView.DropDown">
+        <item name="android:background">@android:color/white</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="fontFamily">@font/ps</item>
+        <item name="android:textSize">@dimen/reg</item>
+    </style>
+
+
 </resources>

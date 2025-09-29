@@ -82,7 +82,7 @@
         android:text="@string/header"
         android:textAlignment="center"
         android:textSize="@dimen/mid"
-        android:fontFamily="@font/PSBold"
+        android:fontFamily="@font/psbold"
         android:textColor="@color/black"/>
 
     <TextView
@@ -91,7 +91,7 @@
         android:text="Preffered Name"
         android:textAlignment="center"
         android:textSize="@dimen/small"
-        android:fontFamily="@font/PS"
+        android:fontFamily="@font/ps"
         android:textColor="@color/textgrey"/>
 
     <LinearLayout
@@ -118,7 +118,7 @@
             android:layout_marginLeft="20dp"
             android:text="Your Information"
             android:textColor="@color/textgrey"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"/>
 
     </LinearLayout>
@@ -147,7 +147,7 @@
             android:layout_marginLeft="20dp"
             android:text="Notifications &amp; Sounds"
             android:textColor="@color/textgrey"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"/>
 
     </LinearLayout>
@@ -176,7 +176,7 @@
             android:layout_marginLeft="20dp"
             android:text="Terms and Conditions"
             android:textColor="@color/textgrey"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"/>
 
     </LinearLayout>
@@ -205,7 +205,7 @@
             android:layout_marginLeft="20dp"
             android:text="Privacy Policy"
             android:textColor="@color/textgrey"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"/>
 
     </LinearLayout>
@@ -234,7 +234,7 @@
             android:layout_marginLeft="20dp"
             android:text="Sign Out"
             android:textColor="@color/red"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"/>
 
     </LinearLayout>

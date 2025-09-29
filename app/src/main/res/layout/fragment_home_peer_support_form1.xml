@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Peer Support Session"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textColor="@color/white"
             android:textSize="@dimen/mid"/>
 
@@ -68,7 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Choose a Peer"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/black"
                 android:textSize="@dimen/small"
                 android:layout_marginBottom="8dp"/>
@@ -82,7 +82,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -90,7 +90,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -98,7 +98,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -106,7 +106,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -114,7 +114,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -122,7 +122,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -132,7 +132,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Preffered mode of platform "
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/black"
                 android:textSize="@dimen/small"
                 android:layout_marginTop="15dp"
@@ -147,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Call"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -155,7 +155,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Video Call"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -163,7 +163,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Face to Face"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -173,7 +173,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Topic of Concern"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/black"
                 android:textSize="@dimen/small"
                 android:layout_marginTop="15dp"
@@ -188,7 +188,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  School Related"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -196,7 +196,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Family Related"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -204,7 +204,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Personal Problem"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -212,7 +212,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:text="  Other"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
@@ -222,7 +222,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Specify general concern"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textColor="@color/black"
                 android:textSize="@dimen/small"
                 android:layout_marginTop="15dp"
@@ -242,7 +242,7 @@
                     android:layout_height="100dp"
                     android:gravity="top|start"
                     android:background="@drawable/f_transparent"
-                    android:fontFamily="@font/PS"
+                    android:fontFamily="@font/ps"
                     android:hint="Enter your Answer"
                     android:inputType="textMultiLine"
                     android:scrollbars="vertical"
@@ -258,7 +258,7 @@
                 android:layout_marginTop="25dp"
                 android:padding="0dp"
                 android:text="Next"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/reg"
                 android:textColor="@color/white"
                 app:backgroundTint="@null"

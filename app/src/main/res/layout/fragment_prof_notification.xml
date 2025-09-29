@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Notifications &amp; Sounds"
-            android:fontFamily="@font/PSBold"
+            android:fontFamily="@font/psbold"
             android:textColor="@color/midblue"
             android:textSize="@dimen/mid"/>
 
@@ -57,7 +57,7 @@
                     android:layout_weight="1"
                     android:text="Notification &amp; Sounds"
                     android:textColor="@color/black"
-                    android:fontFamily="@font/PSMedium"
+                    android:fontFamily="@font/psmedium"
                     android:textSize="@dimen/reg"/>
 
                 <androidx.appcompat.widget.SwitchCompat
@@ -76,7 +76,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Support Group"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="25dp"
@@ -100,7 +100,7 @@
                         android:layout_weight="1"
                         android:text="New Group Messages"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -130,7 +130,7 @@
                         android:layout_weight="1"
                         android:text="Events"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -152,7 +152,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Notification"
-                android:fontFamily="@font/PSBold"
+                android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
                 android:textColor="@color/textgrey"
                 android:layout_marginTop="25dp"
@@ -176,7 +176,7 @@
                         android:layout_weight="1"
                         android:text="New Messages"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -206,7 +206,7 @@
                         android:layout_weight="1"
                         android:text="New Group Session"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -236,7 +236,7 @@
                         android:layout_weight="1"
                         android:text="GCO Events"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -266,7 +266,7 @@
                         android:layout_weight="1"
                         android:text="Counseling Session Confirmation"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -296,7 +296,7 @@
                         android:layout_weight="1"
                         android:text="Peer Support Session Confirmation"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -326,7 +326,7 @@
                         android:layout_weight="1"
                         android:text="Scheduled Session Reminder"
                         android:textColor="@color/black"
-                        android:fontFamily="@font/PSMedium"
+                        android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat

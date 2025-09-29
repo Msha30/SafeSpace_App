@@ -6,15 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.safespace_app.R
 
 class SignupPeer : Fragment() {
-
-    companion object {
-        fun newInstance() = SignupPeer()
-    }
 
     private val viewModel: SignupPeerViewModel by viewModels()
 
@@ -28,11 +25,19 @@ class SignupPeer : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Dropdown setup
+        // --- Dropdown setup ---
         val items = resources.getStringArray(R.array.yearlevel)
         val adapter = ArrayAdapter(requireContext(), R.layout.f_list_item, items)
-
         val autoCompleteTextView = view.findViewById<AutoCompleteTextView>(R.id.yearlevel)
         autoCompleteTextView.setAdapter(adapter)
+
+        // --- Button navigation to SignupVerification fragment ---
+        val btn = view.findViewById<Button>(R.id.btn)
+        btn.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.main, SignupVerification()) // replace with your container ID
+                .addToBackStack(null) // so user can press back to return here
+                .commit()
+        }
     }
 }
