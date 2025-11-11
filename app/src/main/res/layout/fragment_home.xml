@@ -109,193 +109,13 @@
         android:layout_marginTop="25dp"
         android:layout_marginBottom="10dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/upcoming"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:elevation="1dp"
-            android:orientation="vertical"
-            android:background="@drawable/f_rounded_white">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/f_top_green"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp">
-
-                <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_type_call"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Peer Support Session"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/smaller"
-                    android:fontFamily="@font/psbold"
-                    android:layout_marginStart="8dp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="15dp"
-                android:gravity="center_vertical">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/img_placeholder"
-                    android:elevation="1dp"
-                    app:shapeAppearanceOverlay="@style/CircleImage"/>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="15dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/date"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psbold"
-                        android:textSize="@dimen/small"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="NOW"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/ps"
-                        android:textSize="@dimen/small"/>
-
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnjoin"
-                android:layout_width="match_parent"
-                android:layout_height="25dp"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
-                android:layout_marginBottom="10dp"
-                android:padding="0dp"
-                android:text="Join"
-                android:fontFamily="@font/psbold"
-                android:textSize="@dimen/smaller"
-                android:textColor="@color/white"
-                app:backgroundTint="@null"
-                android:background="@drawable/f_rounded_green"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:elevation="1dp"
-            android:orientation="vertical"
-            android:layout_marginStart="15dp"
-            android:background="@drawable/f_rounded_white">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/f_top_blue"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp">
-
-                <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_type_counseling"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Guidance Counseling"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/smaller"
-                    android:fontFamily="@font/psbold"
-                    android:layout_marginStart="8dp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="15dp"
-                android:gravity="center_vertical">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/img_placeholder"
-                    app:shapeAppearanceOverlay="@style/CircleImage"
-                    android:elevation="1dp"/>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="15dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/date"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psbold"
-                        android:textSize="@dimen/small"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/timerange"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/ps"
-                        android:textSize="@dimen/smaller"/>
-
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btncancel"
-                android:layout_width="match_parent"
-                android:layout_height="25dp"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
-                android:layout_marginBottom="10dp"
-                android:padding="0dp"
-                android:text="Cancel"
-                android:fontFamily="@font/psbold"
-                android:textSize="@dimen/smaller"
-                android:textColor="@color/white"
-                app:backgroundTint="@null"
-                android:background="@drawable/f_cancel_btn"/>
-
-        </LinearLayout>
-
-    </LinearLayout>
+        android:orientation="horizontal"
+        tools:listitem="@layout/item_upcoming"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -307,20 +127,12 @@
         android:layout_marginTop="25dp"
         android:layout_marginBottom="10dp"/>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notifications"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="none">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingBottom="100dp"
-            tools:listitem="@layout/item_notif">
-
-        </androidx.recyclerview.widget.RecyclerView>
-
-    </ScrollView>
+        android:paddingBottom="65dp"
+        android:orientation="vertical"
+        tools:listitem="@layout/item_notif"/>
 
 </LinearLayout>

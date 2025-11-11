@@ -90,55 +90,38 @@
             android:textSize="@dimen/reg"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <LinearLayout
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewPhotos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="100dp"
-            android:layout_weight="1"
-            android:elevation="1.5dp"
-            android:src="@drawable/img_placeholder"
-            android:scaleType="centerCrop"/>
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="100dp"
-            android:layout_weight="1"
-            android:elevation="1.5dp"
-            android:layout_marginLeft="15dp"
-            android:src="@drawable/img_placeholder"
-            android:scaleType="centerCrop"/>
-
-        <FrameLayout
-            android:layout_height="100dp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:elevation="1.5dp"
-            android:layout_marginLeft="15dp"
-            android:background="@color/navgrey">
-
-            <ImageView
-                android:id="@+id/addMediaBtn"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_addevent"
-                app:tint="@color/white"/>
-        </FrameLayout>
-
-    </LinearLayout>
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3"
+        tools:listitem="@layout/layout_addphoto"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="15dp"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnlogin"
+        android:id="@+id/btnimage"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="15dp"
         android:padding="0dp"
-        android:text="Submit"
+        android:text="Add photos"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"
+        android:textColor="@color/textgrey"
+        app:backgroundTint="@null"
+        android:background="@drawable/f_rounded_inactive"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnpost"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="15dp"
+        android:padding="0dp"
+        android:text="Post"
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/reg"
         android:textColor="@color/white"

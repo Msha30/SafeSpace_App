@@ -27,9 +27,7 @@ class SignupPeer : Fragment() {
 
         // --- Dropdown setup ---
         val items = resources.getStringArray(R.array.yearlevel)
-        val adapter = ArrayAdapter(requireContext(), R.layout.f_list_item, items)
         val autoCompleteTextView = view.findViewById<AutoCompleteTextView>(R.id.yearlevel)
-        autoCompleteTextView.setAdapter(adapter)
 
         // --- Button navigation to SignupVerification fragment ---
         val btn = view.findViewById<Button>(R.id.btn)

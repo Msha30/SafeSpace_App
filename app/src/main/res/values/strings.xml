@@ -22,6 +22,15 @@
         The code will expire in 5 minutes
     </string>
 
+    <string name="peer">
+        Start pairing to start a conversation with one\n
+        of our Peer Facilitators to share, heal, and\n
+        grow through meaningful talks!\n
+        \n
+        You matter, and we want nothing but to\n
+        create and provide a safe space for you!
+    </string>
+
     <string name="emailverify">
         Student Email\n
         Verification

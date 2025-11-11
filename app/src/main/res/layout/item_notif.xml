@@ -13,6 +13,7 @@
     android:orientation="horizontal">
 
     <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/photo"
         android:layout_width="50dp"
         android:layout_height="50dp"
         app:shapeAppearanceOverlay="@style/CircleImage"
@@ -25,6 +26,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/header"
@@ -33,6 +35,7 @@
             android:textSize="@dimen/small"/>
 
         <TextView
+            android:id="@+id/content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:justificationMode="inter_word"

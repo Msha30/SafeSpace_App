@@ -19,7 +19,6 @@ class Signup : AppCompatActivity() {
         val radioGroup = findViewById<RadioGroup>(R.id.radioGroup)
         val btnNext = findViewById<Button>(R.id.btnnext)
         val items = resources.getStringArray(R.array.programs)
-        val adapter = ArrayAdapter(this, R.layout.f_list_item, items)
         val autoCompleteTextView = findViewById<AutoCompleteTextView>(R.id.program)
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -41,7 +40,6 @@ class Signup : AppCompatActivity() {
             }
         }
 
-        autoCompleteTextView.setAdapter(adapter)
         btnNext.setOnClickListener {
             when (radioGroup.checkedRadioButtonId) {
                 R.id.btnpeer -> {

@@ -86,46 +86,6 @@
                     android:textColor="@color/black"
                     android:textSize="@dimen/reg"/>
 
-                <RadioButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/ps"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/reg"/>
-
-                <RadioButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/ps"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/reg"/>
-
-                <RadioButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/ps"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/reg"/>
-
-                <RadioButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/ps"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/reg"/>
-
-                <RadioButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:text="  Lorem Ipsum"
-                    android:fontFamily="@font/ps"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/reg"/>
-
             </RadioGroup>
 
             <TextView

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    kotlin("kapt")
 }
 
 android {
@@ -54,4 +55,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    // Glide library for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    // Glide annotation processor (optional but recommended)
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
 }
