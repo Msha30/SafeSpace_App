@@ -39,205 +39,38 @@
 
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/skyblue"
-        android:orientation="vertical"
+        android:layout_marginTop="20dp"
         android:paddingLeft="25dp"
         android:paddingRight="25dp"
-        android:paddingBottom="110dp"
-        android:scaleType="centerCrop"
         android:scrollbars="none"
         app:flow_horizontalAlign="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="1:1.93"
+        app:layout_constraintTop_toBottomOf="@+id/header"
+        app:layout_constraintBottom_toTopOf="@+id/bar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintWidth_percent="1">
-
-        <LinearLayout
-            android:layout_marginTop="70dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="bottom"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/header"
-                    android:fontFamily="@font/psbold"
-                    android:textSize="@dimen/small"
-                    android:textColor="@color/midblue"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="10dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_white"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_white"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_white"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="15dp"
-                android:gravity="end"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_blue"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_blue"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/header"
-                    android:fontFamily="@font/psbold"
-                    android:textSize="@dimen/small"
-                    android:textColor="@color/midblue"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="10dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_white"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/header"
-                    android:fontFamily="@font/psbold"
-                    android:textSize="@dimen/small"
-                    android:textColor="@color/midblue"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="10dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_white"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="15dp"
-                android:gravity="end"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/f_rounded_blue"
-                    android:padding="15dp"
-                    android:text="@string/header"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/ps"
-                    android:textSize="@dimen/small"/>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </ScrollView>
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <LinearLayout
         android:id="@+id/bar"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:background="@color/white"
-        android:padding="15dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="40dp"
+        android:gravity="center"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:background="#e6e6e6"
@@ -249,12 +82,21 @@
                 android:layout_weight="1"
                 android:background="@drawable/f_transparent"
                 android:hint="Type a message..."
-                android:paddingHorizontal="15dp"
+                android:paddingHorizontal="7dp"
                 android:textSize="16sp"
+                android:textColor="@color/black"
                 android:inputType="textCapSentences|textMultiLine"
                 android:gravity="center_vertical" />
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/send"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginLeft="20dp"
+            android:src="@drawable/ic_send"
+            app:tint="@color/midblue"/>
 
     </LinearLayout>
 

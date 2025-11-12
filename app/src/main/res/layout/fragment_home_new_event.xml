@@ -96,6 +96,7 @@
         android:layout_height="wrap_content"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:spanCount="3"
+        tools:itemCount="3"
         tools:listitem="@layout/layout_addphoto"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

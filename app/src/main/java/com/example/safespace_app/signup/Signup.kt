@@ -45,7 +45,7 @@ class Signup : AppCompatActivity() {
                 R.id.btnpeer -> {
                     val fragment = SignupPeer()
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment) // make sure activity_signup.xml has FrameLayout with this id
+                        .replace(R.id.main, fragment)
                         .addToBackStack(null)
                         .commit()
                 }

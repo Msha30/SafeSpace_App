@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/f_rounded_white"
+    android:elevation="1.5dp"
+    android:padding="15dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:shapeAppearanceOverlay="@style/RoundedImage"
+        android:src="@drawable/img_placeholder"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/header"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="00 Members  |  Join Now!"
+            android:textStyle="italic"
+            android:textColor="@color/textgrey"
+            android:fontFamily="@font/ps"
+            android:textSize="@dimen/small"/>
+
+    </LinearLayout>
+
+</LinearLayout>

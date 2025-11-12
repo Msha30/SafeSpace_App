@@ -74,6 +74,7 @@
             android:scrollbars="none">
 
             <RadioGroup
+                android:id="@+id/radioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -81,11 +82,11 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/date"
+                    android:layout_marginBottom="8dp"
                     android:fontFamily="@font/psbold"
+                    android:text="@string/date"
                     android:textColor="@color/textgrey"
-                    android:textSize="@dimen/small"
-                    android:layout_marginBottom="8dp"/>
+                    android:textSize="@dimen/small" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -96,28 +97,28 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
@@ -131,40 +132,40 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/date"
-                    android:fontFamily="@font/psbold"
-                    android:textColor="@color/textgrey"
-                    android:textSize="@dimen/small"
                     android:layout_marginTop="15dp"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/psbold"
+                    android:text="@string/date"
+                    android:textColor="@color/textgrey"
+                    android:textSize="@dimen/small" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -175,28 +176,28 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
@@ -210,40 +211,40 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/date"
-                    android:fontFamily="@font/psbold"
-                    android:textColor="@color/textgrey"
-                    android:textSize="@dimen/small"
                     android:layout_marginTop="15dp"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/psbold"
+                    android:text="@string/date"
+                    android:textColor="@color/textgrey"
+                    android:textSize="@dimen/small" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -254,28 +255,28 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
@@ -289,40 +290,40 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/date"
-                    android:fontFamily="@font/psbold"
-                    android:textColor="@color/textgrey"
-                    android:textSize="@dimen/small"
                     android:layout_marginTop="15dp"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/psbold"
+                    android:text="@string/date"
+                    android:textColor="@color/textgrey"
+                    android:textSize="@dimen/small" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -333,28 +334,28 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
@@ -368,40 +369,40 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/date"
-                    android:fontFamily="@font/psbold"
-                    android:textColor="@color/textgrey"
-                    android:textSize="@dimen/small"
                     android:layout_marginTop="15dp"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/psbold"
+                    android:text="@string/date"
+                    android:textColor="@color/textgrey"
+                    android:textSize="@dimen/small" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -412,28 +413,28 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 
@@ -447,28 +448,28 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center" />
+                        android:textSize="@dimen/small" />
 
                     <RadioButton
-                        android:layout_marginLeft="15dp"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginLeft="15dp"
                         android:layout_weight="1"
-                        android:button="@null"
                         android:background="@drawable/f_rounded_white"
+                        android:button="@null"
                         android:fontFamily="@font/ps"
                         android:padding="0dp"
                         android:text="@string/timerange2"
+                        android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/small"
-                        android:textAlignment="center"/>
+                        android:textSize="@dimen/small" />
 
                 </LinearLayout>
 

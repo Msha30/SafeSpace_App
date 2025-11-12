@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="15dp"
+    android:orientation="horizontal"
+    android:background="@drawable/f_rounded_white"
+    android:elevation="1.5dp">
+
+    <LinearLayout
+        android:layout_width="10dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/f_left_blue"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/img_placeholder"
+                android:elevation="1dp"
+                app:shapeAppearanceOverlay="@style/CircleImage"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lorem Ipsum - Online"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/psbold"
+                    android:textSize="@dimen/reg"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:lineHeight="20dp"
+                    android:text="📅 Month 00\n🕑 0:00 PM - 0:00 PM\n📍 School LRC"
+                    android:textSize="@dimen/small"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/ps"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="See Details"
+                android:textAlignment="textEnd"
+                android:textColor="@color/textgrey"
+                android:textSize="@dimen/smaller"
+                android:fontFamily="@font/psbold"
+                android:textStyle="italic"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:padding="0dp"
+                android:text="Cancel"
+                android:fontFamily="@font/psbold"
+                android:textSize="@dimen/smaller"
+                android:textColor="@color/textgrey"
+                app:backgroundTint="#e6e6e6"
+                android:background="@drawable/f_cancel_btn"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_marginLeft="10dp"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:padding="0dp"
+                android:text="Session Done"
+                android:fontFamily="@font/psbold"
+                android:textSize="@dimen/smaller"
+                android:textColor="@color/white"
+                app:backgroundTint="@null"
+                android:background="@drawable/f_rounded_blue"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

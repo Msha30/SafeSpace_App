@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/f_rounded_white"
+    android:elevation="1.5dp"
+    android:padding="15dp"
+    android:layout_marginBottom="10dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:shapeAppearanceOverlay="@style/CircleImage"
+        android:src="@drawable/img_placeholder"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginLeft="15dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/header"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psmedium"
+            android:textSize="@dimen/reg"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="@string/header"
+            android:textStyle="italic"
+            android:textColor="@color/textgrey"
+            android:fontFamily="@font/ps"
+            android:textSize="@dimen/small"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1m"
+        android:textSize="@dimen/smaller"
+        android:textColor="@color/textgrey"
+        android:fontFamily="@font/ps"/>
+
+</LinearLayout>
