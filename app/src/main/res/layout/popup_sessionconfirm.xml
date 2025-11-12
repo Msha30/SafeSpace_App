@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="25dp"
+    android:background="@drawable/f_rounded_white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:text="Lorem Ipsum - Online"
+                android:textColor="@color/black"
+                android:fontFamily="@font/psbold"
+                android:textSize="@dimen/mid"/>
+
+            <TextView
+                android:id="@+id/info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📅  Month 00, 2025\n🕒  0:00 PM - 0:00\n📍  Online"
+                android:textColor="@color/black"
+                android:fontFamily="@font/ps"
+                android:textSize="@dimen/reg"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Topic of Concern"
+        android:textColor="@color/black"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"/>
+
+    <TextView
+        android:id="@+id/concern"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:text="School Related"
+        android:textColor="@color/black"
+        android:fontFamily="@font/ps"
+        android:textSize="@dimen/reg"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description"
+        android:textColor="@color/black"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"/>
+
+    <TextView
+        android:id="@+id/desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:text="@string/para"
+        android:textColor="@color/black"
+        android:fontFamily="@font/ps"
+        android:textSize="@dimen/reg"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btncancel"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:padding="0dp"
+            android:text="Cancel"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            android:background="@drawable/f_cancel_btn"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnconfirm"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="15dp"
+            android:padding="0dp"
+            android:text="Confirm"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            android:background="@drawable/f_rounded_blue"/>
+
+    </LinearLayout>
+
+</LinearLayout>

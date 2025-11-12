@@ -22,6 +22,10 @@
         The code will expire in 5 minutes
     </string>
 
+    <string name="cancel">
+        Are you sure you want to cancel Guidance Counseling Session for 0:00 AM - 0:00 AM on Month 0, 2025?
+    </string>
+
     <string name="peer">
         Start pairing to start a conversation with one\n
         of our Peer Facilitators to share, heal, and\n
@@ -93,8 +97,8 @@
 
     <string name="title_activity_main_navigation">MainNavigation</string>
     <string name="title_home">Home</string>
-    <string name="title_peers">Peers</string>
-    <string name="title_chat">Chat</string>
+    <string name="title_peers">Peer</string>
+    <string name="title_support">Support</string>
     <string name="title_profile">Profile</string>
 
     <string name="counselingbtn">
@@ -113,6 +117,22 @@
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+
+    <string name="confidential">
+        All conversations are strictly confidential. Peer Facilitators can only view your preferred name for conversational purposes.
+    </string>
+
+    <string name="duration">
+        The chat session, once started, will automatically end after 24 hours. This time limit applies regardless of when the last message was sent.
+    </string>
+
+    <string name="history">
+        All messages exchanged during the session are removed after the 24-hour chat duration has ended. The Guidance Counseling Office are the only authorized personnel who can access the chat history for management purposes.
+    </string>
+    
+    <string name="repair">
+        You cannot request a new pairing while an active chat session is ongoing. You can only start pairing again after the previous chat with a Peer has ended.
+    </string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

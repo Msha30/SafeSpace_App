@@ -10,32 +10,52 @@
 
     <LinearLayout
         android:id="@+id/header"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="50dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="25dp"
         android:layout_marginEnd="25dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:layout_marginBottom="20dp"
-        android:gravity="center_vertical">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:layout_width="17dp"
-            android:layout_height="17dp"
-            android:layout_marginRight="15dp"
-            android:background="@drawable/ic_return"
-            android:backgroundTint="@color/midblue"/>
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/header"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/ic_return"
+                android:backgroundTint="@color/midblue" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/psbold"
+                android:text="@string/header"
+                android:textColor="@color/midblue"
+                android:textSize="@dimen/mid" />
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnout"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:background="@drawable/f_rounded_blue"
             android:fontFamily="@font/psbold"
-            android:textColor="@color/midblue"
-            android:textSize="@dimen/mid"/>
+            android:padding="0dp"
+            android:text="End Chat"
+            android:textColor="@color/white"
+            android:textSize="@dimen/reg"
+            app:backgroundTint="@null" />
 
     </LinearLayout>
 
@@ -43,7 +63,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/skyblue"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="15dp"
         android:paddingLeft="25dp"
         android:paddingRight="25dp"
         android:scrollbars="none"
