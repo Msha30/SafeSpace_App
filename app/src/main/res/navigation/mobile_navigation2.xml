@@ -77,8 +77,42 @@
         tools:layout="@layout/fragment_chat" />
 
     <fragment
-        android:id="@+id/nav_profile"
-        android:name="com.example.safespace_app.profile.Profile"
+        android:id="@+id/nav_profile2"
+        android:name="com.example.safespace_app.profile.Profile2"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile2" >
+        <action
+            android:id="@+id/action_nav_profile2_to_profInfo2"
+            app:destination="@id/profInfo2" />
+        <action
+            android:id="@+id/action_nav_profile2_to_profNotification2"
+            app:destination="@id/profNotification2" />
+        <action
+            android:id="@+id/action_nav_profile2_to_appTermsAndConditions2"
+            app:destination="@id/appTermsAndConditions2" />
+        <action
+            android:id="@+id/action_nav_profile2_to_appPrivacyPolicy2"
+            app:destination="@id/appPrivacyPolicy2" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profInfo2"
+        android:name="com.example.safespace_app.profile.ProfInfo2"
+        android:label="fragment_prof_info2"
+        tools:layout="@layout/fragment_prof_info2" />
+    <fragment
+        android:id="@+id/profNotification2"
+        android:name="com.example.safespace_app.profile.ProfNotification"
+        android:label="fragment_prof_notification"
+        tools:layout="@layout/fragment_prof_notification" />
+    <fragment
+        android:id="@+id/appTermsAndConditions2"
+        android:name="com.example.safespace_app.AppTermsAndConditions"
+        android:label="fragment_app_terms_and_conditions"
+        tools:layout="@layout/fragment_app_terms_and_conditions" />
+    <fragment
+        android:id="@+id/appPrivacyPolicy2"
+        android:name="com.example.safespace_app.AppPrivacyPolicy"
+        android:label="fragment_app_privacy_policy"
+        tools:layout="@layout/fragment_app_privacy_policy" />
 </navigation>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/peers_navigation"
+    app:startDestination="@id/peers_1">
+
+    <fragment
+        android:id="@+id/peers_1"
+        android:name="com.example.safespace_app.peers.Peers_1"
+        android:label="fragment_peers_1"
+        tools:layout="@layout/fragment_peers_1" >
+        <action
+            android:id="@+id/action_peers_1_to_peers_2"
+            app:destination="@id/peers_2" />
+    </fragment>
+    <fragment
+        android:id="@+id/peers_2"
+        android:name="com.example.safespace_app.peers.Peers_2"
+        android:label="fragment_peers_2"
+        tools:layout="@layout/fragment_peers_2" >
+        <action
+            android:id="@+id/action_peers_2_to_peers_3"
+            app:destination="@id/peers_3" />
+    </fragment>
+    <fragment
+        android:id="@+id/peers_3"
+        android:name="com.example.safespace_app.peers.Peers_3"
+        android:label="fragment_peers_3"
+        tools:layout="@layout/fragment_peers_3" >
+        <action
+            android:id="@+id/action_peers_3_to_peers_Chat"
+            app:destination="@id/peers_Chat" />
+    </fragment>
+    <fragment
+        android:id="@+id/peers_info"
+        android:name="com.example.safespace_app.peers.Peers_info"
+        android:label="fragment_peers_info"
+        tools:layout="@layout/fragment_peers_info" />
+    <fragment
+        android:id="@+id/peers_Guide"
+        android:name="com.example.safespace_app.peers.Peers_Guide"
+        android:label="fragment_peers_guide"
+        tools:layout="@layout/fragment_peers_guide" />
+    <fragment
+        android:id="@+id/peers_Chat"
+        android:name="com.example.safespace_app.peers.Peers_Chat"
+        android:label="fragment_peers_chat"
+        tools:layout="@layout/fragment_peers_chat" >
+        <action
+            android:id="@+id/action_peers_Chat_to_peers_Guide"
+            app:destination="@id/peers_Guide" />
+        <action
+            android:id="@+id/action_peers_Chat_to_peers_info"
+            app:destination="@id/peers_info" />
+    </fragment>
+</navigation>
