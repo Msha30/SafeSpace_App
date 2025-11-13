@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="25dp"
+    android:elevation="1.5dp"
     android:background="@drawable/f_rounded_white">
 
     <LinearLayout
@@ -31,6 +32,17 @@
             android:textSize="@dimen/mid"/>
 
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/f_rounded_green"
+        android:text="ONLINE"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"
+        android:textColor="@color/white"
+        android:gravity="center"/>
 
     <TextView
         android:layout_width="match_parent"

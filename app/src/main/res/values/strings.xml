@@ -129,7 +129,7 @@
     <string name="history">
         All messages exchanged during the session are removed after the 24-hour chat duration has ended. The Guidance Counseling Office are the only authorized personnel who can access the chat history for management purposes.
     </string>
-    
+
     <string name="repair">
         You cannot request a new pairing while an active chat session is ongoing. You can only start pairing again after the previous chat with a Peer has ended.
     </string>

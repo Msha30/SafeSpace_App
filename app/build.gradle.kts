@@ -59,4 +59,6 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     // Glide annotation processor (optional but recommended)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.github.agrawalsuneet:DotLoadersPack-Android:1.4.2")
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
 }

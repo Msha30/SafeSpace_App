@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="25dp"
+    android:elevation="1.5dp"
+    android:background="@drawable/f_rounded_white">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:text="Paired Succesfully!"
+        android:textColor="@color/black"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/mid"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/f_rounded_inactive"
+        android:backgroundTint="@color/fillout"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:text="Lorem Ipsum"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+    </LinearLayout>
+
+</LinearLayout>

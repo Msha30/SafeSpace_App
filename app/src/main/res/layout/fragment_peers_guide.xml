@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/light"
+    android:paddingTop="50dp"
+    android:paddingBottom="50dp"
+    android:paddingStart="25dp"
+    android:paddingEnd="25dp"
+    android:orientation="vertical"
+    tools:context=".peers.Peers_Guide">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginRight="15dp"
+            android:src="@drawable/ic_return"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Guide"
+            android:fontFamily="@font/psbold"
+            android:textColor="@color/midblue"
+            android:textSize="@dimen/mid"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:elevation="1dp"
+        android:orientation="vertical"
+        android:background="@drawable/f_rounded_white"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Confidentiality"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/confidential"
+            android:textColor="@color/black"
+            android:fontFamily="@font/ps"
+            android:textSize="@dimen/small"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:elevation="1dp"
+        android:orientation="vertical"
+        android:background="@drawable/f_rounded_white"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Session Duration"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/duration"
+            android:textColor="@color/black"
+            android:fontFamily="@font/ps"
+            android:textSize="@dimen/small"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:elevation="1dp"
+        android:orientation="vertical"
+        android:background="@drawable/f_rounded_white"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Conversation History"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/history"
+            android:textColor="@color/black"
+            android:fontFamily="@font/ps"
+            android:textSize="@dimen/small"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:elevation="1dp"
+        android:orientation="vertical"
+        android:background="@drawable/f_rounded_white"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Re-Pairing"
+            android:textColor="@color/black"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/repair"
+            android:textColor="@color/black"
+            android:fontFamily="@font/ps"
+            android:textSize="@dimen/small"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,13 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light"
+    android:paddingTop="50dp"
+    android:paddingBottom="50dp"
+    android:paddingStart="25dp"
+    android:paddingEnd="25dp"
     tools:context=".peers.Peers_3">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello" />
+    <ImageView
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/backbtn"
+        android:layout_width="110dp"
+        android:layout_height="30dp"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/logo"/>
 
-</FrameLayout>
+    <LinearLayout
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:elevation="1dp"
+        android:layout_marginBottom="250dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/f_rounded_white"
+        android:padding="25dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:text="Pairing..."
+            android:textColor="@color/black"
+            android:textAlignment="center"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/big"
+            android:lineHeight="20dp"/>
+
+        <com.agrawalsuneet.dotsloader.loaders.LinearDotsLoader
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:loader_animDur="1000"
+            app:loader_circleRadius="9dp"
+            app:loader_defaultColor="@color/skyblue"
+            app:loader_dotsDist="5dp"
+            app:loader_expandOnSelect="false"
+            app:loader_firstShadowColor="@color/blue"
+            app:loader_isSingleDir="false"
+            app:loader_noOfDots="9"
+            app:loader_secondShadowColor="#3f8ed3"
+            app:loader_selectedColor="@color/midblue"
+            app:loader_selectedRadius="10dp"
+            app:loader_showRunningShadow="true" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

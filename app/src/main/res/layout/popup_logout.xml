@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="25dp"
+    android:elevation="1.5dp"
     android:background="@drawable/f_rounded_white">
 
     <TextView

@@ -12,45 +12,39 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="Cancel Support Session"
+        android:layout_marginBottom="15dp"
+        android:text="Pairing Request"
         android:textColor="@color/black"
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/mid"/>
 
-    <TextView
-        android:id="@+id/content"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
-        android:text="@string/cancel"
-        android:textColor="@color/black"
-        android:fontFamily="@font/ps"
-        android:textSize="@dimen/reg"/>
-
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="10dp"
         android:layout_marginBottom="15dp"
-        android:background="@drawable/f_rounded_white"
+        android:gravity="center_vertical"
+        android:background="@drawable/f_rounded_inactive"
         android:backgroundTint="@color/fillout"
-        android:elevation="1.5dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        app:hintEnabled="false">
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/fname"
-            android:layout_width="match_parent"
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            android:src="@drawable/img_placeholder"/>
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/f_transparent"
-            android:fontFamily="@font/ps"
-            android:hint="Reason (Required)"
-            android:inputType="text"
+            android:layout_marginStart="15dp"
+            android:text="Lorem Ipsum"
             android:textColor="@color/black"
-            android:textColorHint="@color/textgrey"
-            android:textSize="@dimen/reg" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -58,12 +52,12 @@
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnkeep"
+            android:id="@+id/btnno"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
             android:padding="0dp"
-            android:text="Keep Session"
+            android:text="I'm not available"
             android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"
             android:textColor="@color/white"
@@ -71,18 +65,18 @@
             android:background="@drawable/f_cancel_btn"/>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btncancel"
+            android:id="@+id/btnyes"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
             android:layout_marginStart="15dp"
             android:padding="0dp"
-            android:text="Confirm"
+            android:text="Start Chat"
             android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"
             android:textColor="@color/white"
             app:backgroundTint="@null"
-            android:background="@drawable/f_rounded_red"/>
+            android:background="@drawable/f_rounded_blue"/>
 
     </LinearLayout>
 

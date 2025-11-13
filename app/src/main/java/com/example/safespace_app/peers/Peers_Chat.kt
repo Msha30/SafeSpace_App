@@ -14,7 +14,7 @@ class Peers_Chat : Fragment() {
         fun newInstance() = Peers_Chat()
     }
 
-    private val viewModel: PeersChatViewModel by viewModels()
+    private val viewModel: Peers_ChatViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
