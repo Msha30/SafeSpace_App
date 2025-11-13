@@ -121,14 +121,14 @@ class Home2 : Fragment() {
 
         // Now we can safely find views
         val btnPeerSupport = view.findViewById<ShapeableImageView>(R.id.peersupport)
-        val btnCounseling = view.findViewById<ShapeableImageView>(R.id.counseling)
+        val btnschedule = view.findViewById<ShapeableImageView>(R.id.counseling)
 
-        btnCounseling.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_home2_to_homeCounseling)
+        btnschedule.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_home2_to_homeSchedule)
         }
 
         btnPeerSupport.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_home2_to_homePeerSupport)
+            findNavController().navigate(R.id.action_nav_home2_to_homeSessionManagement)
         }
     }
 }

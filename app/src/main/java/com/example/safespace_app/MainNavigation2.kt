@@ -31,9 +31,9 @@ class MainNavigation2 : AppCompatActivity() {
         )
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.homeCounseling,R.id.homeCounselingForm,R.id.homePeerSupportForm1,
-                R.id.homePeerSupportForm2,
-                R.id.homePeerSupport -> binding.navView.visibility = View.GONE
+                R.id.homeSchedule, R.id.profNotification2, R.id.profInfo2,
+                R.id.appTermsAndConditions2, R.id.appPrivacyPolicy2,
+                R.id.homeSessionManagement -> binding.navView.visibility = View.GONE
                 else -> binding.navView.visibility = View.VISIBLE
             }
         }

@@ -48,7 +48,7 @@
         <com.agrawalsuneet.dotsloader.loaders.LinearDotsLoader
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:loader_animDur="1000"
+            app:loader_animDur="100"
             app:loader_circleRadius="9dp"
             app:loader_defaultColor="@color/skyblue"
             app:loader_dotsDist="5dp"

@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
+import com.google.android.material.button.MaterialButton
 
 class Peers_Chat : Fragment() {
 
@@ -27,5 +29,21 @@ class Peers_Chat : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(R.layout.fragment_peers_chat, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Now we can safely find views
+        val guide = view.findViewById<MaterialButton>(R.id.guide)
+        val peer = view.findViewById<MaterialButton>(R.id.peer)
+
+        guide.setOnClickListener {
+            findNavController().navigate(R.id.action_peers_Chat_to_peers_Guide)
+        }
+
+        peer.setOnClickListener {
+            findNavController().navigate(R.id.action_peers_Chat_to_peers_info)
+        }
     }
 }

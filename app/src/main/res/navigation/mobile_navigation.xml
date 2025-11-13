@@ -50,7 +50,11 @@
         <action
             android:id="@+id/action_nav_profile_to_profFeedback"
             app:destination="@id/profFeedback" />
+        <action
+            android:id="@+id/action_nav_profile_to_profChangeAvatar"
+            app:destination="@id/profChangeAvatar" />
     </fragment>
+
     <fragment
         android:id="@+id/homeCounseling"
         android:name="com.example.safespace_app.home.HomeCounseling"
@@ -60,6 +64,7 @@
             android:id="@+id/action_homeCounseling_to_homeCounselingForm"
             app:destination="@id/homeCounselingForm" />
     </fragment>
+
     <fragment
         android:id="@+id/homePeerSupport"
         android:name="com.example.safespace_app.home.HomePeerSupport"
@@ -69,11 +74,13 @@
             android:id="@+id/action_homePeerSupport_to_homePeerSupportForm1"
             app:destination="@id/homePeerSupportForm1" />
     </fragment>
+
     <fragment
         android:id="@+id/homeCounselingForm"
         android:name="com.example.safespace_app.home.HomeCounselingForm"
         android:label="fragment_home_counseling_form"
         tools:layout="@layout/fragment_home_counseling_form" />
+
     <fragment
         android:id="@+id/homePeerSupportForm1"
         android:name="com.example.safespace_app.home.HomePeerSupportForm1"
@@ -83,39 +90,47 @@
             android:id="@+id/action_homePeerSupportForm1_to_homePeerSupportForm2"
             app:destination="@id/homePeerSupportForm2" />
     </fragment>
+
     <fragment
         android:id="@+id/homePeerSupportForm2"
         android:name="com.example.safespace_app.home.HomePeerSupportForm2"
         android:label="fragment_home_peer_support_form2"
         tools:layout="@layout/fragment_home_peer_support_form2" />
+
     <fragment
         android:id="@+id/profChangeAvatar"
         android:name="com.example.safespace_app.profile.ProfChangeAvatar"
         android:label="fragment_prof_change_avatar"
         tools:layout="@layout/fragment_prof_change_avatar" />
+
     <fragment
         android:id="@+id/profFeedback"
         android:name="com.example.safespace_app.profile.ProfFeedback"
         android:label="fragment_prof_feedback"
         tools:layout="@layout/fragment_prof_feedback" />
+
     <fragment
         android:id="@+id/profInfo"
         android:name="com.example.safespace_app.profile.ProfInfo"
         android:label="fragment_prof_info"
         tools:layout="@layout/fragment_prof_info" />
+
     <fragment
         android:id="@+id/profNotification"
         android:name="com.example.safespace_app.profile.ProfNotification"
         android:label="fragment_prof_notification"
         tools:layout="@layout/fragment_prof_notification" />
+
     <fragment
         android:id="@+id/appTermsAndConditions"
         android:name="com.example.safespace_app.AppTermsAndConditions"
         android:label="fragment_app_terms_and_conditions"
         tools:layout="@layout/fragment_app_terms_and_conditions" />
+
     <fragment
         android:id="@+id/appPrivacyPolicy"
         android:name="com.example.safespace_app.AppPrivacyPolicy"
         android:label="fragment_app_privacy_policy"
         tools:layout="@layout/fragment_app_privacy_policy" />
+
 </navigation>

@@ -6,62 +6,16 @@
     app:startDestination="@+id/nav_home2">
 
     <fragment
-        android:id="@+id/homePeerSupportForm1"
-        android:name="com.example.safespace_app.home.HomePeerSupportForm1"
-        android:label="fragment_home_peer_support_form1"
-        tools:layout="@layout/fragment_home_peer_support_form1">
-        <action
-            android:id="@+id/action_homePeerSupportForm1_to_homePeerSupportForm2"
-            app:destination="@id/homePeerSupportForm2" />
-    </fragment>
-    <action
-        android:id="@+id/action_homePeerSupport_to_homePeerSupportForm1"
-        app:destination="@id/homePeerSupportForm1" />
-    <fragment
-        android:id="@+id/homePeerSupportForm2"
-        android:name="com.example.safespace_app.home.HomePeerSupportForm2"
-        android:label="fragment_home_peer_support_form2"
-        tools:layout="@layout/fragment_home_peer_support_form2" />
-    <fragment
-        android:id="@+id/homePeerSupport"
-        android:name="com.example.safespace_app.home.HomePeerSupport"
-        android:label="fragment_home_peer_support"
-        tools:layout="@layout/fragment_home_peer_support">
-        <action
-            android:id="@+id/action_homePeerSupport_to_homePeerSupportForm1"
-            app:destination="@id/homePeerSupportForm1" />
-    </fragment>
-    <action
-        android:id="@+id/action_homePeerSupportForm1_to_homePeerSupportForm2"
-        app:destination="@id/homePeerSupportForm2" />
-    <fragment
-        android:id="@+id/homeCounselingForm"
-        android:name="com.example.safespace_app.home.HomeCounselingForm"
-        android:label="fragment_home_counseling_form"
-        tools:layout="@layout/fragment_home_counseling_form" />
-    <fragment
-        android:id="@+id/homeCounseling"
-        android:name="com.example.safespace_app.home.HomeCounseling"
-        android:label="fragment_home_counseling"
-        tools:layout="@layout/fragment_home_counseling">
-        <action
-            android:id="@+id/action_homeCounseling_to_homeCounselingForm"
-            app:destination="@id/homeCounselingForm" />
-    </fragment>
-    <action
-        android:id="@+id/action_homeCounseling_to_homeCounselingForm"
-        app:destination="@id/homeCounselingForm" />
-    <fragment
         android:id="@+id/nav_home2"
         android:name="com.example.safespace_app.home.Home2"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home2" >
         <action
-            android:id="@+id/action_nav_home2_to_homeCounseling"
-            app:destination="@id/homeCounseling" />
+            android:id="@+id/action_nav_home2_to_homeSessionManagement"
+            app:destination="@id/homeSessionManagement" />
         <action
-            android:id="@+id/action_nav_home2_to_homePeerSupport"
-            app:destination="@id/homePeerSupport" />
+            android:id="@+id/action_nav_home2_to_homeSchedule"
+            app:destination="@id/homeSchedule" />
     </fragment>
 
     <fragment
@@ -115,4 +69,14 @@
         android:name="com.example.safespace_app.AppPrivacyPolicy"
         android:label="fragment_app_privacy_policy"
         tools:layout="@layout/fragment_app_privacy_policy" />
+    <fragment
+        android:id="@+id/homeSessionManagement"
+        android:name="com.example.safespace_app.home.HomeSessionManagement"
+        android:label="fragment_home_session_management"
+        tools:layout="@layout/fragment_home_session_management" />
+    <fragment
+        android:id="@+id/homeSchedule"
+        android:name="com.example.safespace_app.home.HomeSchedule"
+        android:label="fragment_home_schedule"
+        tools:layout="@layout/fragment_home_schedule" />
 </navigation>

@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_peers_1_to_peers_2"
             app:destination="@id/peers_2" />
+        <action
+            android:id="@+id/action_peers_1_to_peers_info"
+            app:destination="@id/peers_info" />
     </fragment>
     <fragment
         android:id="@+id/peers_2"

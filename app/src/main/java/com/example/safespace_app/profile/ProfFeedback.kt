@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
 
 class ProfFeedback : Fragment() {
@@ -26,6 +28,13 @@ class ProfFeedback : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_prof_feedback, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_prof_feedback, container, false)
+
+        val backBtn = rootView.findViewById<ImageView>(R.id.backbtn)
+        backBtn.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        return rootView
     }
 }

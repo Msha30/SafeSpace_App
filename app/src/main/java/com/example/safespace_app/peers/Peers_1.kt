@@ -5,7 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.imageview.ShapeableImageView
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -38,16 +41,23 @@ class Peers_1 : Fragment() {
         return inflater.inflate(R.layout.fragment_peers_1, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Now we can safely find views
+        val peer = view.findViewById<MaterialButton>(R.id.peer)
+        val pair = view.findViewById<MaterialButton>(R.id.pair)
+
+        peer.setOnClickListener {
+            findNavController().navigate(R.id.action_peers_1_to_peers_info)
+        }
+
+        pair.setOnClickListener {
+            findNavController().navigate(R.id.action_peers_1_to_peers_2)
+        }
+    }
+
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Peers_1.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
             Peers_1().apply {
