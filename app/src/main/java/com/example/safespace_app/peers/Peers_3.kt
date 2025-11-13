@@ -1,6 +1,8 @@
 package com.example.safespace_app.peers
 
 import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import androidx.fragment.app.viewModels
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -41,6 +43,7 @@ class Peers_3 : Fragment() {
             delay(5000)
             val dialog = Dialog(requireContext())
             dialog.setContentView(R.layout.popup_paired) // your custom layout XML
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             dialog.setCancelable(false)
             dialog.show()
             delay(3000)

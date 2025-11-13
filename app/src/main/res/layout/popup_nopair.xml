@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="25dp"
+    android:elevation="1.5dp"
+    android:background="@drawable/f_rounded_white">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="Pairing unsuccessful"
+        android:textColor="@color/black"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/mid"/>
+
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:text="Our Peer Facilitators are currently busy.\nPlease try again shortly."
+        android:textColor="@color/black"
+        android:fontFamily="@font/ps"
+        android:textSize="@dimen/reg"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnout"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:padding="0dp"
+        android:text="Okay"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"
+        android:textColor="@color/white"
+        app:backgroundTint="@null"
+        android:background="@drawable/f_rounded_blue"/>
+
+</LinearLayout>
