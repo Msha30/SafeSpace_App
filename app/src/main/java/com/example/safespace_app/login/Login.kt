@@ -40,6 +40,7 @@ class Login : AppCompatActivity() {
             .addOnSuccessListener {
                 Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, MainNavigation::class.java))
+                finish()
                 /* ADD LATER : Fetch user role from Firestore
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
                 FirebaseFirestore.getInstance()
