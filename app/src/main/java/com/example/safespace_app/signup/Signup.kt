@@ -113,8 +113,10 @@ class Signup : AppCompatActivity() {
             if (i_email.isEmpty()) {
                 inputEmail.error = "Please enter your email"
                 hasError = true
-            }
-            if (!i_email.endsWith(".edu.ph")) {
+            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(i_email).matches()) {
+                inputEmail.error = "Enter a valid email"
+                hasError = true
+            } else if (!i_email.endsWith(".edu.ph")) {
                 inputEmail.error = "Email must be an edu.ph domain"
                 hasError = true
             }

@@ -1,18 +1,20 @@
 package com.example.safespace_app.login
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.KeyEvent
-import androidx.fragment.app.Fragment
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.example.safespace_app.R
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 
 class LogForgotPassword : Fragment() {
+
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,67 +26,44 @@ class LogForgotPassword : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // --- Button Setup ---
-        val btn = view.findViewById<Button>(R.id.btn)
-        btn.setOnClickListener {
-            // ✅ Navigate to LogNewPassword fragment instead of using Intent
-            val fragment = LogNewPassword()
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.main, fragment) // make sure "main" is your container in activity_login.xml
-                .addToBackStack(null)
-                .commit()
-        }
+        auth = FirebaseAuth.getInstance()
 
-        // --- OTP EditTexts ---
-        val editTexts = listOf(
-            view.findViewById<EditText>(R.id.editText1),
-            view.findViewById<EditText>(R.id.editText2),
-            view.findViewById<EditText>(R.id.editText3),
-            view.findViewById<EditText>(R.id.editText4),
-            view.findViewById<EditText>(R.id.editText5),
-            view.findViewById<EditText>(R.id.editText6)
-        )
+        val emailInput = view.findViewById<TextInputEditText>(R.id.emailInput)
+        val sendBtn = view.findViewById<MaterialButton>(R.id.btnSendReset)
 
-        // Attach watchers and key listeners
-        for (i in editTexts.indices) {
-            val current = editTexts[i]
-            val next = editTexts.getOrNull(i + 1)
-            val prev = editTexts.getOrNull(i - 1)
+        sendBtn.setOnClickListener {
+            val email = emailInput.text.toString().trim()
 
-            current.addTextChangedListener(GenericTextWatcher(current, next))
-            current.setOnKeyListener(GenericKeyEvent(current, prev))
-        }
-    }
-}
+            // Validate email
+            if (email.isEmpty()) {
+                emailInput.error = "Email is required"
+                emailInput.requestFocus()
+                return@setOnClickListener
+            }
 
-// --- Helper Classes ---
-class GenericKeyEvent(
-    private val currentView: EditText,
-    private val previousView: EditText?
-) : View.OnKeyListener {
-    override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
-        if (event?.action == KeyEvent.ACTION_DOWN &&
-            keyCode == android.view.KeyEvent.KEYCODE_DEL &&
-            currentView.text.isEmpty()
-        ) {
-            previousView?.setText("")
-            previousView?.requestFocus()
-            return true
-        }
-        return false
-    }
-}
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                emailInput.error = "Enter a valid email"
+                emailInput.requestFocus()
+                return@setOnClickListener
+            }
 
-class GenericTextWatcher(
-    private val currentView: View,
-    private val nextView: View?
-) : TextWatcher {
-    override fun afterTextChanged(editable: Editable?) {
-        if (editable?.length == 1) {
-            nextView?.requestFocus()
+            // Send password reset email
+            auth.sendPasswordResetEmail(email)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Reset email sent to $email",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed to send reset email: ${task.exception?.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
         }
     }
-
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 }

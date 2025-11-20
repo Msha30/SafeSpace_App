@@ -44,7 +44,7 @@ class Login : AppCompatActivity() {
                 /* ADD LATER : Fetch user role from Firestore
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
                 FirebaseFirestore.getInstance()
-                    .collection("users")
+                    .collection("account_details")
                     .document(uid)
                     .get()
                     .addOnSuccessListener { doc ->
@@ -84,20 +84,42 @@ class Login : AppCompatActivity() {
         btnLogin.setOnClickListener {
             val email = inputEmail.text.toString().trim()
             val password = inputPassword.text.toString().trim()
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            var hasError = false
+
+            // Clear previous errors
+            inputEmail.error = null
+            inputPassword.error = null
+
+            // --- Email validation ---
+            if (email.isEmpty()) {
+                inputEmail.error = "Please enter your email"
+                hasError = true
+            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                inputEmail.error = "Enter a valid email"
+                hasError = true
+            } else if (!email.endsWith(".edu.ph")) {
+                inputEmail.error = "Email must be an edu.ph domain"
+                hasError = true
             }
+
+            // --- Password validation ---
+            if (password.isEmpty()) {
+                inputPassword.error = "Please enter your password"
+                hasError = true
+            }
+
+            // Stop if there are errors
+            if (hasError) return@setOnClickListener
+
+            // --- Test accounts ---
             if (email == "user" && password == "user") {
                 startActivity(Intent(this, MainNavigation::class.java))
                 finish()
-            }
-            else if (email == "peer" && password == "peer") {
+            } else if (email == "peer" && password == "peer") {
                 startActivity(Intent(this, MainNavigation2::class.java))
                 finish()
-            }
-            else {
-                loginUser(email, password)
+            } else {
+                loginUser(email, password) // Firebase login
             }
 
 
