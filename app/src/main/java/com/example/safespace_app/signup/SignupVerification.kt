@@ -2,20 +2,46 @@ package com.example.safespace_app.signup
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.KeyEvent
+import android.os.CountDownTimer
+import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
+import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import com.example.safespace_app.R
 import com.example.safespace_app.login.Login
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 
 class SignupVerification : Fragment() {
+
+    private lateinit var resendBtn: MaterialButton
+    private lateinit var verifyBtn: MaterialButton
+    private lateinit var emailTv: TextView
+    private val cooldownMillis = 30_000L // 30 seconds cooldown
+
+    private val auth = FirebaseAuth.getInstance()
+    private var user = auth.currentUser
+
+    private val handler = Handler()
+    private val pollingInterval = 3000L // 3 seconds
+    private val autoCheckRunnable = object : Runnable {
+        override fun run() {
+            user?.reload()?.addOnCompleteListener {
+                val isVerified = user?.isEmailVerified ?: false
+                if (isVerified) {
+                    Log.d("SignupVerification", "Email verified automatically, proceeding to Login")
+                    startActivity(Intent(requireContext(), Login::class.java))
+                    requireActivity().finish()
+                } else {
+                    handler.postDelayed(this, pollingInterval)
+                }
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -27,83 +53,66 @@ class SignupVerification : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // --- Button Setup ---
-        val btn = view.findViewById<Button>(R.id.btn)
-        btn.setOnClickListener {
-            val intent = Intent(requireContext(), Login::class.java)
-            startActivity(intent)
+        // --- Disable back button ---
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            // Do nothing
         }
 
-        // --- OTP EditTexts ---
-        val editTexts = listOf(
-            view.findViewById<EditText>(R.id.editText1),
-            view.findViewById<EditText>(R.id.editText2),
-            view.findViewById<EditText>(R.id.editText3),
-            view.findViewById<EditText>(R.id.editText4),
-            view.findViewById<EditText>(R.id.editText5),
-            view.findViewById<EditText>(R.id.editText6)
-        )
+        emailTv = view.findViewById(R.id.email)
+        resendBtn = view.findViewById(R.id.resendcode)
+        verifyBtn = view.findViewById(R.id.btn)
 
-        for (i in editTexts.indices) {
-            val current = editTexts[i]
-            val next = editTexts.getOrNull(i + 1)
-            val prev = editTexts.getOrNull(i - 1)
+        val email = arguments?.getString("email") ?: "your@email.com"
+        emailTv.text = email
 
-            current.addTextChangedListener(GenericTextWatcher(current, next))
-            current.setOnKeyListener(GenericKeyEvent(current, prev))
-        }
-        val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
+        user = auth.currentUser
 
-        // Start a periodic check
-        val handler = android.os.Handler()
-        val runnable = object : Runnable {
-            override fun run() {
-                user?.reload()?.addOnCompleteListener {
-                    if (user.isEmailVerified) {
-                        // Email verified, go to login screen
-                        startActivity(Intent(requireContext(), Login::class.java))
-                        requireActivity().finish()
-                    } else {
-                        // Retry after 3 seconds
-                        handler.postDelayed(this, 3000)
-                    }
+        // --- Manual verify button ---
+        verifyBtn.setOnClickListener {
+            user?.reload()?.addOnCompleteListener {
+                val isVerified = user?.isEmailVerified ?: false
+                if (isVerified) {
+                    Log.d("SignupVerification", "Email verified, proceeding to Login")
+                    startActivity(Intent(requireContext(), Login::class.java))
+                    requireActivity().finish()
+                } else {
+                    Log.d("SignupVerification", "Email not verified yet")
+                    verifyBtn.text = "Not verified yet"
                 }
             }
         }
-        handler.post(runnable)
 
-    }
-}
-
-// --- Helper Classes ---
-
-class GenericKeyEvent(
-    private val currentView: EditText,
-    private val previousView: EditText?
-) : View.OnKeyListener {
-    override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
-        if (event?.action == KeyEvent.ACTION_DOWN &&
-            keyCode == KeyEvent.KEYCODE_DEL &&
-            currentView.text.isEmpty()
-        ) {
-            previousView?.setText("")
-            previousView?.requestFocus()
-            return true
+        // --- Resend verification email ---
+        resendBtn.setOnClickListener {
+            user?.sendEmailVerification()?.addOnSuccessListener {
+                Log.d("SignupVerification", "Resent verification email to $email")
+                startResendCooldown()
+            }?.addOnFailureListener { e ->
+                Log.e("SignupVerification", "Failed to resend verification email: ${e.message}")
+            }
         }
-        return false
-    }
-}
 
-class GenericTextWatcher(
-    private val currentView: View,
-    private val nextView: View?
-) : TextWatcher {
-    override fun afterTextChanged(editable: Editable?) {
-        if (editable?.length == 1) {
-            nextView?.requestFocus()
-        }
+        // --- Start auto-checking ---
+        handler.post(autoCheckRunnable)
     }
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+    private fun startResendCooldown() {
+        resendBtn.isEnabled = false
+        resendBtn.setBackgroundColor(resources.getColor(R.color.navgrey, null))
+        object : CountDownTimer(cooldownMillis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                resendBtn.text = "Resend (${millisUntilFinished / 1000}s)"
+            }
+            override fun onFinish() {
+                resendBtn.isEnabled = true
+                resendBtn.text = "Resend Code"
+                resendBtn.setBackgroundResource(android.R.color.transparent)
+            }
+        }.start()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        handler.removeCallbacks(autoCheckRunnable) // stop polling when fragment is destroyed
+    }
 }

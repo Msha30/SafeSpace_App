@@ -98,16 +98,22 @@ class SignupStudent : Fragment() {
                         "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
                     )
 
+                    val bundle = Bundle().apply {
+                        putString("email", email)
+                    }
+
                     com.google.firebase.firestore.FirebaseFirestore.getInstance()
                         .collection("account_details")
                         .document(uid)
                         .set(userData)
                         .addOnSuccessListener {
                             android.util.Log.d("Signup", "User data saved to Firestore")
-
+                            val fragment = SignupVerification().apply {
+                                arguments = bundle
+                            }
                             // Navigate to verification fragment
                             parentFragmentManager.beginTransaction()
-                                .replace(R.id.main, SignupVerification()) // your container ID
+                                .replace(R.id.main, fragment) // use the instance, not the class
                                 .addToBackStack(null)
                                 .commit()
                         }

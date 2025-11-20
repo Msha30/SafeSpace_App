@@ -1,206 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scaleType="centerCrop"
     android:background="@drawable/main_background"
-    tools:context=".signup.SignupVerification">
+    android:scaleType="centerCrop">
 
+    <!-- Title -->
     <TextView
+        android:id="@+id/titleVerify"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/emailverify"
         android:textColor="@color/white"
         android:fontFamily="@font/psbold"
-        android:textAlignment="center"
         android:textSize="@dimen/giant"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_marginTop="110dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textAlignment="center"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="110dp"/>
 
+    <!-- Container Card -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintWidth_percent="1"
-        app:layout_constraintDimensionRatio="1:1.5"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="30dp"
+        android:background="@drawable/f_rounded_start"
+        app:layout_constraintTop_toBottomOf="@id/titleVerify"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp"
-        android:paddingTop="60dp"
-        android:paddingBottom="60dp"
-        android:background="@drawable/f_rounded_start"
-        android:scaleType="centerCrop"
-        android:orientation="vertical"
-        app:flow_horizontalAlign="center"
-        android:gravity="center_horizontal">
+        app:layout_constraintWidth_percent="1"
+        app:layout_constraintDimensionRatio="1:1.2">
 
+        <!-- Instruction -->
         <TextView
+            android:id="@+id/instructionText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="A verification link has been sent to "
             android:textColor="@color/black"
             android:fontFamily="@font/ps"
             android:textSize="@dimen/mid"
             android:gravity="center"
-            android:text="A verification code has been sent to "/>
+            android:layout_marginBottom="8dp"/>
 
+        <!-- User Email -->
         <TextView
             android:id="@+id/email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="@string/email"
             android:textColor="@color/black"
             android:fontFamily="@font/psbold"
             android:textSize="@dimen/mid"
             android:gravity="center"
-            android:text="@string/email"
             android:clickable="true"
             android:focusable="true"
-            android:linksClickable="true"/>
+            android:linksClickable="true"
+            android:layout_marginBottom="15dp"/>
 
+        <!-- Extra instruction / info -->
         <TextView
             android:id="@+id/Terms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:text="@string/forgotverify"
             android:textColor="@color/black"
             android:fontFamily="@font/ps"
             android:textSize="@dimen/mid"
             android:gravity="center"
-            android:text="@string/forgotverify"/>
+            android:layout_marginBottom="35dp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="35dp"
-            android:gravity="center">
-
-            <EditText
-                android:id="@+id/editText1"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:layout_marginRight="8dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="@dimen/otp"
-                android:fontFamily="@font/psbold"
-                android:textColor="@color/darkblue"
-                android:background="@drawable/f_rounded_white"
-                android:elevation="1.5dp"/>
-
-            <EditText
-                android:id="@+id/editText2"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:layout_marginRight="8dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="@dimen/otp"
-                android:fontFamily="@font/psbold"
-                android:textColor="@color/darkblue"
-                android:background="@drawable/f_rounded_white"
-                android:elevation="1.5dp"/>
-
-            <EditText
-                android:id="@+id/editText3"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:layout_marginRight="8dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="@dimen/otp"
-                android:fontFamily="@font/psbold"
-                android:textColor="@color/darkblue"
-                android:background="@drawable/f_rounded_white"
-                android:elevation="1.5dp"/>
-
-            <EditText
-                android:id="@+id/editText4"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:layout_marginRight="8dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="@dimen/otp"
-                android:fontFamily="@font/psbold"
-                android:textColor="@color/darkblue"
-                android:background="@drawable/f_rounded_white"
-                android:elevation="1.5dp"/>
-
-            <EditText
-                android:id="@+id/editText5"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:layout_marginRight="8dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="@dimen/otp"
-                android:fontFamily="@font/psbold"
-                android:textColor="@color/darkblue"
-                android:background="@drawable/f_rounded_white"
-                android:elevation="1.5dp"/>
-
-            <EditText
-                android:id="@+id/editText6"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="@dimen/otp"
-                android:fontFamily="@font/psbold"
-                android:textColor="@color/darkblue"
-                android:background="@drawable/f_rounded_white"
-                android:elevation="1.5dp"/>
-
-
-
-
-        </LinearLayout>
-
+        <!-- Verify Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_marginTop="50dp"
-            android:padding="0dp"
             android:text="Verify"
-            android:fontFamily="@font/psbold"
-            android:textSize="@dimen/reg"
             android:textColor="@color/white"
-            app:backgroundTint="@null"
-            android:background="@drawable/f_rounded_blue"/>
+            android:textSize="@dimen/reg"
+            android:fontFamily="@font/psbold"
+            android:background="@drawable/f_rounded_blue"
+            android:layout_marginBottom="10dp"/>
 
+        <!-- Resend Link Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/resendcode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:padding="0dp"
             android:text="Resend Code"
-            android:fontFamily="@font/psbold"
-            android:textSize="@dimen/small"
             android:textColor="@color/midblue"
-            app:backgroundTint="@null"
+            android:textSize="@dimen/small"
+            android:fontFamily="@font/psbold"
             android:background="@drawable/f_transparent"/>
-
-
-
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
