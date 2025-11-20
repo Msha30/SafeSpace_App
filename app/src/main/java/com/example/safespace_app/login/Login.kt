@@ -19,6 +19,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.example.safespace_app.*
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class Login : AppCompatActivity() {
     private fun loginUser(email: String, password: String) {
@@ -38,24 +39,41 @@ class Login : AppCompatActivity() {
         FirebaseAuth.getInstance()
             .signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
-                Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, MainNavigation::class.java))
-                finish()
-                /* ADD LATER : Fetch user role from Firestore
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
-                FirebaseFirestore.getInstance()
-                    .collection("account_details")
+                val db = FirebaseFirestore.getInstance()
+
+                db.collection("account_details")
                     .document(uid)
                     .get()
                     .addOnSuccessListener { doc ->
-                        val role = doc.getString("role") ?: "user"
-                        when (role) {
-                            "peer" -> startActivity(Intent(this, MainNavigation2::class.java))
-                            else -> startActivity(Intent(this, MainNavigation::class.java))
+                        if (!doc.exists()) {
+                            Toast.makeText(this, "No account details found!", Toast.LENGTH_SHORT).show()
+                            return@addOnSuccessListener
                         }
 
-                        finish()
-                    }*/
+                        val userType = doc.getString("userType") ?: "student"
+
+                        // Redirect based on userType
+                        when (userType.lowercase()) {
+                            "peer" -> {
+                                Toast.makeText(this, "Logged in as: $userType", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, MainNavigation2::class.java))
+                            }
+                            "student" -> {
+                                Toast.makeText(this, "Logged in as: $userType", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, MainNavigation::class.java))
+                            }
+                            else -> {
+                                Toast.makeText(this, "Unknown user type: $userType", Toast.LENGTH_SHORT).show()
+                                return@addOnSuccessListener
+                            }
+                        }
+
+                        finish() // prevent back navigation to login
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
+                    }
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Login failed: ${it.message}", Toast.LENGTH_SHORT).show()
@@ -90,17 +108,17 @@ class Login : AppCompatActivity() {
             inputEmail.error = null
             inputPassword.error = null
 
-            // --- Email validation ---
+            // --- Email validation --- temp
             if (email.isEmpty()) {
                 inputEmail.error = "Please enter your email"
                 hasError = true
-            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            } /*else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 inputEmail.error = "Enter a valid email"
                 hasError = true
             } else if (!email.endsWith(".edu.ph")) {
                 inputEmail.error = "Email must be an edu.ph domain"
                 hasError = true
-            }
+            }*/
 
             // --- Password validation ---
             if (password.isEmpty()) {
