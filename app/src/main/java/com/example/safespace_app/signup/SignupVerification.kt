@@ -13,6 +13,7 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import com.example.safespace_app.R
 import com.example.safespace_app.login.Login
+import com.google.firebase.auth.FirebaseAuth
 
 class SignupVerification : Fragment() {
 
@@ -51,6 +52,27 @@ class SignupVerification : Fragment() {
             current.addTextChangedListener(GenericTextWatcher(current, next))
             current.setOnKeyListener(GenericKeyEvent(current, prev))
         }
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+
+        // Start a periodic check
+        val handler = android.os.Handler()
+        val runnable = object : Runnable {
+            override fun run() {
+                user?.reload()?.addOnCompleteListener {
+                    if (user.isEmailVerified) {
+                        // Email verified, go to login screen
+                        startActivity(Intent(requireContext(), Login::class.java))
+                        requireActivity().finish()
+                    } else {
+                        // Retry after 3 seconds
+                        handler.postDelayed(this, 3000)
+                    }
+                }
+            }
+        }
+        handler.post(runnable)
+
     }
 }
 
