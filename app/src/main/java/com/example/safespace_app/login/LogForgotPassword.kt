@@ -1,5 +1,6 @@
 package com.example.safespace_app.login
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import android.view.LayoutInflater
@@ -30,40 +31,59 @@ class LogForgotPassword : Fragment() {
 
         val emailInput = view.findViewById<TextInputEditText>(R.id.emailInput)
         val sendBtn = view.findViewById<MaterialButton>(R.id.btnSendReset)
+        val resendBtn = view.findViewById<MaterialButton>(R.id.resendBtn)
 
-        sendBtn.setOnClickListener {
+        fun triggerReset() {
             val email = emailInput.text.toString().trim()
 
-            // Validate email
+            // Empty
             if (email.isEmpty()) {
-                emailInput.error = "Email is required"
+                emailInput.error = "Please enter your email"
                 emailInput.requestFocus()
-                return@setOnClickListener
+                return
             }
 
+            // Basic format
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                emailInput.error = "Enter a valid email"
+                emailInput.error = "Invalid email format"
                 emailInput.requestFocus()
-                return@setOnClickListener
+                return
             }
 
-            // Send password reset email
+            // Domain check
+            if (!email.endsWith(".edu.ph")) {
+                emailInput.error = "Email must be .edu.ph"
+                emailInput.requestFocus()
+                return
+            }
+
+            // Attempt to send reset email
             auth.sendPasswordResetEmail(email)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(
                             requireContext(),
-                            "Reset email sent to $email",
-                            Toast.LENGTH_LONG
+                            "Reset email sent! Check your inbox.",
+                            Toast.LENGTH_SHORT
                         ).show()
+
+                        // Return to Login activity
+                        val intent = Intent(requireContext(), Login::class.java)
+                        startActivity(intent)
+
+                        // Close the current activity so back doesn't return here
+                        requireActivity().finish()
                     } else {
                         Toast.makeText(
                             requireContext(),
-                            "Failed to send reset email: ${task.exception?.message}",
+                            "Failed: ${task.exception?.message}",
                             Toast.LENGTH_LONG
                         ).show()
                     }
                 }
         }
+
+        sendBtn.setOnClickListener { triggerReset() }
+        resendBtn.setOnClickListener { triggerReset() }
     }
 }
