@@ -51,6 +51,7 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/fname"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:background="@drawable/f_rounded_inactive"
@@ -79,6 +80,7 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/lname"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:background="@drawable/f_rounded_inactive"
@@ -107,6 +109,7 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/yr_lvl"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:background="@drawable/f_rounded_inactive"
@@ -135,6 +138,7 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/email"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:background="@drawable/f_rounded_inactive"
@@ -163,6 +167,7 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/program"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:background="@drawable/f_rounded_inactive"
@@ -191,6 +196,7 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/student_id"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:background="@drawable/f_rounded_inactive"

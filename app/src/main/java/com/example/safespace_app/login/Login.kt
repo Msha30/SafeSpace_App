@@ -22,6 +22,31 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class Login : AppCompatActivity() {
+
+    override fun onStart() {
+        super.onStart()
+
+        // Auto-login if user is already signed in
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            val uid = currentUser.uid
+            val db = FirebaseFirestore.getInstance()
+            db.collection("account_details").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        val userType = doc.getString("userType") ?: "student"
+                        when (userType.lowercase()) {
+                            "peer" -> startActivity(Intent(this, MainNavigation2::class.java))
+                            "student" -> startActivity(Intent(this, MainNavigation::class.java))
+                        }
+                        finish()
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
     private fun loginUser(email: String, password: String) {
 
         // Simple domain check before touching Firebase (0 cost)
@@ -79,6 +104,9 @@ class Login : AppCompatActivity() {
                 Toast.makeText(this, "Login failed: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login) // <-- use activity layout
@@ -97,6 +125,7 @@ class Login : AppCompatActivity() {
                 .addToBackStack(null)
                 .commit()
         }
+
 
         // === Login ===
         btnLogin.setOnClickListener {
