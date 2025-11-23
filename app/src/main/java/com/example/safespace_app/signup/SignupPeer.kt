@@ -26,41 +26,27 @@ class SignupPeer : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
-
-
+        // Data from previous signup screens
         val fname = arguments?.getString("fname") ?: ""
         val lname = arguments?.getString("lname") ?: ""
         val email = arguments?.getString("email") ?: ""
-        val programFromActivity = arguments?.getString("program") ?: ""
-
+        val program = arguments?.getString("program") ?: ""
 
         val studentId = view.findViewById<TextInputEditText>(R.id.studentid)
         val password = view.findViewById<TextInputEditText>(R.id.password)
         val confirmPassword = view.findViewById<TextInputEditText>(R.id.confirmpassword)
 
+        // --- DROPDOWN ---
+        val yearLevels = listOf("1st Year","2nd Year","3rd Year","4th Year")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, yearLevels)
 
-        // --- Dropdown setup ---
-
-        val lvl = listOf("1st Year","2nd Year","3rd Year","4th Year")
-        val adapter = ArrayAdapter(requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            lvl
-        )
-
-        val items = resources.getStringArray(R.array.yearlevel)
         val yrlvl = view.findViewById<AutoCompleteTextView>(R.id.yearlevel)
         yrlvl.setAdapter(adapter)
         yrlvl.threshold = 1
-        yrlvl.setOnClickListener {
-            yrlvl.showDropDown()
-        }
+        yrlvl.setOnClickListener { yrlvl.showDropDown() }
+        yrlvl.setOnItemClickListener { _, _, _, _ -> yrlvl.error = null }
 
-        yrlvl.setOnItemClickListener { _, _, _, _ ->
-            yrlvl.error = null
-        }
-
-        // --- Button navigation to SignupVerification fragment ---
+        // --- BUTTON ---
         val btn = view.findViewById<Button>(R.id.btn)
         btn.setOnClickListener {
 
@@ -71,9 +57,8 @@ class SignupPeer : Fragment() {
 
             var hasError = false
 
-            if (i_yrlvl.isEmpty() || !lvl.contains(i_yrlvl)) {
-                yrlvl.error = "Please select a year level from the list"
-                yrlvl.setText("")
+            if (i_yrlvl.isEmpty() || !yearLevels.contains(i_yrlvl)) {
+                yrlvl.error = "Please select a year level"
                 hasError = true
             }
             if (i_studentid.isEmpty()) {
@@ -94,62 +79,36 @@ class SignupPeer : Fragment() {
             }
             if (hasError) return@setOnClickListener
 
-
+            // === Create FirebaseAuth user ===
             com.google.firebase.auth.FirebaseAuth.getInstance()
                 .createUserWithEmailAndPassword(email, i_pass)
-                .addOnSuccessListener { authResult ->
+                .addOnSuccessListener { result ->
 
-                    val firebaseUser = authResult.user!!
-                    val uid = firebaseUser.uid
+                    val firebaseUser = result.user!!
 
-                    // === Send email verification ===
+                    // Send verification email
                     firebaseUser.sendEmailVerification()
-                        .addOnSuccessListener {
-                            android.util.Log.d("Signup", "Verification email sent to $email")
-                        }
-                        .addOnFailureListener { e ->
-                            android.util.Log.e("Signup", "Failed to send verification email: ${e.message}")
-                        }
 
-                    // === Save full user data to Firestore ===
-                    val userData = hashMapOf(
-                        "uid" to uid,
-                        "fname" to fname,
-                        "lname" to lname,
-                        "email" to email,
-                        "program" to programFromActivity,
-                        "year_lvl" to i_yrlvl,
-                        "studentId" to i_studentid,
-                        "userType" to "peer",
-                        "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
-                    )
-
+                    // Send ALL data to SignupVerification
                     val bundle = Bundle().apply {
+                        putString("fname", fname)
+                        putString("lname", lname)
                         putString("email", email)
+                        putString("program", program)
+                        putString("year_lvl", i_yrlvl)
+                        putString("studentId", i_studentid)
+                        putString("userType", "peer")
                     }
 
-                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        .collection("account_details")
-                        .document(uid)
-                        .set(userData)
-                        .addOnSuccessListener {
-                            android.util.Log.d("Signup", "User data saved to Firestore")
-                            val fragment = SignupVerification().apply {
-                                arguments = bundle
-                            }
-                            // Navigate to verification fragment
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.main, fragment) // use the instance, not the class
-                                .addToBackStack(null)
-                                .commit()
-                        }
-                        .addOnFailureListener { e ->
-                            android.util.Log.e("Signup", "Failed to save user data: ${e.message}")
-                        }
+                    val fragment = SignupVerification().apply { arguments = bundle }
 
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment)
+                        .addToBackStack(null)
+                        .commit()
                 }
                 .addOnFailureListener { e ->
-                    android.util.Log.e("Signup", "Signup failed: ${e.message}")
+                    android.util.Log.e("SignupPeer", "Signup failed: ${e.message}")
                 }
         }
     }

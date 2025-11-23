@@ -10,8 +10,8 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.MetricAffectingSpan
+import android.util.Log
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -26,90 +26,144 @@ class Login : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        // Auto-login if user is already signed in
         val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
+        if (currentUser != null && currentUser.isEmailVerified) {
             val uid = currentUser.uid
             val db = FirebaseFirestore.getInstance()
             db.collection("account_details").document(uid).get()
                 .addOnSuccessListener { doc ->
                     if (doc.exists()) {
                         val userType = doc.getString("userType") ?: "student"
-                        when (userType.lowercase()) {
-                            "peer" -> startActivity(Intent(this, MainNavigation2::class.java))
-                            "student" -> startActivity(Intent(this, MainNavigation::class.java))
-                        }
-                        finish()
+                        navigateUserFromType(userType)
                     }
                 }
                 .addOnFailureListener {
                     Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
                 }
+        } else {
+            FirebaseAuth.getInstance().signOut()
         }
     }
-    private fun loginUser(email: String, password: String) {
 
-        // Simple domain check before touching Firebase (0 cost)
+    private fun sendCachedUserDataIfExists(onSuccess: (String) -> Unit) {
+        val prefs = getSharedPreferences("signup_cache", 0)
+        if (!prefs.contains("email")) {
+            onSuccess("student") // default type
+            return
+        }
+
+        val current = FirebaseAuth.getInstance().currentUser ?: run {
+            onSuccess("student")
+            return
+        }
+
+        val userType = prefs.getString("userType", "student") ?: "student"
+        val db = FirebaseFirestore.getInstance()
+
+        val data = mutableMapOf<String, Any>(
+            "uid" to current.uid,
+            "email" to current.email!!,
+            "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp(),
+            "userType" to userType
+        )
+
+        if (userType == "student") {
+            data["fname"] = prefs.getString("fname", "")!!
+            data["lname"] = prefs.getString("lname", "")!!
+            data["program"] = prefs.getString("program", "")!!
+            data["username"] = prefs.getString("username", "")!!
+            data["studentId"] = prefs.getString("studentId", "")!!
+        }
+
+        if (userType == "peer") {
+            data["fname"] = prefs.getString("fname", "")!!
+            data["lname"] = prefs.getString("lname", "")!!
+            data["username"] = prefs.getString("username", "")!!
+        }
+
+        db.collection("account_details")
+            .document(current.uid)
+            .set(data)
+            .addOnSuccessListener {
+                Log.d("Login", "Cached user data uploaded to Firestore")
+                prefs.edit().clear().apply()
+                onSuccess(userType) // pass before clearing
+            }
+            .addOnFailureListener { e ->
+                Log.e("Login", "Failed to upload cached user data: ${e.message}")
+                onSuccess(userType)
+            }
+    }
+
+    private fun navigateUser(doc: com.google.firebase.firestore.DocumentSnapshot) {
+        val userType = doc.getString("userType") ?: "student"
+        navigateUserFromType(userType)
+    }
+
+    private fun navigateUserFromType(userType: String) {
+        when (userType.lowercase()) {
+            "peer" -> startActivity(Intent(this, MainNavigation2::class.java))
+            "student" -> startActivity(Intent(this, MainNavigation::class.java))
+            else -> {
+                Toast.makeText(this, "Unknown user type: $userType", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+        finish()
+    }
+
+    private fun loginUser(email: String, password: String) {
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Please enter a valid email", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Prevent spam-tapping (disable button for 2 sec)
         val btnLogin = findViewById<Button>(R.id.btnlogin)
         btnLogin.isEnabled = false
         btnLogin.postDelayed({ btnLogin.isEnabled = true }, 2000)
 
-        // Firebase login
         FirebaseAuth.getInstance()
             .signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
-                val uid = FirebaseAuth.getInstance().currentUser!!.uid
+                val user = FirebaseAuth.getInstance().currentUser!!
+
+                if (!user.isEmailVerified) {
+                    FirebaseAuth.getInstance().signOut()
+                    Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_LONG).show()
+                    return@addOnSuccessListener
+                }
+
+                val uid = user.uid
                 val db = FirebaseFirestore.getInstance()
 
                 db.collection("account_details")
                     .document(uid)
                     .get()
                     .addOnSuccessListener { doc ->
-                        if (!doc.exists()) {
-                            Toast.makeText(this, "No account details found!", Toast.LENGTH_SHORT).show()
-                            return@addOnSuccessListener
-                        }
-
-                        val userType = doc.getString("userType") ?: "student"
-
-                        // Redirect based on userType
-                        when (userType.lowercase()) {
-                            "peer" -> {
-                                Toast.makeText(this, "Logged in as: $userType", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this, MainNavigation2::class.java))
-                            }
-                            "student" -> {
-                                Toast.makeText(this, "Logged in as: $userType", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this, MainNavigation::class.java))
-                            }
-                            else -> {
-                                Toast.makeText(this, "Unknown user type: $userType", Toast.LENGTH_SHORT).show()
-                                return@addOnSuccessListener
+                        if (doc.exists()) {
+                            navigateUser(doc)
+                        } else {
+                            sendCachedUserDataIfExists { cachedUserType ->
+                                navigateUserFromType(cachedUserType)
                             }
                         }
-
-                        finish() // prevent back navigation to login
                     }
                     .addOnFailureListener {
                         Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
                     }
             }
-            .addOnFailureListener {
-                Toast.makeText(this, "Login failed: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
     }
-
-
+    override fun onBackPressed() {
+        // Go to Start activity
+        val intent = Intent(this, Start::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish() // remove Login from back stack
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login) // <-- use activity layout
+        setContentView(R.layout.activity_login)
 
         val inputEmail = findViewById<TextInputEditText>(R.id.inputemail)
         val inputPassword = findViewById<TextInputEditText>(R.id.inputpassword)
@@ -117,7 +171,7 @@ class Login : AppCompatActivity() {
         val btnForgot = findViewById<Button>(R.id.forgotpassword)
         val tvTerms = findViewById<TextView>(R.id.Terms)
 
-        // === Forgot Password ===
+        // Forgot Password
         btnForgot.setOnClickListener {
             val fragment = LogForgotPassword()
             supportFragmentManager.beginTransaction()
@@ -126,65 +180,40 @@ class Login : AppCompatActivity() {
                 .commit()
         }
 
-
-        // === Login ===
+        // Login button
         btnLogin.setOnClickListener {
             val email = inputEmail.text.toString().trim()
             val password = inputPassword.text.toString().trim()
             var hasError = false
 
-            // Clear previous errors
             inputEmail.error = null
             inputPassword.error = null
 
-            // --- Email validation --- temp
             if (email.isEmpty()) {
                 inputEmail.error = "Please enter your email"
                 hasError = true
-            } /*else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                inputEmail.error = "Enter a valid email"
-                hasError = true
-            } else if (!email.endsWith(".edu.ph")) {
-                inputEmail.error = "Email must be an edu.ph domain"
-                hasError = true
-            }*/
-
-            // --- Password validation ---
+            }
             if (password.isEmpty()) {
                 inputPassword.error = "Please enter your password"
                 hasError = true
             }
-
-            // Stop if there are errors
             if (hasError) return@setOnClickListener
 
-            // --- Test accounts ---
-            if (email == "user" && password == "user") {
-                startActivity(Intent(this, MainNavigation::class.java))
-                finish()
-            } else if (email == "peer" && password == "peer") {
-                startActivity(Intent(this, MainNavigation2::class.java))
-                finish()
-            } else {
-                loginUser(email, password) // Firebase login
+            // Test accounts
+            when {
+                email == "user" && password == "user" -> {
+                    startActivity(Intent(this, MainNavigation::class.java))
+                    finish()
+                }
+                email == "peer" && password == "peer" -> {
+                    startActivity(Intent(this, MainNavigation2::class.java))
+                    finish()
+                }
+                else -> loginUser(email, password)
             }
-
-
-            /* TEMP REMOVE
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
-            } else if (email == "user" && password == "user") {
-                startActivity(Intent(this, MainNavigation::class.java))
-                finish()
-            } else if (email == "peer" && password == "peer") {
-                startActivity(Intent(this, MainNavigation2::class.java))
-                finish()
-            } else {
-                Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
-            }*/
         }
 
-        // === Terms & Privacy ===
+        // Terms & Privacy
         val text = "Terms and Conditions and Privacy Policy."
         val spannable = SpannableString(text)
         val boldFont = ResourcesCompat.getFont(this, R.font.psbold)

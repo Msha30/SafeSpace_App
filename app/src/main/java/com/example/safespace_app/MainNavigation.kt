@@ -3,6 +3,7 @@ package com.example.safespace_app
 import android.os.Bundle
 import android.view.View
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -50,6 +51,14 @@ class MainNavigation : AppCompatActivity() {
         // Load user data into cache
         loadUserData()
     }
+    override fun onBackPressed() {
+        // Go to start activity (Login / Start) instead of exiting app
+        val intent = Intent(this, Start::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish() // remove MainNavigation from back stack
+    }
+
 
     private fun loadUserData() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return

@@ -19,8 +19,8 @@ class Start : AppCompatActivity() {
 
         btnLogin.setOnClickListener {
             val currentUser = FirebaseAuth.getInstance().currentUser
-            if (currentUser != null) {
-                // User already logged in, go straight to main nav
+            if (currentUser != null && currentUser.isEmailVerified) {
+                // User logged in **and verified**
                 val uid = currentUser.uid
                 val db = FirebaseFirestore.getInstance()
 
@@ -42,10 +42,11 @@ class Start : AppCompatActivity() {
                         startActivity(Intent(this, Login::class.java))
                     }
             } else {
-                // No logged-in user, go to login normally
+                // User not logged in OR not verified → go to login normally
                 startActivity(Intent(this, Login::class.java))
             }
         }
+
 
         btnSignup.setOnClickListener {
             startActivity(Intent(this, Signup::class.java))

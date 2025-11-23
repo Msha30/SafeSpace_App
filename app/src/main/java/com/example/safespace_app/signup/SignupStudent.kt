@@ -67,64 +67,33 @@ class SignupStudent : Fragment() {
             }
             if (hasError) return@setOnClickListener
 
+            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+            auth.createUserWithEmailAndPassword(email, i_pass)
+                .addOnSuccessListener { result ->
+                    val user = result.user!!
 
+                    // Send verification
+                    user.sendEmailVerification()
 
-            com.google.firebase.auth.FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(email, i_pass)
-                .addOnSuccessListener { authResult ->
-
-                    val firebaseUser = authResult.user!!
-                    val uid = firebaseUser.uid
-
-                    // === Send email verification ===
-                    firebaseUser.sendEmailVerification()
-                        .addOnSuccessListener {
-                            android.util.Log.d("Signup", "Verification email sent to $email")
-                        }
-                        .addOnFailureListener { e ->
-                            android.util.Log.e("Signup", "Failed to send verification email: ${e.message}")
-                        }
-
-                    // === Save full user data to Firestore ===
-                    val userData = hashMapOf(
-                        "uid" to uid,
-                        "fname" to fname,
-                        "lname" to lname,
-                        "email" to email,
-                        "program" to programFromActivity,
-                        "username" to i_uname,
-                        "studentId" to i_studentid,
-                        "userType" to "student",
-                        "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
-                    )
-
+                    // Send ALL needed data to verification screen
                     val bundle = Bundle().apply {
+                        putString("fname", fname)
+                        putString("lname", lname)
                         putString("email", email)
+                        putString("program", programFromActivity)
+                        putString("username", i_uname)
+                        putString("studentId", i_studentid)
+                        putString("userType", "student")
                     }
 
-                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        .collection("account_details")
-                        .document(uid)
-                        .set(userData)
-                        .addOnSuccessListener {
-                            android.util.Log.d("Signup", "User data saved to Firestore")
-                            val fragment = SignupVerification().apply {
-                                arguments = bundle
-                            }
-                            // Navigate to verification fragment
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.main, fragment) // use the instance, not the class
-                                .addToBackStack(null)
-                                .commit()
-                        }
-                        .addOnFailureListener { e ->
-                            android.util.Log.e("Signup", "Failed to save user data: ${e.message}")
-                        }
+                    val fragment = SignupVerification().apply { arguments = bundle }
 
-                }
-                .addOnFailureListener { e ->
-                    android.util.Log.e("Signup", "Signup failed: ${e.message}")
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment)
+                        .addToBackStack(null)
+                        .commit()
                 }
         }
+
     }
 }

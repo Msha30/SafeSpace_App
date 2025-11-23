@@ -33,15 +33,93 @@ class SignupVerification : Fragment() {
             user?.reload()?.addOnCompleteListener {
                 val isVerified = user?.isEmailVerified ?: false
                 if (isVerified) {
-                    Log.d("SignupVerification", "Email verified automatically, proceeding to Login")
-                    startActivity(Intent(requireContext(), Login::class.java))
-                    requireActivity().finish()
+                    Log.d("SignupVerification", "Email verified automatically, creating account...")
+                    createUserInFirestoreAndLogin()
                 } else {
                     handler.postDelayed(this, pollingInterval)
                 }
+
             }
         }
     }
+    private fun saveUserDataLocally() {
+        val prefs = requireContext().getSharedPreferences("signup_cache", 0)
+        val editor = prefs.edit()
+
+        // Store all arguments passed
+        arguments?.keySet()?.forEach { key ->
+            editor.putString(key, arguments?.getString(key))
+        }
+
+        editor.apply()
+    }
+    private fun sendCachedUserDataIfNeeded() {
+        val prefs = requireContext().getSharedPreferences("signup_cache", 0)
+        if (!prefs.contains("email")) return // nothing to send
+
+        val current = auth.currentUser ?: return
+        val fire = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+        val userType = prefs.getString("userType", "student") ?: "student"
+        val data = mutableMapOf<String, Any>(
+            "uid" to current.uid,
+            "email" to current.email!!,
+            "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp(),
+            "userType" to userType
+        )
+
+        if (userType == "student") {
+            data["fname"] = prefs.getString("fname", "")!!
+            data["lname"] = prefs.getString("lname", "")!!
+            data["program"] = prefs.getString("program", "")!!
+            data["username"] = prefs.getString("username", "")!!
+            data["studentId"] = prefs.getString("studentId", "")!!
+        }
+
+        if (userType == "peer") {
+            data["fname"] = prefs.getString("fname", "")!!
+            data["lname"] = prefs.getString("lname", "")!!
+            data["username"] = prefs.getString("username", "")!!
+        }
+
+        fire.collection("account_details")
+            .document(current.uid)
+            .set(data)
+            .addOnSuccessListener {
+                Log.d("SignupVerification", "Cached user data uploaded to Firestore")
+                // clear the cache
+                prefs.edit().clear().apply()
+            }
+            .addOnFailureListener { e ->
+                Log.e("SignupVerification", "Failed to upload cached user data: ${e.message}")
+            }
+    }
+
+
+    private fun createUserInFirestoreAndLogin() {
+        val fire = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        val current = auth.currentUser ?: return
+
+        fire.collection("account_details")
+            .document(current.uid)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    // Firestore missing user data → send cached data
+                    sendCachedUserDataIfNeeded()
+                }
+                // proceed to login
+                startActivity(Intent(requireContext(), Login::class.java))
+                requireActivity().finish()
+            }
+            .addOnFailureListener {
+                Log.e("SignupVerification", "Failed to check Firestore: ${it.message}")
+                startActivity(Intent(requireContext(), Login::class.java))
+                requireActivity().finish()
+            }
+    }
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,6 +135,8 @@ class SignupVerification : Fragment() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             // Do nothing
         }
+        saveUserDataLocally()
+        handler.post(autoCheckRunnable)
 
         emailTv = view.findViewById(R.id.email)
         resendBtn = view.findViewById(R.id.resendcode)
@@ -73,8 +153,8 @@ class SignupVerification : Fragment() {
                 val isVerified = user?.isEmailVerified ?: false
                 if (isVerified) {
                     Log.d("SignupVerification", "Email verified, proceeding to Login")
-                    startActivity(Intent(requireContext(), Login::class.java))
-                    requireActivity().finish()
+                    createUserInFirestoreAndLogin()
+
                 } else {
                     Log.d("SignupVerification", "Email not verified yet")
                     verifyBtn.text = "Not verified yet"
