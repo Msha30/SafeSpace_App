@@ -46,13 +46,6 @@ class MainNavigation2 : AppCompatActivity() {
         // Load user data into cache
         cacheUserDataIfNeeded()
     }
-    override fun onBackPressed() {
-        // Go to start activity (Login / Start) instead of exiting app
-        val intent = Intent(this, Start::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-        finish() // remove MainNavigation from back stack
-    }
 
 
     private fun cacheUserDataIfNeeded() {
