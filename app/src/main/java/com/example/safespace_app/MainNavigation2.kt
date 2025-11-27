@@ -3,6 +3,7 @@ package com.example.safespace_app
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,9 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.safespace_app.databinding.ActivityMainNavigation2Binding
+import com.google.firebase.Firebase
+import com.google.firebase.auth.GetTokenResult
+import com.google.firebase.auth.auth
 
 class MainNavigation2 : AppCompatActivity() {
 
@@ -23,6 +27,10 @@ class MainNavigation2 : AppCompatActivity() {
 
         binding = ActivityMainNavigation2Binding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Refresh token, then init Supabase client
+        refreshTokenAndInitSupabase()
+
 
         val navView: BottomNavigationView = binding.navView
 
@@ -45,6 +53,34 @@ class MainNavigation2 : AppCompatActivity() {
 
         // Load user data into cache
         cacheUserDataIfNeeded()
+    }
+
+    private fun refreshTokenAndInitSupabase() {
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser == null) {
+            Log.w("MainNavigation", "No Firebase user signed in — cannot init Supabase")
+            return
+        }
+
+        // Force refresh to ensure custom claims are included
+        currentUser.getIdToken(true)
+            .addOnSuccessListener { result: GetTokenResult ->
+                val claims = result.claims
+                val role = claims["role"] as? String
+                Log.d("MainNavigation", "Firebase ID token claims: $claims")
+
+                if (role == "authenticated") {
+                    // Good — initialize Supabase
+                    SupaClient.init()
+                } else {
+                    Log.w("MainNavigation", "User missing 'authenticated' role claim — you may need to assign it on backend")
+                    // Optionally handle this case: e.g. show message or redirect
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("MainNavigation", "Failed to refresh token", e)
+                // Handle: maybe sign out user or retry
+            }
     }
 
 

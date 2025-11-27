@@ -5,13 +5,17 @@ import android.view.View
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.safespace_app.databinding.ActivityMainNavigationBinding
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GetTokenResult
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainNavigation : AppCompatActivity() {
@@ -26,6 +30,9 @@ class MainNavigation : AppCompatActivity() {
         setContentView(binding.root)
 
         prefs = getSharedPreferences("user_cache", Context.MODE_PRIVATE)
+
+        // Refresh token, then init Supabase client
+        refreshTokenAndInitSupabase()
 
         val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main_navigation)
@@ -52,6 +59,33 @@ class MainNavigation : AppCompatActivity() {
         loadUserData()
     }
 
+    private fun refreshTokenAndInitSupabase() {
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser == null) {
+            Log.w("MainNavigation", "No Firebase user signed in — cannot init Supabase")
+            return
+        }
+
+        // Force refresh to ensure custom claims are included
+        currentUser.getIdToken(true)
+            .addOnSuccessListener { result: GetTokenResult ->
+                val claims = result.claims
+                val role = claims["role"] as? String
+                Log.d("MainNavigation", "Firebase ID token claims: $claims")
+
+                if (role == "authenticated") {
+                    // Good — initialize Supabase
+                    SupaClient.init()
+                } else {
+                    Log.w("MainNavigation", "User missing 'authenticated' role claim — you may need to assign it on backend")
+                    // Optionally handle this case: e.g. show message or redirect
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("MainNavigation", "Failed to refresh token", e)
+                // Handle: maybe sign out user or retry
+            }
+    }
 
     private fun loadUserData() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return

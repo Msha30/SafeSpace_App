@@ -16,21 +16,35 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
-import com.example.safespace_app.*
+import com.example.safespace_app.AppPrivacyPolicy
+import com.example.safespace_app.AppTermsAndConditions
+import com.example.safespace_app.MainNavigation
+import com.example.safespace_app.MainNavigation2
+import com.example.safespace_app.R
+import com.example.safespace_app.Start
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class Login : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null && currentUser.isEmailVerified) {
             val uid = currentUser.uid
-            val db = FirebaseFirestore.getInstance()
-            db.collection("account_details").document(uid).get()
+            FirebaseFirestore.getInstance()
+                .collection("account_details")
+                .document(uid)
+                .get()
                 .addOnSuccessListener { doc ->
                     if (doc.exists()) {
                         val userType = doc.getString("userType") ?: "student"
@@ -38,6 +52,7 @@ class Login : AppCompatActivity() {
                     }
                 }
                 .addOnFailureListener {
+
                     Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
                 }
         } else {
@@ -124,41 +139,78 @@ class Login : AppCompatActivity() {
 
         FirebaseAuth.getInstance()
             .signInWithEmailAndPassword(email, password)
-            .addOnSuccessListener {
-                val user = FirebaseAuth.getInstance().currentUser!!
-
+            .addOnSuccessListener { result ->
+                val user = result.user!!
                 if (!user.isEmailVerified) {
                     FirebaseAuth.getInstance().signOut()
                     Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_LONG).show()
                     return@addOnSuccessListener
                 }
 
-                val uid = user.uid
-                val db = FirebaseFirestore.getInstance()
-
-                db.collection("account_details")
-                    .document(uid)
-                    .get()
-                    .addOnSuccessListener { doc ->
-                        if (doc.exists()) {
-                            navigateUser(doc)
-                        } else {
-                            sendCachedUserDataIfExists { cachedUserType ->
-                                navigateUserFromType(cachedUserType)
-                            }
+                // --- NEW CODE: after login, call backend to assign claim & refresh token ---
+                CoroutineScope(Dispatchers.Main).launch {
+                    try {
+                        val idTokenResult = user.getIdToken(false).await()
+                        val idToken = idTokenResult.token ?: throw Exception("Failed to get ID token")
+                        Log.d("FirebaseToken", "ID Token: $idToken")
+                        // call your backend
+                        val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role"
+                        val success = assignRoleOnBackend(backendUrl, idToken)
+                        if (!success) {
+                            Toast.makeText(this@Login, "Failed to assign role — try again", Toast.LENGTH_LONG).show()
+                            return@launch
                         }
+
+                        // force refresh so claims are updated
+                        user.getIdToken(true).await()
+
+                        // now proceed to load user data & navigate
+                        val uid = user.uid
+                        val db = FirebaseFirestore.getInstance()
+                        db.collection("account_details").document(uid).get()
+                            .addOnSuccessListener { doc ->
+                                if (doc.exists()) navigateUserFromType(doc.getString("userType") ?: "student")
+                                else sendCachedUserDataIfExists { ut -> navigateUserFromType(ut) }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(this@Login, "Failed to load user data: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Toast.makeText(this@Login, "Login flow failed: ${e.message}", Toast.LENGTH_LONG).show()
                     }
-                    .addOnFailureListener {
-                        Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
-                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Login failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
+    private suspend fun assignRoleOnBackend(backendUrl: String, idToken: String): Boolean {
+        return kotlinx.coroutines.withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+                val json = """{"idToken":"$idToken"}"""
+                val body = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+                val req = Request.Builder()
+                    .url(backendUrl)
+                    .post(body)
+                    .header("Authorization", "Bearer $idToken")
+                    .build()
+                val res = client.newCall(req).execute()
+                res.isSuccessful
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
+
     override fun onBackPressed() {
-        // Go to Start activity
         val intent = Intent(this, Start::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intent)
-        finish() // remove Login from back stack
+        finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -171,7 +223,6 @@ class Login : AppCompatActivity() {
         val btnForgot = findViewById<Button>(R.id.forgotpassword)
         val tvTerms = findViewById<TextView>(R.id.Terms)
 
-        // Forgot Password
         btnForgot.setOnClickListener {
             val fragment = LogForgotPassword()
             supportFragmentManager.beginTransaction()
@@ -180,7 +231,6 @@ class Login : AppCompatActivity() {
                 .commit()
         }
 
-        // Login button
         btnLogin.setOnClickListener {
             val email = inputEmail.text.toString().trim()
             val password = inputPassword.text.toString().trim()
@@ -199,7 +249,6 @@ class Login : AppCompatActivity() {
             }
             if (hasError) return@setOnClickListener
 
-            // Test accounts
             when {
                 email == "user" && password == "user" -> {
                     startActivity(Intent(this, MainNavigation::class.java))

@@ -1,5 +1,7 @@
 [versions]
 agp = "8.13.1"
+githubImagekitAndroid = "<VERSION>"
+imagekitAndroid = "3.0.1"
 kotlin = "2.2.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -23,7 +25,9 @@ annotation = "1.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+github-imagekit-android-vversion = { module = "com.github.imagekit-developer.imagekit-android:imagekit-android", version.ref = "githubImagekitAndroid" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
+imagekit-android = { module = "com.github.imagekit-developer.imagekit-android:imagekit-android", version.ref = "imagekitAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
