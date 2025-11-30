@@ -1,6 +1,7 @@
 package com.example.safespace_app.signup
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,6 +32,8 @@ class SignupPeer : Fragment() {
         val lname = arguments?.getString("lname") ?: ""
         val email = arguments?.getString("email") ?: ""
         val program = arguments?.getString("program") ?: ""
+
+        Log.d("SignupPeer", "Received data - fname: $fname, lname: $lname, email: $email, program: $program")
 
         val studentId = view.findViewById<TextInputEditText>(R.id.studentid)
         val password = view.findViewById<TextInputEditText>(R.id.password)
@@ -90,6 +93,7 @@ class SignupPeer : Fragment() {
                     firebaseUser.sendEmailVerification()
 
                     // Send ALL data to SignupVerification
+                    // PEER fields: fname, lname, email, program, year_lvl, studentId, userType
                     val bundle = Bundle().apply {
                         putString("fname", fname)
                         putString("lname", lname)
@@ -100,6 +104,8 @@ class SignupPeer : Fragment() {
                         putString("userType", "peer")
                     }
 
+                    Log.d("SignupPeer", "Passing to verification - fname: $fname, lname: $lname, program: $program, year_lvl: $i_yrlvl, studentId: $i_studentid, userType: peer")
+
                     val fragment = SignupVerification().apply { arguments = bundle }
 
                     parentFragmentManager.beginTransaction()
@@ -108,7 +114,7 @@ class SignupPeer : Fragment() {
                         .commit()
                 }
                 .addOnFailureListener { e ->
-                    android.util.Log.e("SignupPeer", "Signup failed: ${e.message}")
+                    Log.e("SignupPeer", "Signup failed: ${e.message}")
                 }
         }
     }

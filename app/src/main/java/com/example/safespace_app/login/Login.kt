@@ -52,7 +52,6 @@ class Login : AppCompatActivity() {
                     }
                 }
                 .addOnFailureListener {
-
                     Toast.makeText(this, "Failed to load user role: ${it.message}", Toast.LENGTH_SHORT).show()
                 }
         } else {
@@ -62,12 +61,14 @@ class Login : AppCompatActivity() {
 
     private fun sendCachedUserDataIfExists(onSuccess: (String) -> Unit) {
         val prefs = getSharedPreferences("signup_cache", 0)
-        if (!prefs.contains("email")) {
+        if (!prefs.contains("userType")) {
+            Log.d("Login", "No cached data found")
             onSuccess("student") // default type
             return
         }
 
         val current = FirebaseAuth.getInstance().currentUser ?: run {
+            Log.e("Login", "No current user")
             onSuccess("student")
             return
         }
@@ -82,30 +83,36 @@ class Login : AppCompatActivity() {
             "userType" to userType
         )
 
-        if (userType == "student") {
-            data["fname"] = prefs.getString("fname", "")!!
-            data["lname"] = prefs.getString("lname", "")!!
-            data["program"] = prefs.getString("program", "")!!
-            data["username"] = prefs.getString("username", "")!!
-            data["studentId"] = prefs.getString("studentId", "")!!
-        }
+        // Add type-specific fields
+        when (userType) {
+            "student" -> {
+                data["fname"] = prefs.getString("fname", "") ?: ""
+                data["lname"] = prefs.getString("lname", "") ?: ""
+                data["program"] = prefs.getString("program", "") ?: ""
+                data["username"] = prefs.getString("username", "") ?: ""
+                data["studentId"] = prefs.getString("studentId", "") ?: ""
 
-        if (userType == "peer") {
-            data["fname"] = prefs.getString("fname", "")!!
-            data["lname"] = prefs.getString("lname", "")!!
-            data["username"] = prefs.getString("username", "")!!
+                Log.d("Login", "Uploading STUDENT cached data: ${data.keys}")
+            }
+            "peer" -> {
+                data["fname"] = prefs.getString("fname", "") ?: ""
+                data["lname"] = prefs.getString("lname", "") ?: ""
+                data["username"] = prefs.getString("username", "") ?: ""
+
+                Log.d("Login", "Uploading PEER cached data: fname=${data["fname"]}, lname=${data["lname"]}, username=${data["username"]}")
+            }
         }
 
         db.collection("account_details")
             .document(current.uid)
             .set(data)
             .addOnSuccessListener {
-                Log.d("Login", "Cached user data uploaded to Firestore")
+                Log.d("Login", "✅ Cached user data uploaded to Firestore successfully")
                 prefs.edit().clear().apply()
-                onSuccess(userType) // pass before clearing
+                onSuccess(userType)
             }
             .addOnFailureListener { e ->
-                Log.e("Login", "Failed to upload cached user data: ${e.message}")
+                Log.e("Login", "❌ Failed to upload cached user data: ${e.message}")
                 onSuccess(userType)
             }
     }
@@ -116,9 +123,16 @@ class Login : AppCompatActivity() {
     }
 
     private fun navigateUserFromType(userType: String) {
+        Log.d("Login", "Navigating user with type: $userType")
         when (userType.lowercase()) {
-            "peer" -> startActivity(Intent(this, MainNavigation2::class.java))
-            "student" -> startActivity(Intent(this, MainNavigation::class.java))
+            "peer" -> {
+                Log.d("Login", "Starting MainNavigation2 for PEER")
+                startActivity(Intent(this, MainNavigation2::class.java))
+            }
+            "student" -> {
+                Log.d("Login", "Starting MainNavigation for STUDENT")
+                startActivity(Intent(this, MainNavigation::class.java))
+            }
             else -> {
                 Toast.makeText(this, "Unknown user type: $userType", Toast.LENGTH_SHORT).show()
                 return
@@ -147,13 +161,14 @@ class Login : AppCompatActivity() {
                     return@addOnSuccessListener
                 }
 
-                // --- NEW CODE: after login, call backend to assign claim & refresh token ---
+                // Call backend to assign role & refresh token
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         val idTokenResult = user.getIdToken(false).await()
                         val idToken = idTokenResult.token ?: throw Exception("Failed to get ID token")
-                        Log.d("FirebaseToken", "ID Token: $idToken")
-                        // call your backend
+                        Log.d("Login", "Got Firebase ID token")
+
+                        // Call backend
                         val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role"
                         val success = assignRoleOnBackend(backendUrl, idToken)
                         if (!success) {
@@ -161,16 +176,24 @@ class Login : AppCompatActivity() {
                             return@launch
                         }
 
-                        // force refresh so claims are updated
+                        // Force refresh so claims are updated
                         user.getIdToken(true).await()
+                        Log.d("Login", "Token refreshed with new claims")
 
-                        // now proceed to load user data & navigate
+                        // Load user data and navigate
                         val uid = user.uid
                         val db = FirebaseFirestore.getInstance()
                         db.collection("account_details").document(uid).get()
                             .addOnSuccessListener { doc ->
-                                if (doc.exists()) navigateUserFromType(doc.getString("userType") ?: "student")
-                                else sendCachedUserDataIfExists { ut -> navigateUserFromType(ut) }
+                                if (doc.exists()) {
+                                    Log.d("Login", "Found user data in Firestore")
+                                    navigateUser(doc)
+                                } else {
+                                    Log.d("Login", "No user data in Firestore, checking cache")
+                                    sendCachedUserDataIfExists { cachedUserType ->
+                                        navigateUserFromType(cachedUserType)
+                                    }
+                                }
                             }
                             .addOnFailureListener { e ->
                                 Toast.makeText(this@Login, "Failed to load user data: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -262,7 +285,7 @@ class Login : AppCompatActivity() {
             }
         }
 
-        // Terms & Privacy
+        // Terms & Privacy setup
         val text = "Terms and Conditions and Privacy Policy."
         val spannable = SpannableString(text)
         val boldFont = ResourcesCompat.getFont(this, R.font.psbold)
