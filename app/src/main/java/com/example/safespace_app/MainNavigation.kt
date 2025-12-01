@@ -19,7 +19,7 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainNavigation : AppCompatActivity() {
-
+    lateinit var presenceManager: PresenceManager
     private lateinit var binding: ActivityMainNavigationBinding
     private lateinit var prefs: SharedPreferences
 
@@ -33,6 +33,10 @@ class MainNavigation : AppCompatActivity() {
 
         // Refresh token, then init Supabase client
         refreshTokenAndInitSupabase()
+
+        val auth = FirebaseAuth.getInstance()
+        val presenceManager = PresenceManager(auth)
+        presenceManager.startTracking()
 
         val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main_navigation)

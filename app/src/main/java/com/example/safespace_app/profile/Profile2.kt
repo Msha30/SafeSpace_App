@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
+import com.example.safespace_app.MainNavigation2
 import com.example.safespace_app.R
 import com.example.safespace_app.login.Login
 import com.google.firebase.auth.FirebaseAuth
@@ -70,6 +71,9 @@ class Profile2 : Fragment() {
 
 
         signout.setOnClickListener {
+            // Mark offline in Realtime Database
+            (activity as? MainNavigation2)?.presenceManager?.setOfflineManually()
+
             // Clear cached user data
             prefs.edit().clear().apply()
 

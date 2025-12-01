@@ -85,6 +85,7 @@
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
+                        android:id="@id/fname"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:background="@drawable/f_rounded_inactive"
@@ -114,6 +115,7 @@
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
+                        android:id="@id/lname"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:background="@drawable/f_rounded_inactive"
@@ -150,6 +152,7 @@
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
+                        android:id="@id/program"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:background="@drawable/f_rounded_inactive"
@@ -179,6 +182,7 @@
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
+                        android:id="@id/student_id"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:background="@drawable/f_rounded_inactive"
@@ -213,7 +217,7 @@
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/fname"
+                    android:id="@+id/age"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/f_transparent"
@@ -236,6 +240,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/AssignedSex"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -277,6 +282,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/GenderID"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -350,6 +356,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/PrefPlat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -391,6 +398,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/PrefCslr"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -432,6 +440,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/Urgency"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -474,6 +483,7 @@
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/GenConcern"
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
                     android:gravity="top|start"
@@ -515,6 +525,7 @@
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/PrefSched"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/f_transparent"

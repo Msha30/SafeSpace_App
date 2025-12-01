@@ -18,7 +18,7 @@ import com.google.firebase.auth.GetTokenResult
 import com.google.firebase.auth.auth
 
 class MainNavigation2 : AppCompatActivity() {
-
+    lateinit var presenceManager: PresenceManager
     private lateinit var binding: ActivityMainNavigation2Binding
     private val prefs by lazy { getSharedPreferences("user_cache", Context.MODE_PRIVATE) }
 
@@ -30,7 +30,9 @@ class MainNavigation2 : AppCompatActivity() {
 
         // Refresh token, then init Supabase client
         refreshTokenAndInitSupabase()
-
+        val auth = FirebaseAuth.getInstance()
+        val presenceManager = PresenceManager(auth)
+        presenceManager.startTracking()
 
         val navView: BottomNavigationView = binding.navView
 

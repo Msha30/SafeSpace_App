@@ -13,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
+import com.example.safespace_app.MainNavigation
 import com.example.safespace_app.R
 import com.example.safespace_app.login.Login
 import com.google.android.material.imageview.ShapeableImageView
@@ -80,6 +81,9 @@ class Profile : Fragment() {
         }
 
         signout.setOnClickListener {
+            // Mark offline in Realtime Database
+            (activity as? MainNavigation)?.presenceManager?.setOfflineManually()
+
             // Clear cached user data
             prefs.edit().clear().apply()
 
