@@ -11,6 +11,7 @@
     android:orientation="horizontal">
 
     <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/photo"
         android:layout_width="40dp"
         android:layout_height="40dp"
         app:shapeAppearanceOverlay="@style/CircleImage"
@@ -24,6 +25,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/header"
@@ -32,6 +34,7 @@
             android:textSize="@dimen/reg"/>
 
         <TextView
+            android:id="@+id/username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
@@ -44,6 +47,7 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="1m"

@@ -1,0 +1,68 @@
+package com.example.safespace_app.peers
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.safespace_app.Peer
+import com.example.safespace_app.R
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.imageview.ShapeableImageView
+
+class PeersAdapter(
+    private val onClick: (Peer) -> Unit
+) : ListAdapter<Peer, PeersAdapter.PeerViewHolder>(DiffCallback) {
+
+    companion object DiffCallback : DiffUtil.ItemCallback<Peer>() {
+        override fun areItemsTheSame(oldItem: Peer, newItem: Peer): Boolean =
+            oldItem.uid == newItem.uid
+
+        override fun areContentsTheSame(oldItem: Peer, newItem: Peer): Boolean =
+            oldItem == newItem
+    }
+
+    inner class PeerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val photo: ShapeableImageView = itemView.findViewById(R.id.photo)
+        val name: TextView = itemView.findViewById(R.id.name)
+        val status: TextView = itemView.findViewById(R.id.status)
+        val btnInfo: MaterialButton = itemView.findViewById(R.id.btninfo)
+
+        fun bind(peer: Peer) {
+            name.text = peer.name
+
+            // Load image with Glide
+            if (peer.photoUrl.isNotEmpty()) {
+                Glide.with(itemView.context)
+                    .load(peer.photoUrl)
+                    .placeholder(R.drawable.img_placeholder)
+                    .into(photo)
+            } else {
+                photo.setImageResource(R.drawable.img_placeholder)
+            }
+
+            // Presence state
+            if (peer.isOnline) {
+                status.text = "ONLINE"
+                status.setTextColor(itemView.context.getColor(R.color.green))
+            } else {
+                status.text = "OFFLINE"
+                status.setTextColor(itemView.context.getColor(R.color.textgrey))
+            }
+
+            btnInfo.setOnClickListener { onClick(peer) }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PeerViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_peers, parent, false)
+        return PeerViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: PeerViewHolder, position: Int) {
+        holder.bind(getItem(position))
+    }
+}

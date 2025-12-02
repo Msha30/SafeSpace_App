@@ -35,7 +35,7 @@ class MainNavigation : AppCompatActivity() {
         refreshTokenAndInitSupabase()
 
         val auth = FirebaseAuth.getInstance()
-        val presenceManager = PresenceManager(auth)
+        presenceManager = PresenceManager(auth)
         presenceManager.startTracking()
 
         val navView: BottomNavigationView = binding.navView

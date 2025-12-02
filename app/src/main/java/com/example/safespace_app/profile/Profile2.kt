@@ -15,6 +15,8 @@ import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.MainNavigation2
 import com.example.safespace_app.R
 import com.example.safespace_app.login.Login
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 
 class Profile2 : Fragment() {
@@ -71,19 +73,38 @@ class Profile2 : Fragment() {
 
 
         signout.setOnClickListener {
-            // Mark offline in Realtime Database
-            (activity as? MainNavigation2)?.presenceManager?.setOfflineManually()
+            val dialogView = layoutInflater.inflate(R.layout.popup_logout, null)
 
-            // Clear cached user data
-            prefs.edit().clear().apply()
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create()
 
-            // Sign out from Firebase
-            FirebaseAuth.getInstance().signOut()
+            // Get buttons from the layout
+            val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btncancel)
+            val btnOut = dialogView.findViewById<MaterialButton>(R.id.btnout)
 
-            // Return to Login activity
-            val intent = Intent(requireContext(), Login::class.java)
-            startActivity(intent)
-            requireActivity().finish() // Close main nav so user can't go back
+            btnCancel.setOnClickListener {
+                dialog.dismiss() // just close the dialog
+            }
+            btnOut.setOnClickListener {
+                dialog.dismiss()
+                // Mark offline in Realtime Database
+                (activity as? MainNavigation2)?.presenceManager?.setOfflineManually()
+
+                // Clear cached user data
+                requireContext().getSharedPreferences("signup_cache", Context.MODE_PRIVATE).edit().clear().apply()
+                requireContext().getSharedPreferences("user_cache", Context.MODE_PRIVATE).edit().clear().apply()
+
+                // Sign out from Firebase
+                FirebaseAuth.getInstance().signOut()
+
+                // Go to Login activity
+                val intent = Intent(requireContext(), Login::class.java)
+                startActivity(intent)
+                requireActivity().finish()
+            }
+            dialog.show()
         }
     }
 }

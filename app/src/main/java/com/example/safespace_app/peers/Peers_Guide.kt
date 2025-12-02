@@ -5,6 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
 
 // TODO: Rename parameter arguments, choose names that match
@@ -34,8 +36,15 @@ class Peers_Guide : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val rootView = inflater.inflate(R.layout.fragment_peers_guide, container, false)
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_peers_guide, container, false)
+        val backBtn = rootView.findViewById<ImageView>(R.id.backbtn)
+        backBtn.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        return rootView
     }
 
     companion object {
