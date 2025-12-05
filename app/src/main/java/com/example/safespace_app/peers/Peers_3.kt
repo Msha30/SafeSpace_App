@@ -14,25 +14,27 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.safespace_app.R
 import com.example.safespace_app.cache.UserCache
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
+import com.google.firebase.auth.FirebaseAuth
 import android.widget.TextView
 import android.util.Log
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.google.firebase.database.ValueEventListener
 
 class Peers_3 : Fragment() {
 
     private val pairingManager = PairingManager()
     private val studentUid by lazy { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
+
     private var hasAttempted = false
     private var pairingInProgress = false
+    private var requestListener: ValueEventListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Peers_3", "Fragment created, loading peers...")
-        // Load peers before pairing
         UserCache.loadPeers()
     }
 
@@ -44,58 +46,79 @@ class Peers_3 : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Log.d("Peers_3", "View created, observing peers...")
+        Log.d("Peers_3", "View created, checking for active session...")
 
-        // First check if student already has an active session
+        // --- WATCH SESSION ---
+        UserCache.watchSession(studentUid)
+        UserCache.sessionLiveData.observe(viewLifecycleOwner, Observer { session ->
+            if (session != null) {
+                val (sessionId, peerUid) = session
+                Log.d("Peers_3", "Session active: $sessionId with peer: $peerUid")
+                // Show dialog + navigate
+                showSuccessDialog(peerUid) { navigateToChat() }
+            }
+        })
+
+        // --- CHECK IF ACTIVE SESSION EXISTS BEFORE SENDING REQUEST ---
         pairingManager.getActiveSession(studentUid) { sessionId, peerUid ->
             if (sessionId != null && peerUid != null) {
                 Log.d("Peers_3", "Active session found: $sessionId")
-                // Already paired, navigate to chat
-                showSuccessDialog(peerUid) {
-                    navigateToChat()
-                }
+                showSuccessDialog(peerUid) { navigateToChat() }
             } else {
-                // No active session, proceed with pairing
-                observePeersAndPair()
+                observePeersAndSendRequest()
             }
         }
     }
 
-    private fun observePeersAndPair() {
-        // Wait until peers + presence loaded
+    private fun observePeersAndSendRequest() {
         UserCache.peersLiveData.observe(viewLifecycleOwner, Observer { peers ->
-            Log.d("Peers_3", "Peers updated: ${peers.size} total")
             val onlineCount = peers.count { it.isOnline }
-            Log.d("Peers_3", "Online peers: $onlineCount")
+            Log.d("Peers_3", "Peers updated: ${peers.size}, online: $onlineCount")
 
             if (!hasAttempted && !pairingInProgress && peers.isNotEmpty()) {
                 hasAttempted = true
                 pairingInProgress = true
 
                 viewLifecycleOwner.lifecycleScope.launch {
-                    // Give extra time for presence to fully sync
-                    delay(800)
-                    attemptPairing()
+                    delay(800) // small delay to allow presence sync
+                    sendPairingRequest()
                 }
             }
         })
     }
 
-    private fun attemptPairing() {
-        Log.d("Peers_3", "Attempting to pair student: $studentUid")
+    private fun sendPairingRequest() {
+        Log.d("Peers_3", "Sending pairing request for student: $studentUid")
 
-        pairingManager.pairStudent(
-            studentUid,
-            onPaired = { sessionId, peerUid ->
-                pairingInProgress = false
-                Log.d("Peers_3", "Successfully paired with peer: $peerUid")
-                showSuccessDialog(peerUid) {
-                    navigateToChat()
-                }
+        pairingManager.sendPairingRequest(
+            studentUid = studentUid,
+            onRequestSent = { requestId, peerUid ->
+                Log.d("Peers_3", "Request sent: $requestId to peer: $peerUid")
+
+                // Listen for acceptance/decline/timeout
+                requestListener = pairingManager.waitForRequestResponse(
+                    requestId = requestId,
+                    timeoutSeconds = 30,
+                    onAccepted = { sessionId, acceptedPeerUid ->
+                        pairingInProgress = false
+                        Log.d("Peers_3", "Request accepted! Session: $sessionId")
+                        // The session watcher will also pick this up, so dialog + navigation is safe
+                    },
+                    onDeclined = {
+                        pairingInProgress = false
+                        Log.d("Peers_3", "Request declined by peer")
+                        showDeclinedDialog()
+                    },
+                    onTimeout = {
+                        pairingInProgress = false
+                        Log.d("Peers_3", "Request timeout - no response within 30 seconds")
+                        showTimeoutDialog()
+                    }
+                )
             },
             onFailure = {
                 pairingInProgress = false
-                Log.d("Peers_3", "Pairing failed")
+                Log.d("Peers_3", "Failed to send request - no peers available")
                 showFailureDialog()
             }
         )
@@ -126,12 +149,10 @@ class Peers_3 : Fragment() {
             .setView(dialogView)
             .setCancelable(false)
             .create()
-
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         try {
             dialog.show()
-
             lifecycleScope.launch {
                 delay(2500)
                 if (isAdded && dialog.isShowing) {
@@ -145,30 +166,45 @@ class Peers_3 : Fragment() {
         }
     }
 
-    private fun showFailureDialog() {
-        if (!isAdded || context == null) return
+    private fun showDeclinedDialog() = showGenericPopup(
+        "Peer Unavailable",
+        "The peer is currently unavailable.\nPlease try again."
+    )
 
+    private fun showTimeoutDialog() = showGenericPopup(
+        "No Response",
+        "The peer didn't respond in time.\nPlease try again."
+    )
+
+    private fun showFailureDialog() = showGenericPopup(
+        "Failed",
+        "Unable to send pairing request.\nNo peers available."
+    )
+
+    private fun showGenericPopup(titleText: String, contentText: String) {
+        if (!isAdded || context == null) return
         val dialogView = layoutInflater.inflate(R.layout.popup_nopair, null)
+        val titleView = dialogView.findViewById<TextView>(R.id.title)
+        val contentView = dialogView.findViewById<TextView>(R.id.content)
         val button = dialogView.findViewById<MaterialButton>(R.id.btnout)
+
+        titleView.text = titleText
+        contentView.text = contentText
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setCancelable(false)
             .create()
-
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         try {
             dialog.show()
-
             button.setOnClickListener {
-                if (dialog.isShowing) {
-                    dialog.dismiss()
-                }
+                if (dialog.isShowing) dialog.dismiss()
                 navigateBack()
             }
         } catch (e: Exception) {
-            Log.e("Peers_3", "Error showing failure dialog", e)
+            Log.e("Peers_3", "Error showing popup", e)
             navigateBack()
         }
     }
@@ -186,10 +222,7 @@ class Peers_3 : Fragment() {
     private fun navigateBack() {
         if (isAdded) {
             try {
-                findNavController().popBackStack(
-                    findNavController().graph.startDestinationId,
-                    false
-                )
+                findNavController().popBackStack()
             } catch (e: Exception) {
                 Log.e("Peers_3", "Navigation error", e)
             }
@@ -199,6 +232,7 @@ class Peers_3 : Fragment() {
     override fun onDestroyView() {
         hasAttempted = false
         pairingInProgress = false
+        requestListener?.let { pairingManager.removeListener(it) }
         super.onDestroyView()
     }
 }

@@ -148,11 +148,18 @@ object UserCache {
                     }
 
                     if (!foundActive) {
-                        // No active session found
+                        // No active session found - session was ended or deleted
+                        val wasActive = cachedSessionId != null
+
                         cachedSessionId = null
                         cachedPeerUid = null
                         _sessionLiveData.postValue(null)
-                        Log.d("UserCache", "No active session for student")
+
+                        if (wasActive) {
+                            Log.d("UserCache", "Active session ended/deleted for student")
+                        } else {
+                            Log.d("UserCache", "No active session for student")
+                        }
                     }
                 }
 
