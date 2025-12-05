@@ -22,7 +22,11 @@
         android:id="@+id/nav_peers2"
         android:name="com.example.safespace_app.peers.Peers2"
         android:label="@string/title_peers"
-        tools:layout="@layout/fragment_peers2" />
+        tools:layout="@layout/fragment_peers2" >
+        <action
+            android:id="@+id/action_nav_peers2_to_chatMessageFragment"
+            app:destination="@id/chatMessageFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_chat"
@@ -79,4 +83,8 @@
         android:name="com.example.safespace_app.home.HomeSchedule"
         android:label="fragment_home_schedule"
         tools:layout="@layout/fragment_home_schedule" />
+    <fragment
+        android:id="@+id/chatMessageFragment"
+        android:name="com.example.safespace_app.chat.ChatMessageFragment"
+        android:label="ChatMessageFragment" />
 </navigation>

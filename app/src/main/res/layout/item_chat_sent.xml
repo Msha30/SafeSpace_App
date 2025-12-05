@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="end"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="280dp"
+        android:background="@drawable/f_rounded_blue"
+        android:padding="12dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Message text"
+            android:textColor="@color/white"
+            android:fontFamily="@font/ps"
+            android:textSize="15sp"/>
+
+        <TextView
+            android:id="@+id/timeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="10:30 AM"
+            android:textColor="@color/skyblue"
+            android:fontFamily="@font/ps"
+            android:textSize="11sp"
+            android:layout_gravity="end"/>
+
+    </LinearLayout>
+
+</LinearLayout>

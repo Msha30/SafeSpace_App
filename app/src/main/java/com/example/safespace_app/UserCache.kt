@@ -136,12 +136,16 @@ object UserCache {
                             val peerUid = child.child("peer").getValue(String::class.java)
 
                             if (sessionId != null && peerUid != null) {
+                                // Determine the OTHER user in the session
+                                val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                                val otherUserId = if (currentUserId == peerUid) studentUid else peerUid
+
                                 // Update cache
                                 cachedSessionId = sessionId
                                 cachedPeerUid = peerUid
-                                _sessionLiveData.postValue(Pair(sessionId, peerUid))
+                                _sessionLiveData.postValue(Pair(sessionId, otherUserId))
                                 foundActive = true
-                                Log.d("UserCache", "Active session updated: $sessionId with peer $peerUid")
+                                Log.d("UserCache", "Active session updated: $sessionId with otherUser $otherUserId")
                                 break
                             }
                         }

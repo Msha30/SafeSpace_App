@@ -37,10 +37,11 @@
                 android:backgroundTint="@color/midblue" />
 
             <TextView
+                android:id="@+id/name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/psbold"
-                android:text="@string/header"
+                android:text="Chat"
                 android:textColor="@color/midblue"
                 android:textSize="@dimen/mid" />
 
@@ -61,14 +62,17 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewChat"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/skyblue"
         android:layout_marginTop="15dp"
         android:paddingLeft="25dp"
         android:paddingRight="25dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:clipToPadding="false"
         android:scrollbars="none"
-        app:flow_horizontalAlign="center"
         app:layout_constraintTop_toBottomOf="@+id/header"
         app:layout_constraintBottom_toTopOf="@+id/bar"
         app:layout_constraintEnd_toEndOf="parent"
@@ -78,36 +82,39 @@
         android:id="@+id/bar"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:orientation="horizontal"
+        android:layout_marginBottom="100dp"
         android:background="@color/white"
+        android:gravity="center"
+        android:orientation="horizontal"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingBottom="40dp"
-        android:gravity="center"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_weight="1"
             android:background="#e6e6e6"
+            android:orientation="horizontal"
             android:padding="8dp">
 
             <EditText
+                android:id="@+id/messageInput"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/f_transparent"
+                android:gravity="center_vertical"
                 android:hint="Type a message..."
-                android:paddingHorizontal="7dp"
-                android:textSize="16sp"
-                android:textColor="@color/black"
                 android:inputType="textCapSentences|textMultiLine"
-                android:gravity="center_vertical" />
+                android:maxLines="4"
+                android:paddingHorizontal="7dp"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
 
         </LinearLayout>
 
@@ -117,7 +124,7 @@
             android:layout_height="25dp"
             android:layout_marginLeft="20dp"
             android:src="@drawable/ic_send"
-            app:tint="@color/midblue"/>
+            app:tint="@color/midblue" />
 
     </LinearLayout>
 

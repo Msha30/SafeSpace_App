@@ -59,5 +59,12 @@
         <action
             android:id="@+id/action_peers_Chat_to_peers_info"
             app:destination="@id/peers_info" />
+        <action
+            android:id="@+id/action_peers_Chat_to_chatMessageFragment2"
+            app:destination="@id/chatMessageFragment2" />
     </fragment>
+    <fragment
+        android:id="@+id/chatMessageFragment2"
+        android:name="com.example.safespace_app.chat.ChatMessageFragment"
+        android:label="ChatMessageFragment" />
 </navigation>
