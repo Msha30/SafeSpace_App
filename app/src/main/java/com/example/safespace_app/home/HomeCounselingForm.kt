@@ -66,6 +66,16 @@ class HomeCounselingForm : Fragment() {
         val prefCslr = getSelectedText(view?.findViewById(R.id.PrefCslr))
         val urgency = getSelectedText(view?.findViewById(R.id.Urgency))
 
+        // CHECK REQUIRED FIELDS
+        if (fname.isEmpty() || lname.isEmpty() || program.isEmpty() || studentId.isEmpty()
+            || age.isEmpty() || genConcern.isEmpty() || prefSched.isEmpty()
+            || assignedSex.isEmpty() || genderId.isEmpty() || prefPlat.isEmpty()
+            || prefCslr.isEmpty() || urgency.isEmpty()
+        ) {
+            Toast.makeText(requireContext(), "Please fill all required fields.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val uid = auth.currentUser?.uid ?: ""
 
         val formData = hashMapOf(

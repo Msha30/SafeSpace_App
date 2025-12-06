@@ -7,6 +7,7 @@
     android:layout_marginBottom="15dp">
 
     <TextView
+        android:id="@+id/txtDayName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -20,32 +21,45 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <RadioButton
+        <LinearLayout
+            android:id="@+id/timeSlot1"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="45dp"
             android:layout_weight="1"
+            android:gravity="center"
             android:background="@drawable/f_rounded_white"
-            android:button="@null"
-            android:fontFamily="@font/ps"
-            android:padding="0dp"
-            android:text="@string/timerange2"
-            android:textAlignment="center"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small" />
+            android:padding="0dp">
 
-        <RadioButton
+            <TextView
+                android:id="@+id/txtTimeSlot1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8:00 - 10:00"
+                android:fontFamily="@font/ps"
+                android:textSize="@dimen/small"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/timeSlot2"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="15dp"
+            android:layout_height="45dp"
             android:layout_weight="1"
+            android:gravity="center"
             android:background="@drawable/f_rounded_white"
-            android:button="@null"
-            android:fontFamily="@font/ps"
-            android:padding="0dp"
-            android:text="@string/timerange2"
-            android:textAlignment="center"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small" />
+            android:padding="0dp">
+
+            <TextView
+                android:id="@+id/txtTimeSlot2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8:00 - 10:00"
+                android:fontFamily="@font/ps"
+                android:textSize="@dimen/small"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
 
     </LinearLayout>
 
@@ -55,32 +69,45 @@
         android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
-        <RadioButton
+        <LinearLayout
+            android:id="@+id/timeSlot3"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="45dp"
             android:layout_weight="1"
+            android:gravity="center"
             android:background="@drawable/f_rounded_white"
-            android:button="@null"
-            android:fontFamily="@font/ps"
-            android:padding="0dp"
-            android:text="@string/timerange2"
-            android:textAlignment="center"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small" />
+            android:padding="0dp">
 
-        <RadioButton
+            <TextView
+                android:id="@+id/txtTimeSlot3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8:00 - 10:00"
+                android:fontFamily="@font/ps"
+                android:textSize="@dimen/small"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/timeSlot4"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="15dp"
+            android:layout_height="45dp"
             android:layout_weight="1"
+            android:gravity="center"
             android:background="@drawable/f_rounded_white"
-            android:button="@null"
-            android:fontFamily="@font/ps"
-            android:padding="0dp"
-            android:text="@string/timerange2"
-            android:textAlignment="center"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small" />
+            android:padding="0dp">
+
+            <TextView
+                android:id="@+id/txtTimeSlot4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8:00 - 10:00"
+                android:fontFamily="@font/ps"
+                android:textSize="@dimen/small"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
 
     </LinearLayout>
 

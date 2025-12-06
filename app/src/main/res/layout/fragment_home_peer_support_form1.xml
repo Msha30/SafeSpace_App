@@ -74,6 +74,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/peerslist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -99,6 +100,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/modeRadioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -140,6 +142,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <RadioGroup
+                android:id="@+id/topicRadioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -198,6 +201,7 @@
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/generalConcernEditText"
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
                     android:gravity="top|start"

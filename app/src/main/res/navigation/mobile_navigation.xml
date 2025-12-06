@@ -95,7 +95,20 @@
         android:id="@+id/homePeerSupportForm2"
         android:name="com.example.safespace_app.home.HomePeerSupportForm2"
         android:label="fragment_home_peer_support_form2"
-        tools:layout="@layout/fragment_home_peer_support_form2" />
+        tools:layout="@layout/fragment_home_peer_support_form2" >
+        <argument
+            android:name="selectedPeerUid"
+            app:argType="string" />
+        <argument
+            android:name="preferredMode"
+            app:argType="string" />
+        <argument
+            android:name="topicOfConcern"
+            app:argType="string" />
+        <argument
+            android:name="generalConcernText"
+            app:argType="string" />
+    </fragment>
 
     <fragment
         android:id="@+id/profChangeAvatar"
