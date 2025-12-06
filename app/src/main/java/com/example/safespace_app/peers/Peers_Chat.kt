@@ -14,6 +14,7 @@ import com.example.safespace_app.cache.UserCache
 import com.example.safespace_app.chat.ChatManager
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ValueEventListener
 
 data class StudentActiveSession(
     val sessionId: String,
@@ -21,7 +22,8 @@ data class StudentActiveSession(
     val peerName: String,
     val peerPhoto: String,
     val lastMessage: String = "",
-    val lastMessageTime: Long = 0L
+    val lastMessageTime: Long = 0L,
+    val unreadCount: Int = 0
 )
 
 class Peers_Chat : Fragment() {
@@ -89,9 +91,12 @@ class Peers_Chat : Fragment() {
         }
     }
 
+    private val lastMessageListeners = mutableMapOf<String, ValueEventListener>()
+
     private fun loadPeerInfoAndUpdateSession(sessionId: String, peerUid: String) {
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-            .collection("account_details")
+        val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+        firestore.collection("account_details")
             .document(peerUid)
             .get()
             .addOnSuccessListener { doc ->
@@ -100,28 +105,42 @@ class Peers_Chat : Fragment() {
                 val name = "$firstName $lastName".trim().ifEmpty { "Peer" }
                 val photo = doc.getString("avatarUrl") ?: ""
 
-                // Get last message
-                chatManager.getLastMessage(sessionId) { lastMessage ->
-                    if (isAdded) {
-                        val session = StudentActiveSession(
-                            sessionId = sessionId,
-                            peerUid = peerUid,
-                            peerName = name,
-                            peerPhoto = photo,
-                            lastMessage = lastMessage?.message ?: "No messages yet",
-                            lastMessageTime = lastMessage?.timestamp ?: 0L
-                        )
-
-                        sessionsList.clear()
-                        sessionsList.add(session)
-                        adapter.notifyDataSetChanged()
-                    }
+                // Remove previous listener if exists
+                lastMessageListeners[sessionId]?.let {
+                    chatManager.removeListener(sessionId, it)
                 }
+
+                // START REAL-TIME LISTENER
+                val listener = chatManager.listenForMessages(sessionId) { messages ->
+                    if (!isAdded) return@listenForMessages
+
+                    val lastMsg = messages.lastOrNull()
+                    val unread = messages.count { !it.isRead && it.senderId != studentUid }
+
+                    val updatedSession = StudentActiveSession(
+                        sessionId = sessionId,
+                        peerUid = peerUid,
+                        peerName = name,
+                        peerPhoto = photo,
+                        lastMessage = lastMsg?.message ?: "No messages yet",
+                        lastMessageTime = lastMsg?.timestamp ?: 0L,
+                        unreadCount = unread
+                    )
+
+                    sessionsList.clear()
+                    sessionsList.add(updatedSession)
+
+                    // Bold unread
+                    adapter.notifyDataSetChanged()
+                }
+
+                lastMessageListeners[sessionId] = listener
             }
             .addOnFailureListener {
                 Log.e("Peers_Chat", "Failed to load peer info", it)
             }
     }
+
 
     private fun openChat() {
         try {
@@ -129,5 +148,12 @@ class Peers_Chat : Fragment() {
         } catch (e: Exception) {
             Log.e("Peers_Chat", "Navigation error", e)
         }
+    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        lastMessageListeners.forEach { (sessionId, listener) ->
+            chatManager.removeListener(sessionId, listener)
+        }
+        lastMessageListeners.clear()
     }
 }

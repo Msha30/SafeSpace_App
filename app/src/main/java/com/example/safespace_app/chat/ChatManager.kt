@@ -201,11 +201,14 @@ class ChatManager {
     fun getLastMessage(
         sessionId: String,
         callback: (ChatMessage?) -> Unit
-    ) {
+    ): ValueEventListener {
+
         val messagesRef = rtdb.getReference("messages/$sessionId")
 
-        messagesRef.orderByChild("timestamp").limitToLast(1)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
+        val listener = messagesRef
+            .orderByChild("timestamp")
+            .limitToLast(1)
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (child in snapshot.children) {
                         try {
@@ -238,7 +241,10 @@ class ChatManager {
                     callback(null)
                 }
             })
+
+        return listener
     }
+
 
     /**
      * Delete all messages in a session (when session ends)

@@ -48,6 +48,15 @@ class StudentSessionAdapter(
             .error(R.drawable.img_placeholder)
             .into(holder.photo)
 
+        // Show unread indicator if there are unread messages
+        if (session.unreadCount > 0) {
+            holder.username.setTextColor(holder.itemView.context.getColor(R.color.black))
+            holder.username.typeface = android.graphics.Typeface.DEFAULT_BOLD
+        } else {
+            holder.username.setTextColor(holder.itemView.context.getColor(R.color.textgrey))
+            holder.username.typeface = android.graphics.Typeface.DEFAULT
+        }
+
         holder.itemView.setOnClickListener { onClick(session) }
     }
 

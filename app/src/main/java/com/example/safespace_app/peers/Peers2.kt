@@ -40,7 +40,7 @@ data class ActiveSession(
 )
 
 class Peers2 : Fragment() {
-
+    private val lastMessageListeners = mutableMapOf<String, ValueEventListener>()
     private lateinit var adapter: SessionsAdapter
     private val sessionsList = mutableListOf<ActiveSession>()
     private val pairingManager = PairingManager()
@@ -156,34 +156,43 @@ class Peers2 : Fragment() {
                 val name = "$firstName $lastName".trim().ifEmpty { "Student" }
                 val photo = doc.getString("avatarUrl") ?: ""
 
-                // Get last message and unread count
-                chatManager.getLastMessage(sessionId) { lastMessage ->
-                    chatManager.getUnreadCount(sessionId, peerUid) { unreadCount ->
-                        val session = ActiveSession(
-                            sessionId = sessionId,
-                            studentUid = studentUid,
-                            studentName = name,
-                            studentPhoto = photo,
-                            lastMessage = lastMessage?.message ?: "No messages yet",
-                            lastMessageTime = lastMessage?.timestamp ?: 0L,
-                            unreadCount = unreadCount
-                        )
+                // Remove old listener if exists
+                lastMessageListeners[sessionId]?.let {
+                    chatManager.removeListener(sessionId, it)
+                }
 
-                        // Update list
-                        if (isAdded) {
-                            val existingIndex = sessionsList.indexOfFirst { it.sessionId == sessionId }
-                            if (existingIndex >= 0) {
-                                sessionsList[existingIndex] = session
-                            } else {
-                                sessionsList.add(session)
-                            }
+                val listener = chatManager.listenForMessages(sessionId) { messages ->
 
-                            // Sort by last message time
-                            sessionsList.sortByDescending { it.lastMessageTime }
-                            adapter.notifyDataSetChanged()
+                    val lastMessage = messages.lastOrNull()
+                    val unread = messages.count { !it.isRead && it.senderId != peerUid }
+
+                    val session = ActiveSession(
+                        sessionId = sessionId,
+                        studentUid = studentUid,
+                        studentName = name,
+                        studentPhoto = photo,
+                        lastMessage = lastMessage?.message ?: "No messages yet",
+                        lastMessageTime = lastMessage?.timestamp ?: 0L,
+                        unreadCount = unread
+                    )
+
+                    if (isAdded) {
+                        val idx = sessionsList.indexOfFirst { it.sessionId == sessionId }
+                        if (idx >= 0) {
+                            sessionsList[idx] = session
+                        } else {
+                            sessionsList.add(session)
                         }
+
+                        // Sort most recent first
+                        sessionsList.sortByDescending { it.lastMessageTime }
+                        adapter.notifyDataSetChanged()
                     }
                 }
+
+                // Save listener for cleanup
+                lastMessageListeners[sessionId] = listener
+
             }
             .addOnFailureListener {
                 Log.e("Peers2", "Failed to load student info", it)
@@ -406,6 +415,10 @@ class Peers2 : Fragment() {
             )
             rtdb.getReference("sessions").removeEventListener(it)
         }
+        lastMessageListeners.forEach { (sessionId, listener) ->
+            chatManager.removeListener(sessionId, listener)
+        }
+        lastMessageListeners.clear()
 
         Log.d("Peers2", "Fragment destroyed. Callback cleared.")
     }
