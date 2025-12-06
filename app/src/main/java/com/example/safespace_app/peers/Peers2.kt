@@ -30,7 +30,6 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 class Peers2 : Fragment() {
     private val lastMessageListeners = mutableMapOf<String, ValueEventListener>()
     private lateinit var adapter: UnifiedSessionAdapter
@@ -43,12 +42,17 @@ class Peers2 : Fragment() {
     private val shownRequests = mutableSetOf<String>()
     private var sessionsListener: ValueEventListener? = null
 
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var emptyTextView: TextView
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val view = inflater.inflate(R.layout.fragment_peers2, container, false)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewPeers)
+
+        recyclerView = view.findViewById(R.id.recyclerViewPeers)
+        emptyTextView = view.findViewById(R.id.tvEmpty)  // <- new
 
         adapter = UnifiedSessionAdapter(sessionsList) { session ->
             openChat(session.sessionId, session.userUid)
@@ -56,7 +60,18 @@ class Peers2 : Fragment() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        updateEmptyView() // check initially
+
         return view
+    }
+    private fun updateEmptyView() {
+        if (sessionsList.isEmpty()) {
+            emptyTextView.visibility = View.VISIBLE
+            recyclerView.visibility = View.GONE
+        } else {
+            emptyTextView.visibility = View.GONE
+            recyclerView.visibility = View.VISIBLE
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -88,6 +103,7 @@ class Peers2 : Fragment() {
             sessionsList.clear()
             sessionsList.addAll(cached)
             adapter.notifyDataSetChanged()
+            updateEmptyView()
         }
     }
 
@@ -98,6 +114,7 @@ class Peers2 : Fragment() {
             sessionsList.clear()
             sessionsList.addAll(cachedSessions)
             adapter.notifyDataSetChanged()
+            updateEmptyView()
         }
     }
 

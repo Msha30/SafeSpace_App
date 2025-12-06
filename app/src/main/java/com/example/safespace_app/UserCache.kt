@@ -283,6 +283,13 @@ object UserCache {
             }
     }
 
+    fun clearActiveSession() {
+        cachedSessionId = null
+        cachedPeerUid = null
+        _sessionLiveData.postValue(null)
+        Log.d("UserCache", "Active session cleared")
+    }
+
     // NEW: Clear expired user details cache
     fun clearExpiredUserDetailsCache() {
         val currentTime = System.currentTimeMillis()
