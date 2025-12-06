@@ -61,6 +61,12 @@ class Peers_3 : Fragment() {
 
         // --- CHECK IF ACTIVE SESSION EXISTS BEFORE SENDING REQUEST ---
         pairingManager.getActiveSession(studentUid) { sessionId, peerUid ->
+            // Check if fragment is still added and view exists
+            if (!isAdded || view == null) {
+                Log.d("Peers_3", "Fragment not added or view destroyed, ignoring callback")
+                return@getActiveSession
+            }
+
             if (sessionId != null && peerUid != null) {
                 Log.d("Peers_3", "Active session found: $sessionId")
                 showSuccessDialog(peerUid) { navigateToChat() }
@@ -71,6 +77,12 @@ class Peers_3 : Fragment() {
     }
 
     private fun observePeersAndSendRequest() {
+        // Additional safety check
+        if (!isAdded || view == null) {
+            Log.d("Peers_3", "Cannot observe peers, view not ready")
+            return
+        }
+
         UserCache.peersLiveData.observe(viewLifecycleOwner, Observer { peers ->
             val onlineCount = peers.count { it.isOnline }
             Log.d("Peers_3", "Peers updated: ${peers.size}, online: $onlineCount")
@@ -93,6 +105,12 @@ class Peers_3 : Fragment() {
         pairingManager.sendPairingRequest(
             studentUid = studentUid,
             onRequestSent = { requestId, peerUid ->
+                // Check if fragment is still valid
+                if (!isAdded) {
+                    Log.d("Peers_3", "Fragment not added, ignoring request sent callback")
+                    return@sendPairingRequest
+                }
+
                 Log.d("Peers_3", "Request sent: $requestId to peer: $peerUid")
 
                 // Listen for acceptance/decline/timeout
@@ -100,16 +118,22 @@ class Peers_3 : Fragment() {
                     requestId = requestId,
                     timeoutSeconds = 30,
                     onAccepted = { sessionId, acceptedPeerUid ->
+                        if (!isAdded) return@waitForRequestResponse
+
                         pairingInProgress = false
                         Log.d("Peers_3", "Request accepted! Session: $sessionId")
                         // The session watcher will also pick this up, so dialog + navigation is safe
                     },
                     onDeclined = {
+                        if (!isAdded) return@waitForRequestResponse
+
                         pairingInProgress = false
                         Log.d("Peers_3", "Request declined by peer")
                         showDeclinedDialog()
                     },
                     onTimeout = {
+                        if (!isAdded) return@waitForRequestResponse
+
                         pairingInProgress = false
                         Log.d("Peers_3", "Request timeout - no response within 30 seconds")
                         showTimeoutDialog()
@@ -117,6 +141,8 @@ class Peers_3 : Fragment() {
                 )
             },
             onFailure = {
+                if (!isAdded) return@sendPairingRequest
+
                 pairingInProgress = false
                 Log.d("Peers_3", "Failed to send request - no peers available")
                 showFailureDialog()

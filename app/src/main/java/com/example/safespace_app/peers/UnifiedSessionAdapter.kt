@@ -7,19 +7,20 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.safespace_app.R
+import com.example.safespace_app.UnifiedSession
 import com.google.android.material.imageview.ShapeableImageView
 import java.text.SimpleDateFormat
 import java.util.*
 
-class StudentSessionAdapter(
-    private val sessions: List<StudentActiveSession>,
-    private val onClick: (StudentActiveSession) -> Unit
-) : RecyclerView.Adapter<StudentSessionAdapter.SessionViewHolder>() {
+class UnifiedSessionAdapter(
+    private val sessions: List<UnifiedSession>,
+    private val onClick: (UnifiedSession) -> Unit
+) : RecyclerView.Adapter<UnifiedSessionAdapter.SessionViewHolder>() {
 
     inner class SessionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val photo: ShapeableImageView = itemView.findViewById(R.id.photo)
         val name: TextView = itemView.findViewById(R.id.name)
-        val username: TextView = itemView.findViewById(R.id.username)
+        val lastMessage: TextView = itemView.findViewById(R.id.username)
         val time: TextView = itemView.findViewById(R.id.time)
     }
 
@@ -32,8 +33,8 @@ class StudentSessionAdapter(
     override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
         val session = sessions[position]
 
-        holder.name.text = session.peerName
-        holder.username.text = if (session.lastMessage.isNotEmpty()) {
+        holder.name.text = session.name
+        holder.lastMessage.text = if (session.lastMessage.isNotEmpty()) {
             session.lastMessage.take(50) + if (session.lastMessage.length > 50) "..." else ""
         } else {
             "No messages yet"
@@ -41,20 +42,19 @@ class StudentSessionAdapter(
 
         holder.time.text = formatTime(session.lastMessageTime)
 
-        // Load photo
         Glide.with(holder.itemView.context)
-            .load(if (session.peerPhoto.isEmpty()) R.drawable.img_placeholder else session.peerPhoto)
+            .load(if (session.photoUrl.isEmpty()) R.drawable.img_placeholder else session.photoUrl)
             .placeholder(R.drawable.img_placeholder)
             .error(R.drawable.img_placeholder)
             .into(holder.photo)
 
-        // Show unread indicator if there are unread messages
+        // Bold if unread
         if (session.unreadCount > 0) {
-            holder.username.setTextColor(holder.itemView.context.getColor(R.color.black))
-            holder.username.typeface = android.graphics.Typeface.DEFAULT_BOLD
+            holder.lastMessage.setTextColor(holder.itemView.context.getColor(R.color.black))
+            holder.lastMessage.typeface = android.graphics.Typeface.DEFAULT_BOLD
         } else {
-            holder.username.setTextColor(holder.itemView.context.getColor(R.color.textgrey))
-            holder.username.typeface = android.graphics.Typeface.DEFAULT
+            holder.lastMessage.setTextColor(holder.itemView.context.getColor(R.color.textgrey))
+            holder.lastMessage.typeface = android.graphics.Typeface.DEFAULT
         }
 
         holder.itemView.setOnClickListener { onClick(session) }
@@ -64,12 +64,10 @@ class StudentSessionAdapter(
 
     private fun formatTime(timestamp: Long): String {
         if (timestamp == 0L) return ""
-
         val messageDate = Date(timestamp)
         val now = Date()
-        val diffInMillis = now.time - messageDate.time
-        val diffInMinutes = diffInMillis / (1000 * 60)
-        val diffInHours = diffInMillis / (1000 * 60 * 60)
+        val diffInMinutes = (now.time - messageDate.time) / (1000 * 60)
+        val diffInHours = diffInMinutes / 60
 
         return when {
             diffInMinutes < 1 -> "now"

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.safespace_app.MainNavigation2
 import com.example.safespace_app.R
+import com.example.safespace_app.UnifiedSession
 import com.example.safespace_app.cache.UserCache
 import com.example.safespace_app.chat.ChatManager
 import com.google.android.material.button.MaterialButton
@@ -29,20 +30,11 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-data class ActiveSession(
-    val sessionId: String,
-    val studentUid: String,
-    val studentName: String,
-    val studentPhoto: String,
-    val lastMessage: String = "",
-    val lastMessageTime: Long = 0L,
-    val unreadCount: Int = 0
-)
 
 class Peers2 : Fragment() {
     private val lastMessageListeners = mutableMapOf<String, ValueEventListener>()
-    private lateinit var adapter: SessionsAdapter
-    private val sessionsList = mutableListOf<ActiveSession>()
+    private lateinit var adapter: UnifiedSessionAdapter
+    private val sessionsList = mutableListOf<UnifiedSession>()
     private val pairingManager = PairingManager()
     private val chatManager = ChatManager()
     private val peerUid by lazy { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
@@ -58,10 +50,9 @@ class Peers2 : Fragment() {
         val view = inflater.inflate(R.layout.fragment_peers2, container, false)
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewPeers)
 
-        adapter = SessionsAdapter(sessionsList) { session ->
-            openChat(session.sessionId, session.studentUid)
+        adapter = UnifiedSessionAdapter(sessionsList) { session ->
+            openChat(session.sessionId, session.userUid)
         }
-
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -73,10 +64,15 @@ class Peers2 : Fragment() {
 
         UserCache.loadPeers()
         registerPairingCallback()
+
+        // Load cached sessions first
+        loadCachedSessions()
+
+        // Then load from Firebase
         loadActiveSessions()
 
-        // Watch all active sessions in cache
-        observeActiveSessions()
+        // Watch cache updates
+        observeCachedSessions()
 
         lifecycleScope.launch {
             delay(200)
@@ -84,9 +80,27 @@ class Peers2 : Fragment() {
         }
     }
 
-    // ------------------------------------------------------------
-    // Load Active Sessions
-    // ------------------------------------------------------------
+    // NEW: Load cached sessions immediately
+    private fun loadCachedSessions() {
+        val cached = UserCache.getCachedSessions()
+        if (cached.isNotEmpty()) {
+            Log.d("Peers2", "Loading ${cached.size} sessions from cache")
+            sessionsList.clear()
+            sessionsList.addAll(cached)
+            adapter.notifyDataSetChanged()
+        }
+    }
+
+    // NEW: Observe cache updates
+    private fun observeCachedSessions() {
+        UserCache.sessionsLiveData.observe(viewLifecycleOwner) { cachedSessions ->
+            Log.d("Peers2", "Cache updated with ${cachedSessions.size} sessions")
+            sessionsList.clear()
+            sessionsList.addAll(cachedSessions)
+            adapter.notifyDataSetChanged()
+        }
+    }
+
     private fun loadActiveSessions() {
         val rtdb = FirebaseDatabase.getInstance(
             "https://safespace-af7ec-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -98,9 +112,7 @@ class Peers2 : Fragment() {
         sessionsListener = sessionsRef.orderByChild("peer").equalTo(peerUid)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    sessionsList.clear()
-
-                    val sessionIds = mutableListOf<String>()
+                    val activeSessionIds = mutableSetOf<String>()
 
                     for (child in snapshot.children) {
                         val status = child.child("status").getValue(String::class.java)
@@ -108,14 +120,31 @@ class Peers2 : Fragment() {
                             val sessionId = child.key ?: continue
                             val studentUid = child.child("student").getValue(String::class.java) ?: continue
 
-                            sessionIds.add(sessionId)
+                            activeSessionIds.add(sessionId)
 
-                            // Load student info and add to list
-                            loadStudentInfoAndAddSession(sessionId, studentUid)
+                            // Check cache first
+                            val cachedSession = UserCache.getCachedSession(sessionId)
+                            if (cachedSession != null) {
+                                // Update message listener only
+                                setupMessageListener(sessionId, studentUid, cachedSession.name, cachedSession.photoUrl)
+                            } else {
+                                // Load from Firestore
+                                loadStudentInfoAndAddSession(sessionId, studentUid)
+                            }
                         }
                     }
 
-                    Log.d("Peers2", "Found ${sessionIds.size} active sessions")
+                    // Remove sessions that are no longer active
+                    val removedSessions = sessionsList.filter { it.sessionId !in activeSessionIds }
+                    removedSessions.forEach { session ->
+                        UserCache.removeSession(session.sessionId)
+                        lastMessageListeners[session.sessionId]?.let { listener ->
+                            chatManager.removeListener(session.sessionId, listener)
+                            lastMessageListeners.remove(session.sessionId)
+                        }
+                    }
+
+                    Log.d("Peers2", "Found ${activeSessionIds.size} active sessions")
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -123,80 +152,44 @@ class Peers2 : Fragment() {
                 }
             })
     }
-    private fun observeActiveSessions() {
-        UserCache.sessionLiveData.observe(viewLifecycleOwner) { sessionPair ->
-            if (sessionPair != null) {
-                val (sessionId, studentUid) = sessionPair
-                // Check if already in list
-                val existingIndex = sessionsList.indexOfFirst { it.sessionId == sessionId }
-                if (existingIndex < 0) {
-                    // Load student info and add session
-                    loadStudentInfoAndAddSession(sessionId, studentUid)
-                }
-            } else {
-                // Session ended or deleted → remove from list
-                val removed = sessionsList.removeAll { session ->
-                    UserCache.getActiveSession()?.first != session.sessionId
-                }
-                if (removed) {
-                    adapter.notifyDataSetChanged()
-                }
+
+    private fun loadStudentInfoAndAddSession(sessionId: String, studentUid: String) {
+        // Use cached user details
+        UserCache.getUserDetails(studentUid) { name, photoUrl ->
+            if (isAdded) {
+                setupMessageListener(sessionId, studentUid, name, photoUrl)
             }
         }
     }
 
-    private fun loadStudentInfoAndAddSession(sessionId: String, studentUid: String) {
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-            .collection("account_details")
-            .document(studentUid)
-            .get()
-            .addOnSuccessListener { doc ->
-                val firstName = doc.getString("fname") ?: ""
-                val lastName = doc.getString("lname") ?: ""
-                val name = "$firstName $lastName".trim().ifEmpty { "Student" }
-                val photo = doc.getString("avatarUrl") ?: ""
+    private fun setupMessageListener(sessionId: String, studentUid: String, name: String, photoUrl: String) {
+        // Remove old listener if exists
+        lastMessageListeners[sessionId]?.let {
+            chatManager.removeListener(sessionId, it)
+        }
 
-                // Remove old listener if exists
-                lastMessageListeners[sessionId]?.let {
-                    chatManager.removeListener(sessionId, it)
-                }
+        val listener = chatManager.listenForMessages(sessionId) { messages ->
+            if (!isAdded) return@listenForMessages
 
-                val listener = chatManager.listenForMessages(sessionId) { messages ->
+            val lastMessage = messages.lastOrNull()
+            val unread = messages.count { !it.isRead && it.senderId != peerUid }
 
-                    val lastMessage = messages.lastOrNull()
-                    val unread = messages.count { !it.isRead && it.senderId != peerUid }
+            val session = UnifiedSession(
+                sessionId = sessionId,
+                userUid = studentUid,
+                name = name,
+                photoUrl = photoUrl,
+                lastMessage = lastMessage?.message ?: "No messages yet",
+                lastMessageTime = lastMessage?.timestamp ?: 0L,
+                unreadCount = unread
+            )
 
-                    val session = ActiveSession(
-                        sessionId = sessionId,
-                        studentUid = studentUid,
-                        studentName = name,
-                        studentPhoto = photo,
-                        lastMessage = lastMessage?.message ?: "No messages yet",
-                        lastMessageTime = lastMessage?.timestamp ?: 0L,
-                        unreadCount = unread
-                    )
+            // Update cache (this will trigger LiveData update)
+            UserCache.updateSession(session)
+        }
 
-                    if (isAdded) {
-                        val idx = sessionsList.indexOfFirst { it.sessionId == sessionId }
-                        if (idx >= 0) {
-                            sessionsList[idx] = session
-                        } else {
-                            sessionsList.add(session)
-                        }
-
-                        // Sort most recent first
-                        sessionsList.sortByDescending { it.lastMessageTime }
-                        adapter.notifyDataSetChanged()
-                    }
-                }
-
-                // Save listener for cleanup
-                lastMessageListeners[sessionId] = listener
-
-            }
-            .addOnFailureListener {
-                Log.e("Peers2", "Failed to load student info", it)
-            }
+        // Save listener for cleanup
+        lastMessageListeners[sessionId] = listener
     }
 
     private fun openChat(sessionId: String, studentUid: String) {
@@ -209,9 +202,8 @@ class Peers2 : Fragment() {
         }
     }
 
-
     // ------------------------------------------------------------
-    // Pairing Request Handling (existing code)
+    // Pairing Request Handling
     // ------------------------------------------------------------
     private fun registerPairingCallback() {
         val activity = requireActivity() as? MainNavigation2 ?: return
@@ -267,10 +259,11 @@ class Peers2 : Fragment() {
         nameView.text = "Student"
         photoView.setImageResource(R.drawable.img_placeholder)
 
-        fetchStudentInfo(studentUid) { name, photoUrl ->
+        // Use cached user details
+        UserCache.getUserDetails(studentUid) { name, photoUrl ->
             if (isAdded) {
                 nameView.text = name
-                if (!photoUrl.isNullOrEmpty()) {
+                if (photoUrl.isNotEmpty()) {
                     Glide.with(this)
                         .load(photoUrl)
                         .placeholder(R.drawable.img_placeholder)
@@ -349,10 +342,11 @@ class Peers2 : Fragment() {
         nameView.text = "Student"
         photoView.setImageResource(R.drawable.img_placeholder)
 
-        fetchStudentInfo(studentUid) { name, photoUrl ->
+        // Use cached user details
+        UserCache.getUserDetails(studentUid) { name, photoUrl ->
             if (isAdded) {
                 nameView.text = name
-                if (!photoUrl.isNullOrEmpty()) {
+                if (photoUrl.isNotEmpty()) {
                     Glide.with(this).load(photoUrl).into(photoView)
                 }
             }
@@ -381,25 +375,6 @@ class Peers2 : Fragment() {
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show()
-    }
-
-    private fun fetchStudentInfo(studentUid: String, callback: (String, String?) -> Unit) {
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-            .collection("account_details")
-            .document(studentUid)
-            .get()
-            .addOnSuccessListener { doc ->
-                val first = doc.getString("fname") ?: ""
-                val last = doc.getString("lname") ?: ""
-                val photo = doc.getString("avatarUrl")
-
-                val name = "$first $last".trim().ifEmpty { "Student" }
-
-                callback(name, photo)
-            }
-            .addOnFailureListener {
-                callback("Student", null)
-            }
     }
 
     override fun onDestroyView() {
