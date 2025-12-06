@@ -79,6 +79,13 @@ class MainNavigation2 : AppCompatActivity() {
         startListeningForRequests()
     }
 
+    fun hideBottomNav() {
+        binding.navView.visibility = View.GONE
+    }
+
+    fun showBottomNav() {
+        binding.navView.visibility = View.VISIBLE
+    }
     // --------------------------------------------------
     //  Navigation Setup
     // --------------------------------------------------
@@ -97,7 +104,7 @@ class MainNavigation2 : AppCompatActivity() {
             when (destination.id) {
                 R.id.homeSchedule, R.id.profNotification2, R.id.profInfo2,
                 R.id.appTermsAndConditions2, R.id.appPrivacyPolicy2,
-                R.id.homeSessionManagement -> binding.navView.visibility = View.GONE
+                R.id.homeSessionManagement,R.id.chatMessageFragment, R.id.chatMessageFragment2 -> binding.navView.visibility = View.GONE
                 else -> binding.navView.visibility = View.VISIBLE
             }
         }

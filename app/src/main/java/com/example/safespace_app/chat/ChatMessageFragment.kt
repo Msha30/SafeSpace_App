@@ -77,12 +77,39 @@ class ChatMessageFragment  : Fragment() {
         }
 
         endChatButton.setOnClickListener {
-            endSession()
+            showEndChatDialog()
         }
 
         backButton.setOnClickListener {
             findNavController().navigateUp()
         }
+    }
+    private fun showEndChatDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.popup_endchat, null)
+
+        val titleText = dialogView.findViewById<TextView>(R.id.title)
+        val contentText = dialogView.findViewById<TextView>(R.id.content)
+        val cancelBtn = dialogView.findViewById<MaterialButton>(R.id.btncancel)
+        val confirmBtn = dialogView.findViewById<MaterialButton>(R.id.btnout)
+
+        // Replace [user] in content
+        contentText.text = contentText.text.toString().replace("[user]", otherUserName)
+
+        val dialog = android.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        confirmBtn.setOnClickListener {
+            dialog.dismiss()
+            endSession()
+        }
+
+        dialog.show()
     }
 
     private fun observeSession() {

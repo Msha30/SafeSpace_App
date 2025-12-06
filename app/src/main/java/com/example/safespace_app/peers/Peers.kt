@@ -13,6 +13,7 @@ import com.example.safespace_app.cache.UserCache
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.safespace_app.MainNavigation
 
 class Peers : Fragment() {
 
@@ -37,8 +38,18 @@ class Peers : Fragment() {
     }
 
     private fun setupChildNav() {
-        childFragmentManager.findFragmentById(R.id.container) as NavHostFragment
+        val navHostFragment = childFragmentManager.findFragmentById(R.id.container) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val activity = requireActivity() as? MainNavigation ?: return@addOnDestinationChangedListener
+            when (destination.id) {
+                R.id.peers_Chat, R.id.chatMessageFragment2 -> activity.hideBottomNav()
+                else -> activity.showBottomNav()
+            }
+        }
     }
+
 
     private fun checkExistingSession() {
         lifecycleScope.launch {
