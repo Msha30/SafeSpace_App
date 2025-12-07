@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.R
 import com.bumptech.glide.Glide
@@ -48,7 +49,14 @@ class HomeNewEvent : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_home_new_event, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_home_new_event, container, false)
+
+        val backBtn = rootView.findViewById<ImageView>(R.id.backbtn)
+        backBtn.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        return rootView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

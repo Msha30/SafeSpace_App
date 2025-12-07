@@ -44,7 +44,7 @@ class Peers : Fragment() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val activity = requireActivity() as? MainNavigation ?: return@addOnDestinationChangedListener
             when (destination.id) {
-                R.id.peers_Chat, R.id.chatMessageFragment2 -> activity.hideBottomNav()
+                R.id.chatMessageFragment2 -> activity.hideBottomNav()
                 else -> activity.showBottomNav()
             }
         }

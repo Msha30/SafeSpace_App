@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_nav_home2_to_homeSchedule"
             app:destination="@id/homeSchedule" />
+        <action
+            android:id="@+id/action_nav_home2_to_homeNewEvent"
+            app:destination="@id/homeNewEvent" />
     </fragment>
 
     <fragment
@@ -87,4 +90,9 @@
         android:id="@+id/chatMessageFragment"
         android:name="com.example.safespace_app.chat.ChatMessageFragment"
         android:label="ChatMessageFragment" />
+    <fragment
+        android:id="@+id/homeNewEvent"
+        android:name="com.example.safespace_app.home.HomeNewEvent"
+        android:label="fragment_home_new_event"
+        tools:layout="@layout/fragment_home_new_event" />
 </navigation>

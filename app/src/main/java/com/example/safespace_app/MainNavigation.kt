@@ -59,7 +59,7 @@ class MainNavigation : AppCompatActivity() {
                 R.id.homeCounseling,R.id.homeCounselingForm,R.id.homePeerSupportForm1,
                 R.id.homePeerSupportForm2,R.id.profInfo, R.id.profFeedback, R.id.profNotification,
                 R.id.appTermsAndConditions, R.id.appPrivacyPolicy, R.id.profChangeAvatar,
-                R.id.homePeerSupport, R.id.chatMessageFragment, R.id.chatMessageFragment2 -> binding.navView.visibility = View.GONE
+                R.id.homePeerSupport -> binding.navView.visibility = View.GONE
                 else -> binding.navView.visibility = View.VISIBLE
             }
         }

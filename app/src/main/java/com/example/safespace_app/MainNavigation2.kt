@@ -104,7 +104,8 @@ class MainNavigation2 : AppCompatActivity() {
             when (destination.id) {
                 R.id.homeSchedule, R.id.profNotification2, R.id.profInfo2,
                 R.id.appTermsAndConditions2, R.id.appPrivacyPolicy2,
-                R.id.homeSessionManagement,R.id.chatMessageFragment, R.id.chatMessageFragment2 -> binding.navView.visibility = View.GONE
+                R.id.homeSessionManagement,R.id.chatMessageFragment, R.id.chatMessageFragment2,
+                    R.id.homeNewEvent-> binding.navView.visibility = View.GONE
                 else -> binding.navView.visibility = View.VISIBLE
             }
         }

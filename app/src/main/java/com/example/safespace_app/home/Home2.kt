@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.R
@@ -122,6 +123,11 @@ class Home2 : Fragment() {
         // Now we can safely find views
         val btnPeerSupport = view.findViewById<ShapeableImageView>(R.id.peersupport)
         val btnschedule = view.findViewById<ShapeableImageView>(R.id.counseling)
+        val btnevent = view.findViewById<ImageView>(R.id.addEvent)
+
+        btnevent.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_home2_to_homeNewEvent)
+        }
 
         btnschedule.setOnClickListener {
             findNavController().navigate(R.id.action_nav_home2_to_homeSchedule)
