@@ -15,3 +15,17 @@ data class UnifiedSession(
     val lastMessageTime: Long = 0L,
     val unreadCount: Int = 0
 )
+data class DayAvailability(
+    val dayName: String,
+    var slots: MutableList<TimeSlot>
+)
+
+data class TimeSlot(
+    var label: String,   // "8:00 - 10:00"
+    var selected: Boolean = false
+)
+
+data class CachedAvailability(
+    val day: String,
+    val slots: List<TimeSlot>
+)

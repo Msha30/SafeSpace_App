@@ -7,6 +7,9 @@ import com.example.safespace_app.UnifiedSession
 import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
+import com.example.safespace_app.CachedAvailability
+import com.example.safespace_app.DayAvailability
+import com.example.safespace_app.TimeSlot
 import com.example.safespace_app.chat.ChatManager
 
 object UserCache {
@@ -35,6 +38,11 @@ object UserCache {
     private val userDetailsCache = mutableMapOf<String, Pair<String, String>>() // uid -> (name, photoUrl)
     private val userDetailsFetchTime = mutableMapOf<String, Long>() // uid -> timestamp
     private val CACHE_EXPIRY_MS = 5 * 60 * 1000L // 5 minutes
+
+    private val availabilityCache = mutableMapOf<String, List<CachedAvailability>>() // uid -> weekly availability
+
+    private val _availabilityLiveData = MutableLiveData<List<CachedAvailability>>()
+    val availabilityLiveData: LiveData<List<CachedAvailability>> get() = _availabilityLiveData
 
     fun loadPeers() {
         val firestore = FirebaseFirestore.getInstance()
@@ -282,6 +290,88 @@ object UserCache {
                 }
             }
     }
+    fun loadPeerAvailability(uid: String) {
+        availabilityCache[uid]?.let {
+            _availabilityLiveData.postValue(it)
+            return
+        }
+
+        val docRef = FirebaseFirestore.getInstance()
+            .collection("peer_availability")
+            .document(uid)
+
+        docRef.get().addOnSuccessListener { doc ->
+            val weekly: List<CachedAvailability> = if (!doc.exists() || doc.data.isNullOrEmpty()) {
+                // Automatically create default schedule
+                val defaultSlots = listOf(
+                    TimeSlot("8:00 - 10:00"),
+                    TimeSlot("10:00 - 12:00"),
+                    TimeSlot("1:00 - 3:00"),
+                    TimeSlot("3:00 - 5:00")
+                )
+                val daysOrder = listOf(
+                    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+                )
+                val defaultAvailability = daysOrder.map { day ->
+                    CachedAvailability(day, defaultSlots.map { TimeSlot(it.label, true) })
+                }
+                // save to Firestore
+                docRef.set(defaultAvailability.associate { it.day to it.slots.map { s -> mapOf("label" to s.label, "selected" to s.selected) } })
+                defaultAvailability
+            } else {
+                val list = mutableListOf<CachedAvailability>()
+                for (day in doc.data!!.keys) {
+                    val slotList = doc.get(day) as? List<Map<String, Any>> ?: emptyList()
+                    list.add(
+                        CachedAvailability(
+                            day,
+                            slotList.map { TimeSlot(it["label"]?.toString() ?: "", it["selected"] as? Boolean ?: false) }
+                        )
+                    )
+                }
+                // sort by Mon→Sun
+                val dayOrder = listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+                list.sortedBy { dayOrder.indexOf(it.day) }
+            }
+
+            availabilityCache[uid] = weekly
+            _availabilityLiveData.postValue(weekly)
+        }.addOnFailureListener {
+            _availabilityLiveData.postValue(emptyList())
+        }
+    }
+
+
+
+
+    fun savePeerAvailability(uid: String, weekly: List<DayAvailability>, callback: (Boolean) -> Unit) {
+        val map = weekly.associate { day ->
+            day.dayName to day.slots.map {
+                mapOf(
+                    "label" to it.label,
+                    "selected" to it.selected
+                )
+            }
+        }
+
+        FirebaseFirestore.getInstance()
+            .collection("peer_availability")
+            .document(uid)
+            .set(map)
+            .addOnSuccessListener {
+                // Update cache
+                availabilityCache[uid] = weekly.map {
+                    CachedAvailability(it.dayName, it.slots)
+                }
+                _availabilityLiveData.postValue(availabilityCache[uid])
+                callback(true)
+            }
+            .addOnFailureListener {
+                callback(false)
+            }
+    }
+
+
 
     fun clearActiveSession() {
         cachedSessionId = null
