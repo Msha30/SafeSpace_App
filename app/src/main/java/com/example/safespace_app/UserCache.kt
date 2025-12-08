@@ -9,13 +9,12 @@ import com.google.firebase.auth.FirebaseAuth
 
 object UserCache {
 
-    private val peersMap = mutableMapOf<String, Peer>() // UID -> Peer
+    private val peersMap = mutableMapOf<String, Peer>()
     private val _peersLiveData = MutableLiveData<List<Peer>>()
     val peersLiveData: LiveData<List<Peer>> get() = _peersLiveData
 
     private val rtdbListeners = mutableMapOf<String, ValueEventListener>()
 
-    // Session caching
     private var cachedSessionId: String? = null
     private var cachedPeerUid: String? = null
     private var sessionListener: ValueEventListener? = null
@@ -24,17 +23,15 @@ object UserCache {
     private val _sessionLiveData = MutableLiveData<Pair<String, String>?>()
     val sessionLiveData: LiveData<Pair<String, String>?> get() = _sessionLiveData
 
-    // NEW: Cache for multiple sessions with user info
-    private val sessionsCache = mutableMapOf<String, UnifiedSession>() // sessionId -> UnifiedSession
+    private val sessionsCache = mutableMapOf<String, UnifiedSession>()
     private val _sessionsLiveData = MutableLiveData<List<UnifiedSession>>()
     val sessionsLiveData: LiveData<List<UnifiedSession>> get() = _sessionsLiveData
 
-    // NEW: Cache for user details (student/peer info)
-    private val userDetailsCache = mutableMapOf<String, Pair<String, String>>() // uid -> (name, photoUrl)
-    private val userDetailsFetchTime = mutableMapOf<String, Long>() // uid -> timestamp
-    private val CACHE_EXPIRY_MS = 5 * 60 * 1000L // 5 minutes
+    private val userDetailsCache = mutableMapOf<String, Pair<String, String>>()
+    private val userDetailsFetchTime = mutableMapOf<String, Long>()
+    private val CACHE_EXPIRY_MS = 5 * 60 * 1000L
 
-    private val availabilityCache = mutableMapOf<String, List<CachedAvailability>>() // uid -> weekly availability
+    private val availabilityCache = mutableMapOf<String, List<CachedAvailability>>()
 
     private val _availabilityLiveData = MutableLiveData<List<CachedAvailability>>()
     val availabilityLiveData: LiveData<List<CachedAvailability>> get() = _availabilityLiveData
@@ -45,18 +42,15 @@ object UserCache {
             "https://safespace-af7ec-default-rtdb.asia-southeast1.firebasedatabase.app/"
         )
 
-        // If cache is already loaded, post it immediately
         if (peersMap.isNotEmpty()) {
             _peersLiveData.postValue(peersMap.values.toList())
         }
 
-        // Attach real-time Firestore listener
         firestore.collection("account_details")
             .whereEqualTo("userType", "peer")
             .addSnapshotListener { docs, error ->
                 if (error != null) {
                     Log.e("UserCache", "Firestore error", error)
-                    // On failure, fallback to cache
                     if (peersMap.isNotEmpty()) {
                         _peersLiveData.postValue(peersMap.values.toList())
                     }
@@ -89,7 +83,7 @@ object UserCache {
     }
 
     private fun listenPresence(peer: Peer, rtdb: FirebaseDatabase) {
-        if (rtdbListeners.containsKey(peer.uid)) return // already listening
+        if (rtdbListeners.containsKey(peer.uid)) return
 
         val ref = rtdb.getReference("status/${peer.uid}/state")
         val listener = object : ValueEventListener {
@@ -99,12 +93,8 @@ object UserCache {
 
                 val existing = peersMap[peer.uid] ?: return
 
-                // Only update if changed
                 if (existing.isOnline != isOnline) {
-                    // Replace instead of mutating
                     peersMap[peer.uid] = existing.copy(isOnline = isOnline)
-
-                    // Emit a FRESH list instance so observers trigger
                     _peersLiveData.postValue(peersMap.values.toList())
                 }
             }
@@ -117,17 +107,12 @@ object UserCache {
         rtdbListeners[peer.uid] = listener
     }
 
-    /**
-     * Start watching a student's active session in real-time
-     */
     fun watchSession(studentUid: String) {
-        // Don't create duplicate listeners
         if (watchingStudentUid == studentUid && sessionListener != null) {
             Log.d("UserCache", "Already watching session for $studentUid")
             return
         }
 
-        // Clean up old listener if watching different student
         stopWatchingSession()
 
         watchingStudentUid = studentUid
@@ -151,11 +136,9 @@ object UserCache {
                             val peerUid = child.child("peer").getValue(String::class.java)
 
                             if (sessionId != null && peerUid != null) {
-                                // Determine the OTHER user in the session
                                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
                                 val otherUserId = if (currentUserId == peerUid) studentUid else peerUid
 
-                                // Update cache
                                 cachedSessionId = sessionId
                                 cachedPeerUid = peerUid
                                 _sessionLiveData.postValue(Pair(sessionId, otherUserId))
@@ -167,7 +150,6 @@ object UserCache {
                     }
 
                     if (!foundActive) {
-                        // No active session found - session was ended or deleted
                         val wasActive = cachedSessionId != null
 
                         cachedSessionId = null
@@ -188,9 +170,6 @@ object UserCache {
             })
     }
 
-    /**
-     * Stop watching the current session
-     */
     fun stopWatchingSession() {
         sessionListener?.let {
             val rtdb = FirebaseDatabase.getInstance(
@@ -203,9 +182,6 @@ object UserCache {
         }
     }
 
-    /**
-     * Get cached session without triggering network call
-     */
     fun getActiveSession(): Pair<String, String>? {
         return if (cachedSessionId != null && cachedPeerUid != null) {
             Pair(cachedSessionId!!, cachedPeerUid!!)
@@ -214,37 +190,36 @@ object UserCache {
         }
     }
 
-    // NEW: Update session in cache
     fun updateSession(session: UnifiedSession) {
         sessionsCache[session.sessionId] = session
         _sessionsLiveData.postValue(sessionsCache.values.sortedByDescending { it.lastMessageTime })
         Log.d("UserCache", "Session ${session.sessionId} updated in cache")
     }
 
-    // NEW: Get cached session
     fun getCachedSession(sessionId: String): UnifiedSession? {
         return sessionsCache[sessionId]
     }
 
-    // NEW: Get all cached sessions
     fun getCachedSessions(): List<UnifiedSession> {
         return sessionsCache.values.sortedByDescending { it.lastMessageTime }
     }
 
-    // NEW: Remove session from cache
     fun removeSession(sessionId: String) {
         sessionsCache.remove(sessionId)
         _sessionsLiveData.postValue(sessionsCache.values.sortedByDescending { it.lastMessageTime })
         Log.d("UserCache", "Session $sessionId removed from cache")
     }
 
-    // NEW: Fetch user details with caching
+    /**
+     * NEW: Fetch user details with username support for students
+     * If the user is a student (userType == "student"), returns their username
+     * Otherwise returns their full name
+     */
     fun getUserDetails(
         uid: String,
         forceRefresh: Boolean = false,
         callback: (String, String) -> Unit
     ) {
-        // Check if we have valid cached data
         val cachedData = userDetailsCache[uid]
         val fetchTime = userDetailsFetchTime[uid] ?: 0L
         val isCacheValid = cachedData != null &&
@@ -256,27 +231,36 @@ object UserCache {
             return
         }
 
-        // Fetch from Firestore
         Log.d("UserCache", "Fetching user details for $uid from Firestore")
         FirebaseFirestore.getInstance()
             .collection("account_details")
             .document(uid)
             .get()
             .addOnSuccessListener { doc ->
-                val firstName = doc.getString("fname") ?: ""
-                val lastName = doc.getString("lname") ?: ""
-                val name = "$firstName $lastName".trim().ifEmpty { "User" }
+                // Check user type to determine what name to show
+                val userType = doc.getString("userType") ?: ""
+
+                val displayName = if (userType == "student") {
+                    // For students, use username for anonymity
+                    doc.getString("username") ?: "Anonymous Student"
+                } else {
+                    // For peers, use full name
+                    val firstName = doc.getString("fname") ?: ""
+                    val lastName = doc.getString("lname") ?: ""
+                    "$firstName $lastName".trim().ifEmpty { "User" }
+                }
+
                 val photoUrl = doc.getString("avatarUrl") ?: ""
 
                 // Update cache
-                userDetailsCache[uid] = Pair(name, photoUrl)
+                userDetailsCache[uid] = Pair(displayName, photoUrl)
                 userDetailsFetchTime[uid] = System.currentTimeMillis()
 
-                callback(name, photoUrl)
+                Log.d("UserCache", "Fetched user details for $uid: $displayName (type: $userType)")
+                callback(displayName, photoUrl)
             }
             .addOnFailureListener { error ->
                 Log.e("UserCache", "Failed to fetch user details for $uid", error)
-                // Return cached data if available, even if expired
                 val fallback = userDetailsCache[uid]
                 if (fallback != null) {
                     callback(fallback.first, fallback.second)
@@ -285,6 +269,7 @@ object UserCache {
                 }
             }
     }
+
     fun loadPeerAvailability(uid: String) {
         availabilityCache[uid]?.let {
             _availabilityLiveData.postValue(it)
@@ -297,7 +282,6 @@ object UserCache {
 
         docRef.get().addOnSuccessListener { doc ->
             val weekly: List<CachedAvailability> = if (!doc.exists() || doc.data.isNullOrEmpty()) {
-                // Automatically create default schedule
                 val defaultSlots = listOf(
                     TimeSlot("8:00 - 10:00"),
                     TimeSlot("10:00 - 12:00"),
@@ -310,7 +294,6 @@ object UserCache {
                 val defaultAvailability = daysOrder.map { day ->
                     CachedAvailability(day, defaultSlots.map { TimeSlot(it.label, true) })
                 }
-                // save to Firestore
                 docRef.set(defaultAvailability.associate { it.day to it.slots.map { s -> mapOf("label" to s.label, "selected" to s.selected) } })
                 defaultAvailability
             } else {
@@ -324,7 +307,6 @@ object UserCache {
                         )
                     )
                 }
-                // sort by Mon→Sun
                 val dayOrder = listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
                 list.sortedBy { dayOrder.indexOf(it.day) }
             }
@@ -335,9 +317,6 @@ object UserCache {
             _availabilityLiveData.postValue(emptyList())
         }
     }
-
-
-
 
     fun savePeerAvailability(uid: String, weekly: List<DayAvailability>, callback: (Boolean) -> Unit) {
         val map = weekly.associate { day ->
@@ -354,7 +333,6 @@ object UserCache {
             .document(uid)
             .set(map)
             .addOnSuccessListener {
-                // Update cache
                 availabilityCache[uid] = weekly.map {
                     CachedAvailability(it.dayName, it.slots)
                 }
@@ -366,8 +344,6 @@ object UserCache {
             }
     }
 
-
-
     fun clearActiveSession() {
         cachedSessionId = null
         cachedPeerUid = null
@@ -375,7 +351,6 @@ object UserCache {
         Log.d("UserCache", "Active session cleared")
     }
 
-    // NEW: Clear expired user details cache
     fun clearExpiredUserDetailsCache() {
         val currentTime = System.currentTimeMillis()
         val expiredKeys = userDetailsFetchTime.filter { (_, time) ->
@@ -397,21 +372,17 @@ object UserCache {
             "https://safespace-af7ec-default-rtdb.asia-southeast1.firebasedatabase.app/"
         )
 
-        // Clear presence listeners
         rtdbListeners.forEach { (uid, listener) ->
             rtdb.getReference("status/$uid/state").removeEventListener(listener)
         }
         rtdbListeners.clear()
 
-        // clear sessions
         stopWatchingSession()
 
-        // clear peersMap
         peersMap.clear()
         cachedSessionId = null
         cachedPeerUid = null
 
-        // NEW: Clear session caches
         sessionsCache.clear()
         userDetailsCache.clear()
         userDetailsFetchTime.clear()
