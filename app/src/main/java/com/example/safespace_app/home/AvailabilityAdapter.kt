@@ -65,7 +65,7 @@ class AvailabilityAdapter(
             else slot.selected
 
             val isEnabled = !studentSelectionMode || slot.selected
-            updateSlotColor(layout, isEnabled, studentSelectionMode, isSelected)
+            updateSlotColor(layout, label, isEnabled, studentSelectionMode, isSelected)
 
             layout.setOnClickListener {
                 val actualPos = holder.adapterPosition
@@ -84,7 +84,7 @@ class AvailabilityAdapter(
                     onStudentSelect?.invoke(actualPos, i)
                 } else {
                     slot.selected = !slot.selected
-                    updateSlotColor(layout, slot.selected, false, slot.selected)
+                    updateSlotColor(layout, label, slot.selected, false, slot.selected)
                 }
             }
 
@@ -103,17 +103,23 @@ class AvailabilityAdapter(
 
     private fun updateSlotColor(
         layout: LinearLayout,
+        label: TextView,
         enabled: Boolean,
         studentMode: Boolean,
         isSelected: Boolean
     ) {
         val colorRes = when {
-            studentMode && !enabled -> R.color.textgrey  // greyed out
-            studentMode && isSelected -> R.color.midblue // student picked
-            !studentMode && isSelected -> R.color.midblue // peer picked
-            else -> R.color.white
+            studentMode && !enabled -> R.drawable.f_cancel_btn  // greyed out
+            studentMode && isSelected -> R.drawable.f_rounded_clicked // student picked
+            !studentMode && isSelected -> R.drawable.f_rounded_clicked // peer picked
+            else -> R.drawable.f_rounded_white
         }
-        layout.setBackgroundColor(ContextCompat.getColor(context, colorRes))
+        layout.background = ContextCompat.getDrawable(context, colorRes)
+
+        when {
+            studentMode && !enabled -> label.setTextColor(ContextCompat.getColor(context, R.color.white))
+            else -> label.setTextColor(ContextCompat.getColor(context, R.color.black))
+        }
     }
 
     private fun showTimePicker(slot: TimeSlot, labelView: TextView) {

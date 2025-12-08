@@ -36,178 +36,191 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:paddingBottom="65dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="First Name"
-            android:fontFamily="@font/psbold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/fname"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/f_rounded_inactive"
-            android:text="@string/header"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/reg"
-            android:textColor="@color/textgrey"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Last Name"
-            android:fontFamily="@font/psbold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small"
-            android:layout_marginBottom="8dp"/>
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/lname"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/f_rounded_inactive"
-            android:text="@string/header"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/reg"
-            android:textColor="@color/textgrey"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:padding="20dp"
+                android:orientation="vertical">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="First Name"
+                    android:fontFamily="@font/psbold"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/small"
+                    android:layout_marginBottom="8dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
+                <TextView
+                    android:id="@+id/fname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/header"
+                    android:fontFamily="@font/ps"
+                    android:textSize="@dimen/reg"
+                    android:textColor="@color/textgrey"
+                    android:gravity="center_vertical"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Preffered Name"
-            android:fontFamily="@font/psbold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small"
-            android:layout_marginBottom="8dp"/>
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/pname"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/f_rounded_inactive"
-            android:text="@string/header"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/reg"
-            android:textColor="@color/textgrey"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:padding="20dp"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last Name"
+                    android:fontFamily="@font/psbold"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/small"
+                    android:layout_marginBottom="8dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
+                <TextView
+                    android:id="@+id/lname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/header"
+                    android:fontFamily="@font/ps"
+                    android:textSize="@dimen/reg"
+                    android:textColor="@color/textgrey"
+                    android:gravity="center_vertical"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email"
-            android:fontFamily="@font/psbold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small"
-            android:layout_marginBottom="8dp"/>
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/email"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/f_rounded_inactive"
-            android:text="@string/email"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/reg"
-            android:textColor="@color/textgrey"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:padding="20dp"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Preffered Name"
+                    android:fontFamily="@font/psbold"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/small"
+                    android:layout_marginBottom="8dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
+                <TextView
+                    android:id="@+id/pname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/header"
+                    android:fontFamily="@font/ps"
+                    android:textSize="@dimen/reg"
+                    android:textColor="@color/textgrey"
+                    android:gravity="center_vertical"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Program"
-            android:fontFamily="@font/psbold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small"
-            android:layout_marginBottom="8dp"/>
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/program"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/f_rounded_inactive"
-            android:text="@string/header"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/reg"
-            android:textColor="@color/textgrey"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:padding="20dp"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Email"
+                    android:fontFamily="@font/psbold"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/small"
+                    android:layout_marginBottom="8dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
+                <TextView
+                    android:id="@+id/email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/email"
+                    android:fontFamily="@font/ps"
+                    android:textSize="@dimen/reg"
+                    android:textColor="@color/textgrey"
+                    android:gravity="center_vertical"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Student ID"
-            android:fontFamily="@font/psbold"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small"
-            android:layout_marginBottom="8dp"/>
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/student_id"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="@drawable/f_rounded_inactive"
-            android:text="2000-000000"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/reg"
-            android:textColor="@color/textgrey"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:padding="20dp"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Program"
+                    android:fontFamily="@font/psbold"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/small"
+                    android:layout_marginBottom="8dp"/>
 
+                <TextView
+                    android:id="@+id/program"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/header"
+                    android:fontFamily="@font/ps"
+                    android:textSize="@dimen/reg"
+                    android:textColor="@color/textgrey"
+                    android:gravity="center_vertical"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/f_rounded_white"
+                android:padding="20dp"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Student ID"
+                    android:fontFamily="@font/psbold"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/small"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/student_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="2000-000000"
+                    android:fontFamily="@font/ps"
+                    android:textSize="@dimen/reg"
+                    android:textColor="@color/textgrey"
+                    android:gravity="center_vertical"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>
