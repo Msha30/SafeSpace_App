@@ -46,6 +46,7 @@
             android:layout_width="0dp"
             android:layout_height="45dp"
             android:layout_weight="1"
+            android:layout_marginLeft="10dp"
             android:gravity="center"
             android:background="@drawable/f_rounded_white"
             android:padding="0dp">
@@ -94,6 +95,7 @@
             android:layout_width="0dp"
             android:layout_height="45dp"
             android:layout_weight="1"
+            android:layout_marginLeft="10dp"
             android:gravity="center"
             android:background="@drawable/f_rounded_white"
             android:padding="0dp">

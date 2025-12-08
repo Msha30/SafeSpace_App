@@ -94,5 +94,13 @@
         android:id="@+id/homeNewEvent"
         android:name="com.example.safespace_app.home.HomeNewEvent"
         android:label="fragment_home_new_event"
-        tools:layout="@layout/fragment_home_new_event" />
+        tools:layout="@layout/fragment_home_new_event" >
+        <action
+            android:id="@+id/action_homeNewEvent_to_photoManagerFragment"
+            app:destination="@id/photoManagerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/photoManagerFragment"
+        android:name="com.example.safespace_app.home.PhotoManagerFragment"
+        android:label="PhotoManagerFragment" />
 </navigation>

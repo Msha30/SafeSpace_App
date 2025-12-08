@@ -87,8 +87,7 @@
                     <TextView
                         android:id="@id/fname"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp"
-                        android:background="@drawable/f_rounded_inactive"
+                        android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:fontFamily="@font/ps"
                         android:textSize="@dimen/reg"
@@ -117,8 +116,7 @@
                     <TextView
                         android:id="@id/lname"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp"
-                        android:background="@drawable/f_rounded_inactive"
+                        android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:fontFamily="@font/ps"
                         android:textSize="@dimen/reg"
@@ -154,8 +152,7 @@
                     <TextView
                         android:id="@id/program"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp"
-                        android:background="@drawable/f_rounded_inactive"
+                        android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:fontFamily="@font/ps"
                         android:textSize="@dimen/reg"
@@ -184,8 +181,7 @@
                     <TextView
                         android:id="@id/student_id"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp"
-                        android:background="@drawable/f_rounded_inactive"
+                        android:layout_height="wrap_content"
                         android:text="@string/header"
                         android:fontFamily="@font/ps"
                         android:textSize="@dimen/reg"

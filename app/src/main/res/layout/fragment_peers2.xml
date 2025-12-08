@@ -21,15 +21,15 @@
 
     <TextView
         android:id="@+id/tvEmpty"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="You have no Paired Students"
-        android:textSize="16sp"
-        android:textColor="@color/darkblue"
-        android:textStyle="bold"
-        android:gravity="center"
         android:visibility="gone"
-        android:layout_marginBottom="10dp"/>
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        android:padding="15dp"
+        android:text="No paired peers..."
+        android:textSize="@dimen/mid"
+        android:textColor="@color/textgrey"
+        android:gravity="center"
+        android:fontFamily="@font/ps_ttf"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewPeers"
