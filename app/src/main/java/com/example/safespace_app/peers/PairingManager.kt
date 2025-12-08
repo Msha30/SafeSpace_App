@@ -1,6 +1,6 @@
 package com.example.safespace_app.peers
 
-import com.example.safespace_app.cache.UserCache
+import com.example.safespace_app.UserCache
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.google.firebase.database.DataSnapshot

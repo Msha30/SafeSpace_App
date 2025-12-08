@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -14,10 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.DayAvailability
 import com.example.safespace_app.R
 import com.example.safespace_app.TimeSlot
-import com.example.safespace_app.cache.UserCache
+import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 
 class HomeSchedule : Fragment() {
 

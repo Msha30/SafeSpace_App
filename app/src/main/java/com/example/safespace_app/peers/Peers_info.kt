@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.R
-import com.example.safespace_app.cache.UserCache
+import com.example.safespace_app.UserCache
 
 class Peers_info : Fragment() {
 

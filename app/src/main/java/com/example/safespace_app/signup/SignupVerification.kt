@@ -43,6 +43,62 @@ class SignupVerification : Fragment() {
         }
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return inflater.inflate(R.layout.fragment_signup_verification, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            startActivity(Intent(requireContext(), Login::class.java))
+            requireActivity().finish()
+        }
+
+        // Save user data locally FIRST
+        saveUserDataLocally()
+
+        // Start auto-checking for email verification
+        handler.post(autoCheckRunnable)
+
+        emailTv = view.findViewById(R.id.email)
+        resendBtn = view.findViewById(R.id.resendcode)
+        verifyBtn = view.findViewById(R.id.btn)
+
+        val email = arguments?.getString("email") ?: "your@email.com"
+        emailTv.text = email
+
+        user = auth.currentUser
+
+        // Manual verify button
+        verifyBtn.setOnClickListener {
+            user?.reload()?.addOnCompleteListener {
+                val isVerified = user?.isEmailVerified ?: false
+                if (isVerified) {
+                    Log.d("SignupVerification", "Email verified, proceeding to create account")
+                    createUserInFirestoreAndLogin()
+                } else {
+                    Log.d("SignupVerification", "Email not verified yet")
+                    verifyBtn.text = "Not verified yet"
+                }
+            }
+        }
+
+        // Resend verification email
+        resendBtn.setOnClickListener {
+            user?.sendEmailVerification()?.addOnSuccessListener {
+                Log.d("SignupVerification", "Resent verification email to $email")
+                startResendCooldown()
+            }?.addOnFailureListener { e ->
+                Log.e("SignupVerification", "Failed to resend verification email: ${e.message}")
+            }
+        }
+    }
+
     private fun saveUserDataLocally() {
         val prefs = requireContext().getSharedPreferences("signup_cache", 0)
         val editor = prefs.edit()
@@ -144,61 +200,6 @@ class SignupVerification : Fragment() {
             .addOnFailureListener { e ->
                 Log.e("SignupVerification", "❌ Failed to upload cached user data: ${e.message}")
             }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.fragment_signup_verification, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Disable back button
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-            // Do nothing
-        }
-
-        // Save user data locally FIRST
-        saveUserDataLocally()
-
-        // Start auto-checking for email verification
-        handler.post(autoCheckRunnable)
-
-        emailTv = view.findViewById(R.id.email)
-        resendBtn = view.findViewById(R.id.resendcode)
-        verifyBtn = view.findViewById(R.id.btn)
-
-        val email = arguments?.getString("email") ?: "your@email.com"
-        emailTv.text = email
-
-        user = auth.currentUser
-
-        // Manual verify button
-        verifyBtn.setOnClickListener {
-            user?.reload()?.addOnCompleteListener {
-                val isVerified = user?.isEmailVerified ?: false
-                if (isVerified) {
-                    Log.d("SignupVerification", "Email verified, proceeding to create account")
-                    createUserInFirestoreAndLogin()
-                } else {
-                    Log.d("SignupVerification", "Email not verified yet")
-                    verifyBtn.text = "Not verified yet"
-                }
-            }
-        }
-
-        // Resend verification email
-        resendBtn.setOnClickListener {
-            user?.sendEmailVerification()?.addOnSuccessListener {
-                Log.d("SignupVerification", "Resent verification email to $email")
-                startResendCooldown()
-            }?.addOnFailureListener { e ->
-                Log.e("SignupVerification", "Failed to resend verification email: ${e.message}")
-            }
-        }
     }
 
     private fun startResendCooldown() {

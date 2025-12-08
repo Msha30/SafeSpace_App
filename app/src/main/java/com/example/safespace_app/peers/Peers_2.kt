@@ -7,9 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
-import com.example.safespace_app.cache.UserCache
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.imageview.ShapeableImageView
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

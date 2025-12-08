@@ -1,16 +1,11 @@
-package com.example.safespace_app.cache
+package com.example.safespace_app
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.safespace_app.Peer
-import com.example.safespace_app.UnifiedSession
 import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
-import com.example.safespace_app.CachedAvailability
-import com.example.safespace_app.DayAvailability
-import com.example.safespace_app.TimeSlot
-import com.example.safespace_app.chat.ChatManager
+import com.google.firebase.auth.FirebaseAuth
 
 object UserCache {
 
@@ -157,7 +152,7 @@ object UserCache {
 
                             if (sessionId != null && peerUid != null) {
                                 // Determine the OTHER user in the session
-                                val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
                                 val otherUserId = if (currentUserId == peerUid) studentUid else peerUid
 
                                 // Update cache
