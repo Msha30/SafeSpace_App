@@ -53,6 +53,8 @@ class SignupVerification : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val auth = FirebaseAuth.getInstance()
+        auth.signOut()
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             startActivity(Intent(requireContext(), Login::class.java))
