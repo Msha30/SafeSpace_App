@@ -15,7 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.R
-import com.example.safespace_app.cache.UserCache
+import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ValueEventListener
@@ -38,12 +38,12 @@ class ChatMessageFragment  : Fragment() {
     private var messageListener: ValueEventListener? = null
     private var currentSessionId: String? = null
     private var otherUserName: String = "Chat"
+    private var currentUserDisplayName: String = "You"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
         return inflater.inflate(R.layout.fragment_chat_message, container, false)
     }
 
@@ -60,6 +60,7 @@ class ChatMessageFragment  : Fragment() {
 
         setupRecyclerView()
         setupClickListeners()
+        loadCurrentUserName()
         observeSession()
     }
 
@@ -84,6 +85,7 @@ class ChatMessageFragment  : Fragment() {
             findNavController().navigateUp()
         }
     }
+
     private fun showEndChatDialog() {
         val dialogView = layoutInflater.inflate(R.layout.popup_endchat, null)
 
@@ -140,22 +142,29 @@ class ChatMessageFragment  : Fragment() {
         }
     }
 
+    /**
+     * Load other user's info using UserCache (respects student anonymity)
+     */
     private fun loadOtherUserInfo(otherUserId: String) {
-        FirebaseFirestore.getInstance()
-            .collection("account_details")
-            .document(otherUserId)
-            .get()
-            .addOnSuccessListener { doc ->
-                if (isAdded && doc.exists()) {
-                    val firstName = doc.getString("fname") ?: ""
-                    val lastName = doc.getString("lname") ?: ""
-                    otherUserName = "$firstName $lastName".trim().ifEmpty { "Chat" }
-                    nameText.text = otherUserName
-                }
+        UserCache.getUserDetails(otherUserId) { name, photoUrl ->
+            if (isAdded) {
+                otherUserName = name
+                nameText.text = name
+                Log.d("ChatMessage", "Loaded other user info: $name")
             }
-            .addOnFailureListener {
-                Log.e("ChatMessage", "Failed to load user info", it)
+        }
+    }
+
+    /**
+     * Load current user's display name (username for students, full name for peers)
+     */
+    private fun loadCurrentUserName() {
+        UserCache.getUserDetails(currentUserId) { name, photoUrl ->
+            if (isAdded) {
+                currentUserDisplayName = name
+                Log.d("ChatMessage", "Loaded current user name: $name")
             }
+        }
     }
 
     private fun startListeningForMessages(sessionId: String) {
@@ -184,35 +193,22 @@ class ChatMessageFragment  : Fragment() {
             return
         }
 
-        // Get current user's name
-        lifecycleScope.launch {
-            val senderName = getCurrentUserName()
-
-            chatManager.sendMessage(
-                sessionId = sessionId,
-                senderId = currentUserId,
-                senderName = senderName,
-                message = message,
-                onSuccess = {
-                    if (isAdded) {
-                        messageInput.text?.clear()
-                    }
-                },
-                onFailure = { error ->
-                    if (isAdded) {
-                        Toast.makeText(requireContext(), "Failed to send: $error", Toast.LENGTH_SHORT).show()
-                    }
+        chatManager.sendMessage(
+            sessionId = sessionId,
+            senderId = currentUserId,
+            senderName = currentUserDisplayName, // Use the loaded display name
+            message = message,
+            onSuccess = {
+                if (isAdded) {
+                    messageInput.text?.clear()
                 }
-            )
-        }
-    }
-
-    private fun getCurrentUserName(): String {
-        // Try to get from shared preferences first
-        val prefs = requireContext().getSharedPreferences("user_cache", android.content.Context.MODE_PRIVATE)
-        val firstName = prefs.getString("fname", "") ?: ""
-        val lastName = prefs.getString("lname", "") ?: ""
-        return "$firstName $lastName".trim().ifEmpty { "You" }
+            },
+            onFailure = { error ->
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Failed to send: $error", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 
     private fun markMessagesAsRead(sessionId: String) {

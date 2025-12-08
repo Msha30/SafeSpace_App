@@ -6,10 +6,9 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
-import com.example.safespace_app.cache.UserCache
+import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
 
 class HomePeerSupportForm1 : Fragment(R.layout.fragment_home_peer_support_form1) {

@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.example.safespace_app.R
-import com.example.safespace_app.cache.UserCache
+import com.example.safespace_app.UserCache
 import com.example.safespace_app.DayAvailability
 import com.example.safespace_app.TimeSlot
 import java.text.SimpleDateFormat
