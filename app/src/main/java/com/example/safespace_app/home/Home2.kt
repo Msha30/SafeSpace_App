@@ -130,15 +130,11 @@ class Home2 : Fragment() {
                 when (session.callStatus) {
                     "active" -> {
                         holder.btnCallAction?.text = "Join Call"
-                        holder.btnCallAction?.setBackgroundColor(
-                            holder.itemView.context.getColor(R.color.green)
-                        )
+                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
                     }
                     else -> {
                         holder.btnCallAction?.text = "Start Call"
-                        holder.btnCallAction?.setBackgroundColor(
-                            holder.itemView.context.getColor(R.color.primary)
-                        )
+                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
                     }
                 }
 

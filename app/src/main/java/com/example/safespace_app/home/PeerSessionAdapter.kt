@@ -16,6 +16,8 @@ import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.imageview.ShapeableImageView
+
 
 class PeerSessionAdapter(
     private val context: Context,
@@ -26,7 +28,7 @@ class PeerSessionAdapter(
 
     inner class SessionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val cardView: MaterialCardView = view.findViewById(R.id.sessionCard)
-        val profileImage: ImageView = view.findViewById(R.id.profileImage)
+        val profileImage: ShapeableImageView = view.findViewById(R.id.profileImage)
         val nameText: TextView = view.findViewById(R.id.nameText)
         val infoText: TextView = view.findViewById(R.id.infoText)
         val btnCancel: MaterialButton = view.findViewById(R.id.btnCancel)
@@ -87,7 +89,8 @@ class PeerSessionAdapter(
                 holder.btnConfirm.visibility = View.GONE
                 holder.statusBadge.visibility = View.VISIBLE
                 holder.statusBadge.text = "✓ Confirmed"
-                holder.statusBadge.setBackgroundResource(R.drawable.bg_status_confirmed)
+                holder.statusBadge.setTextColor(context.getColor(R.color.green))
+
 
                 // Show call button for video/voice calls
                 if (session.preferredMode == "Video Call" || session.preferredMode == "Call") {
@@ -99,12 +102,12 @@ class PeerSessionAdapter(
                     when (session.callStatus) {
                         "active" -> {
                             holder.btnStartCall.text = "Join Call"
-                            holder.btnStartCall.setBackgroundColor(context.getColor(R.color.green))
+                            holder.btnStartCall.setBackgroundResource(R.drawable.f_rounded_green)
                             android.util.Log.d("PeerAdapter", "Button set to JOIN CALL")
                         }
                         else -> {
                             holder.btnStartCall.text = "Start Call"
-                            holder.btnStartCall.setBackgroundColor(context.getColor(R.color.primary))
+                            holder.btnStartCall.setBackgroundResource(R.drawable.f_rounded_blue)
                             android.util.Log.d("PeerAdapter", "Button set to START CALL")
                         }
                     }
@@ -122,7 +125,8 @@ class PeerSessionAdapter(
                 holder.btnStartCall.visibility = View.GONE
                 holder.statusBadge.visibility = View.VISIBLE
                 holder.statusBadge.text = "✗ Cancelled"
-                holder.statusBadge.setBackgroundResource(R.drawable.bg_status_cancelled)
+                holder.statusBadge.setTextColor(context.getColor(R.color.red))
+
             }
             else -> {
                 holder.btnCancel.visibility = View.GONE
