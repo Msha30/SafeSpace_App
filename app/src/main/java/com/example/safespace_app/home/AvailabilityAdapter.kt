@@ -87,17 +87,6 @@ class AvailabilityAdapter(
                     updateSlotColor(layout, label, slot.selected, false, slot.selected)
                 }
             }
-
-
-            layout.setOnLongClickListener {
-                val actualPos = holder.adapterPosition
-                if (actualPos == RecyclerView.NO_POSITION) return@setOnLongClickListener true
-                if (!studentSelectionMode) {
-                    showTimePicker(days[actualPos].slots[i], holder.slotLabels[i])
-                }
-                true
-            }
-
         }
     }
 

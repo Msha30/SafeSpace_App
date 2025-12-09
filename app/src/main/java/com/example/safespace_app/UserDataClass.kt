@@ -29,3 +29,20 @@ data class CachedAvailability(
     val day: String,
     val slots: List<TimeSlot>
 )
+data class PeerSession(
+    val sessionId: String,
+    val studentUid: String,
+    val peerUid: String,
+    val selectedDate: String,
+    val selectedTimeSlot: String,
+    var location: String?,
+    var status: String?,
+    val topicOfConcern: String,
+    val additionalConcern: String,
+    val preferredMode: String,
+    val sessionComplete: Boolean,
+    val createdAt: Long,
+    val requestId: String,
+    var callStatus: String? = null,  // "waiting", "active", "ended"
+    var callInitiatorUid: String? = null
+)

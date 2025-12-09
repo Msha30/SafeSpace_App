@@ -19,4 +19,8 @@
     <color name="btngrey">#bdc1c4</color>
     <color name="navgrey">#a4afb4</color>
 
+    <!--<color name="green">#4CAF50</color>-->
+    <color name="error">#F44336</color>
+    <color name="text_secondary">#757575</color>
+    <color name="primary">#6200EE</color>
 </resources>

@@ -81,8 +81,8 @@ class HomeSchedule : Fragment() {
 
     private fun defaultDays(): MutableList<DayAvailability> {
         val defaultSlots = listOf(
-            TimeSlot("8:00 - 10:00"),
-            TimeSlot("10:00 - 12:00"),
+            TimeSlot("7:00 - 9:00"),
+            TimeSlot("9:00 - 11:00"),
             TimeSlot("1:00 - 3:00"),
             TimeSlot("3:00 - 5:00")
         )

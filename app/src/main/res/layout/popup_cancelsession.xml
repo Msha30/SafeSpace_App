@@ -23,10 +23,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp"
+        android:fontFamily="@font/ps"
         android:text="@string/cancel"
         android:textColor="@color/black"
-        android:fontFamily="@font/ps"
-        android:textSize="@dimen/reg"/>
+        android:textSize="@dimen/reg" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -40,7 +40,7 @@
         app:hintEnabled="false">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/fname"
+            android:id="@+id/reason"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/f_transparent"

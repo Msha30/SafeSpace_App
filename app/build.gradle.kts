@@ -28,6 +28,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
     }
 
     buildTypes {
@@ -98,5 +101,8 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.3.2")
+    implementation("io.getstream:stream-webrtc-android:1.3.9")
+    //implementation("org.webrtc:google-webrtc:1.0.32006")
+    implementation("com.karumi:dexter:6.2.3")
 
 }

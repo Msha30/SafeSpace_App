@@ -40,7 +40,7 @@
                 android:id="@+id/info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📅  Month 00, 2025\n🕒  0:00 PM - 0:00\n📍  Unconfirmed"
+                android:text="📅  Month 00, 2025\n🕒  0:00 PM - 0:00\n📍  Online"
                 android:textColor="@color/black"
                 android:fontFamily="@font/ps"
                 android:textSize="@dimen/reg"/>
@@ -66,30 +66,24 @@
         android:textColor="@color/black"
         android:fontFamily="@font/ps"
         android:textSize="@dimen/reg"/>
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description"
+        android:textColor="@color/black"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"/>
+
+    <TextView
+        android:id="@+id/desc"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp"
-        android:background="@drawable/f_rounded_white"
-        android:backgroundTint="@color/fillout"
-        android:elevation="1.5dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        app:hintEnabled="false">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/location"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/f_transparent"
-            android:fontFamily="@font/ps"
-            android:hint="Set Session Place"
-            android:inputType="text"
-            android:textStyle="italic"
-            android:textColor="@color/black"
-            android:textColorHint="@color/textgrey"
-            android:textSize="@dimen/reg" />
-    </com.google.android.material.textfield.TextInputLayout>
+        android:text="@string/para"
+        android:textColor="@color/black"
+        android:fontFamily="@font/ps"
+        android:textSize="@dimen/reg"/>
 
     <LinearLayout
         android:layout_width="match_parent"

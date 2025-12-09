@@ -6,6 +6,7 @@ import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
 
 object UserCache {
 
@@ -283,8 +284,8 @@ object UserCache {
         docRef.get().addOnSuccessListener { doc ->
             val weekly: List<CachedAvailability> = if (!doc.exists() || doc.data.isNullOrEmpty()) {
                 val defaultSlots = listOf(
-                    TimeSlot("8:00 - 10:00"),
-                    TimeSlot("10:00 - 12:00"),
+                    TimeSlot("7:00 - 9:00"),
+                    TimeSlot("9:00 - 11:00"),
                     TimeSlot("1:00 - 3:00"),
                     TimeSlot("3:00 - 5:00")
                 )
@@ -366,7 +367,93 @@ object UserCache {
             Log.d("UserCache", "Cleared ${expiredKeys.size} expired user detail entries")
         }
     }
+    private val peerSessionsCache = mutableMapOf<String, PeerSession>()
+    private val _peerSessionsLiveData = MutableLiveData<List<PeerSession>>()
+    val activeSessionsLiveData: LiveData<List<PeerSession>> get() = _peerSessionsLiveData
+    private var peerSessionsListener: ListenerRegistration? = null
 
+    // Replace the loadActiveSessionsForUser function in UserCache.kt with this:
+
+    fun loadActiveSessionsForUser(peerUid: String? = null, studentUid: String? = null) {
+        // Remove previous listener if exists
+        peerSessionsListener?.remove()
+
+        val firestore = FirebaseFirestore.getInstance()
+        var query = firestore.collection("peer_session_requests") as com.google.firebase.firestore.Query
+
+        when {
+            peerUid != null -> query = query.whereEqualTo("peerUid", peerUid)
+            studentUid != null -> query = query.whereEqualTo("studentUid", studentUid)
+            else -> return // Nothing to load
+        }
+
+        peerSessionsListener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("UserCache", "Failed to load sessions", error)
+                return@addSnapshotListener
+            }
+
+            val activeList = mutableListOf<PeerSession>()
+            snapshot?.documents?.forEach { doc ->
+                val sessionId = doc.id
+                val studentUidDoc = doc.getString("studentUid") ?: return@forEach
+                val peerUidDoc = doc.getString("peerUid") ?: ""
+                val preferredMode = doc.getString("preferredMode")?.trim() ?: ""
+                val topicOfConcern = doc.getString("topicOfConcern") ?: ""
+                val additionalConcern = doc.getString("additionalConcern") ?: ""
+                val selectedDate = doc.getString("selectedDate") ?: ""
+                val selectedTimeSlot = doc.getString("selectedTimeSlot") ?: ""
+                val status = doc.getString("status") ?: "pending"
+                val sessionComplete = doc.getBoolean("sessionComplete") ?: false
+                val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                val requestId = doc.getString("requestId") ?: sessionId
+                val location = doc.getString("location")?.trim()
+
+                // ✅ READ CALL STATUS FROM FIRESTORE
+                val callStatus = doc.getString("callStatus")
+                val callInitiatorUid = doc.getString("callInitiatorUid")
+
+                val session = PeerSession(
+                    sessionId = sessionId,
+                    studentUid = studentUidDoc,
+                    peerUid = peerUidDoc,
+                    selectedDate = selectedDate,
+                    selectedTimeSlot = selectedTimeSlot,
+                    location = location,
+                    status = status,
+                    topicOfConcern = topicOfConcern,
+                    additionalConcern = additionalConcern,
+                    preferredMode = preferredMode,
+                    sessionComplete = sessionComplete,
+                    createdAt = createdAt,
+                    requestId = requestId,
+                    callStatus = callStatus,           // ✅ INCLUDE THIS
+                    callInitiatorUid = callInitiatorUid // ✅ INCLUDE THIS
+                )
+
+                peerSessionsCache[sessionId] = session
+                activeList.add(session)
+
+                // Debug log
+                Log.d("UserCache", "Session ${sessionId}: callStatus=$callStatus, initiator=$callInitiatorUid")
+            }
+
+            Log.d("UserCache", "Active sessions loaded: ${activeList.size}")
+            _peerSessionsLiveData.postValue(activeList)
+        }
+    }
+    fun updateSessionStatus(sessionId: String, status: String) {
+        FirebaseFirestore.getInstance()
+            .collection("peer_session_requests")
+            .document(sessionId)
+            .update("status", status)
+            .addOnSuccessListener {
+                Log.d("UserCache", "Peer session request $sessionId status updated to $status")
+            }
+            .addOnFailureListener { error ->
+                Log.e("UserCache", "Failed to update peer session request $sessionId", error)
+            }
+    }
     fun clear() {
         val rtdb = FirebaseDatabase.getInstance(
             "https://safespace-af7ec-default-rtdb.asia-southeast1.firebasedatabase.app/"

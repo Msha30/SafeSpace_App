@@ -11,6 +11,8 @@ import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
 import com.example.safespace_app.DayAvailability
 import com.example.safespace_app.TimeSlot
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -58,6 +60,7 @@ class HomePeerSupportForm2 : Fragment(R.layout.fragment_home_peer_support_form2)
         selectedPeerUid?.let { uid ->
             UserCache.loadPeerAvailability(uid)
             UserCache.availabilityLiveData.observe(viewLifecycleOwner) { weekly ->
+                if (!isAdded) return@observe  // fragment not attached
                 val next7Dates = getNext7Dates()
                 daysList.clear()
                 daysList.addAll(
@@ -70,6 +73,7 @@ class HomePeerSupportForm2 : Fragment(R.layout.fragment_home_peer_support_form2)
                 )
                 adapter.notifyDataSetChanged()
             }
+
         }
 
         view.findViewById<MaterialButton>(R.id.btnsubmit).setOnClickListener {
@@ -78,7 +82,42 @@ class HomePeerSupportForm2 : Fragment(R.layout.fragment_home_peer_support_form2)
                 return@setOnClickListener
             }
 
-            // TODO: submit session booking to Firestore / backend
+            // FIRESTORE REQUEST CREATION
+            val requestId = UUID.randomUUID().toString()
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            val studentUid = currentUser?.uid ?: return@setOnClickListener
+
+            val requestData = mapOf(
+                "requestId" to requestId,
+                "studentUid" to studentUid,
+                "peerUid" to selectedPeerUid,
+                "preferredMode" to preferredMode,
+                "topicOfConcern" to topicOfConcern,
+                "additionalConcern" to generalConcernText,
+                "selectedDate" to selectedStudentDate,
+                "selectedTimeSlot" to selectedStudentSlot?.label,
+                "createdAt" to System.currentTimeMillis(),
+                "status" to "pending",       // pending → accepted → cancelled
+                "sessionComplete" to false,   // <-- NEW FIELD
+                "location" to ""
+            )
+
+            FirebaseFirestore.getInstance()
+                .collection("peer_session_requests")
+                .document(requestId)
+                .set(requestData)
+                .addOnSuccessListener {
+                    context?.let { ctx ->
+                        Toast.makeText(ctx, "Request sent!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .addOnFailureListener {
+                    context?.let { ctx ->
+                        Toast.makeText(ctx, "Failed to send request", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+
 
             findNavController().navigate(
                 findNavController().graph.startDestinationId,

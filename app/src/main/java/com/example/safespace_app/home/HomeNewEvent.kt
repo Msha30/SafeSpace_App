@@ -49,6 +49,9 @@ class HomeNewEvent : Fragment() {
 
         binding.recyclerViewPhotos.adapter = adapter
 
+        binding.backbtn.setOnClickListener {
+            findNavController().navigateUp()
+        }
         binding.btnimage.setOnClickListener {
             pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
