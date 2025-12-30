@@ -30,72 +30,36 @@
             app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/counseling"
             android:layout_width="0dp"
-            android:layout_height="130dp"
+            android:layout_height="80dp"
             android:scaleType="centerCrop"
             android:src="@drawable/main_background"
             app:shapeAppearanceOverlay="@style/RoundedImage"/>
 
-        <ImageView
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:gravity="center"
             app:layout_constraintTop_toTopOf="@id/counseling"
             app:layout_constraintStart_toStartOf="@id/counseling"
-            android:layout_marginTop="15dp"
-            android:layout_marginStart="15dp"
-            android:id="@+id/circ1"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@drawable/ic_counseling"/>
-        
-        <TextView
-            app:layout_constraintStart_toStartOf="@id/counseling"
-            app:layout_constraintTop_toBottomOf="@id/circ1"
-            app:layout_constraintBottom_toBottomOf="@id/counseling"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="15dp"
-            android:layout_marginBottom="15dp"
-            android:text="@string/counselingbtn"
-            android:textColor="@color/white"
-            android:fontFamily="@font/psbold"
-            android:textSize="@dimen/small"/>
-        
-        <com.google.android.material.imageview.ShapeableImageView
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/counseling"
-            app:layout_constraintTop_toTopOf="parent"
-            android:id="@+id/peersupport"
-            android:layout_width="0dp"
-            android:layout_height="130dp"
-            android:layout_marginLeft="15dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/main_background"
-            app:shapeAppearanceOverlay="@style/RoundedImage"/>
+            android:orientation="horizontal">
 
-        <ImageView
-            app:layout_constraintTop_toTopOf="@id/peersupport"
-            app:layout_constraintStart_toStartOf="@id/peersupport"
-            android:layout_marginTop="15dp"
-            android:layout_marginStart="15dp"
-            android:id="@+id/circ2"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@drawable/ic_sessions"/>
+            <ImageView
+                android:id="@+id/circ1"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_counseling"/>
 
-        <TextView
-            app:layout_constraintStart_toStartOf="@id/peersupport"
-            app:layout_constraintTop_toBottomOf="@id/circ2"
-            app:layout_constraintBottom_toBottomOf="@id/peersupport"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="15dp"
-            android:layout_marginBottom="15dp"
-            android:text="@string/sessionbtn"
-            android:textColor="@color/white"
-            android:fontFamily="@font/psbold"
-            android:textSize="@dimen/small"/>
-        
-        
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="@string/counselingbtn"
+                android:textColor="@color/white"
+                android:fontFamily="@font/psbold"
+                android:textSize="@dimen/reg"/>
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
     
@@ -119,6 +83,7 @@
         android:textSize="@dimen/small"
         android:textColor="@color/textgrey"
         android:gravity="center"
+        android:visibility="gone"
         android:fontFamily="@font/ps_ttf"/>
 
     <androidx.recyclerview.widget.RecyclerView
