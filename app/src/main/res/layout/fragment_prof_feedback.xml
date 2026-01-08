@@ -73,7 +73,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <TextView
-                android:id="@+id/fname"
+                android:id="@+id/phoneNum"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="0928 401 6760"
@@ -115,7 +115,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <TextView
-                android:id="@+id/fname"
+                android:id="@+id/Email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="gco@nu-fairview.edu.ph"
@@ -157,7 +157,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <TextView
-                android:id="@+id/fname"
+                android:id="@+id/fbLink"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="facebook.com/nufvgco"

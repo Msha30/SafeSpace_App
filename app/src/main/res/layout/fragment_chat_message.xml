@@ -48,7 +48,7 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnout"
+            android:id="@+id/referBtn"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
             android:layout_marginRight="15dp"
@@ -61,7 +61,7 @@
             app:backgroundTint="@color/btngrey" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnout"
+            android:id="@+id/endBtn"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
             android:background="@drawable/f_rounded_blue"
@@ -106,7 +106,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <ImageView
-            android:id="@+id/backbtn"
+            android:id="@+id/schedBtn"
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:layout_marginRight="15dp"
