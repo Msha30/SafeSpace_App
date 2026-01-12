@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.bumptech.glide.Glide
 import com.example.safespace_app.SupaClient
+import com.example.safespace_app.UserCache
 import io.github.jan.supabase.storage.storage
 import io.github.jan.supabase.storage.upload
 import kotlinx.coroutines.launch
@@ -40,18 +41,38 @@ class ProfChangeAvatar : Fragment() {
     ): View {
         val rootView = inflater.inflate(R.layout.fragment_prof_change_avatar, container, false)
 
+        // Back button
         rootView.findViewById<ImageView>(R.id.backbtn).setOnClickListener {
             requireActivity().onBackPressed()
         }
 
+        // Pick photo
         rootView.findViewById<MaterialButton>(R.id.btnPickPhoto).setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
 
+        // Save button
         rootView.findViewById<MaterialButton>(R.id.btnSave).setOnClickListener {
             val uri = selectedImageUri
             if (uri != null) uploadWithSupabase(uri)
             else Toast.makeText(requireContext(), "Please select an image first", Toast.LENGTH_SHORT).show()
+        }
+
+        // ✅ Load current profile picture immediately
+        val imgPreview = rootView.findViewById<ImageView>(R.id.imgPreview)
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            UserCache.getUserDetails(uid) { _, avatarUrl ->
+                if (avatarUrl.isNotEmpty()) {
+                    Glide.with(this)
+                        .load(avatarUrl)
+                        .placeholder(R.drawable.img_placeholder)
+                        .error(R.drawable.img_placeholder)
+                        .into(imgPreview)
+                } else {
+                    imgPreview.setImageResource(R.drawable.img_placeholder)
+                }
+            }
         }
 
         return rootView
@@ -65,42 +86,41 @@ class ProfChangeAvatar : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // 1. Read file from URI into File or ByteArray
                 val inputStream = requireContext().contentResolver.openInputStream(uri)
                 if (inputStream == null) {
                     Toast.makeText(requireContext(), "Failed to read image", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
-                // Here we convert to File (cache) for easier handling
                 val tmpFile = File(requireContext().cacheDir, "avatar_$userId.jpg")
                 tmpFile.outputStream().use { output ->
                     inputStream.copyTo(output)
                 }
 
-                // 2. Upload to Supabase public bucket
                 val bucket = SupaClient.client.storage.from("ProfilePictures")
-                val path = "avatars/$userId.jpg"  // you can define your folder /file name
+                val path = "avatars/$userId.jpg"
+                bucket.upload(path, tmpFile) { upsert = true }
 
-                bucket.upload(path, tmpFile) {
-                    upsert = true  // overwrite if exists
-                }
-
-                // 3. Get public URL
                 val publicUrl = bucket.publicUrl(path)
 
-                // 4. Save URL to Firestore (or your user metadata store)
+                // Save URL to Firestore
                 FirebaseFirestore.getInstance()
                     .collection("account_details")
                     .document(userId)
                     .update("avatarUrl", publicUrl)
                     .addOnSuccessListener {
-                        // Update preview with new URL
+                        // ✅ Update preview immediately
                         view?.findViewById<ImageView>(R.id.imgPreview)?.let { imgView ->
                             Glide.with(this@ProfChangeAvatar)
                                 .load(publicUrl)
+                                .placeholder(R.drawable.img_placeholder)
                                 .into(imgView)
                         }
+
+                        // ✅ Update UserCache so all other screens reflect new avatar
+                        UserCache.clearActiveSession() // optional: clear if needed
+                        UserCache.getUserDetails(userId, forceRefresh = true) { _, _ -> }
+
                         Toast.makeText(requireContext(), "Profile picture updated!", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
@@ -108,7 +128,6 @@ class ProfChangeAvatar : Fragment() {
                         Toast.makeText(requireContext(), "Failed to save avatar URL: ${e.message}", Toast.LENGTH_LONG).show()
                     }
 
-                // Clean up tmp file
                 tmpFile.delete()
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -54,7 +54,7 @@ class ChatMessageFragment  : Fragment() {
         recyclerView = view.findViewById(R.id.recyclerViewChat)
         messageInput = view.findViewById(R.id.messageInput)
         sendButton = view.findViewById(R.id.send)
-        endChatButton = view.findViewById(R.id.btnout)
+        endChatButton = view.findViewById(R.id.endBtn)
         backButton = view.findViewById(R.id.backbtn)
         nameText = view.findViewById(R.id.name)
 

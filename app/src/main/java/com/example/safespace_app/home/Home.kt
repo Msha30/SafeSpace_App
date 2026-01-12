@@ -256,15 +256,11 @@ class Home : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val btnPeerSupport = view.findViewById<ShapeableImageView>(R.id.peersupport)
         val btnCounseling = view.findViewById<ShapeableImageView>(R.id.counseling)
 
         btnCounseling.setOnClickListener {
             findNavController().navigate(R.id.action_nav_home_to_homeCounseling)
         }
 
-        btnPeerSupport.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_home_to_homePeerSupport)
-        }
     }
 }

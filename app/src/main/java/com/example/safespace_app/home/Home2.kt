@@ -254,7 +254,6 @@ class Home2 : Fragment() {
             upcomingRecyclerView.visibility = View.GONE
         }
 
-        val btnPeerSupport = view.findViewById<ShapeableImageView>(R.id.peersupport)
         val btnschedule = view.findViewById<ShapeableImageView>(R.id.counseling)
         val btnevent = view.findViewById<ImageView>(R.id.addEvent)
 
@@ -266,8 +265,5 @@ class Home2 : Fragment() {
             findNavController().navigate(R.id.action_nav_home2_to_homeSchedule)
         }
 
-        btnPeerSupport.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_home2_to_homeSessionManagement)
-        }
     }
 }

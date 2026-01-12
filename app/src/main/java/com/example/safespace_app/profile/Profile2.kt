@@ -12,11 +12,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.safespace_app.MainNavigation2
 import com.example.safespace_app.R
+import com.example.safespace_app.UserCache
 import com.example.safespace_app.login.Login
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 
 class Profile2 : Fragment() {
@@ -51,6 +54,17 @@ class Profile2 : Fragment() {
         val firstName = prefs.getString("fname", "") ?: ""
         val lastName = prefs.getString("lname", "") ?: ""
         val preferred = prefs.getString("username", "") ?: ""
+        val profilePhoto = view.findViewById<ShapeableImageView>(R.id.photo)
+
+        viewModel.avatarUrl.observe(viewLifecycleOwner) { avatarUrl ->
+            Glide.with(this)
+                .load(avatarUrl.takeIf { it.isNotEmpty() })
+                .placeholder(R.drawable.img_placeholder)
+                .error(R.drawable.img_placeholder)
+                .into(profilePhoto)
+        }
+
+        viewModel.loadAvatar()
 
         name.text = "$firstName $lastName"
         prefname.text = preferred

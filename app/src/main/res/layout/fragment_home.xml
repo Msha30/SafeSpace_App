@@ -26,7 +26,6 @@
 
         <com.google.android.material.imageview.ShapeableImageView
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/peersupport"
             app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/counseling"
             android:layout_width="0dp"
