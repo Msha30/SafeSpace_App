@@ -11,16 +11,30 @@ class ProfileViewModel : ViewModel() {
     private val _avatarUrl = MutableLiveData<String>()
     val avatarUrl: LiveData<String> = _avatarUrl
 
-    private var loaded = false
+    private var loadedUrl: String? = null  // store last loaded URL in memory
 
     fun loadAvatar(forceRefresh: Boolean = false) {
-        if (loaded && !forceRefresh) return
-
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-        UserCache.getUserDetails(uid, forceRefresh) { _, avatar ->
-            _avatarUrl.postValue(avatar)
-            loaded = true
+        // If we already have a URL cached in memory, use it
+        if (!forceRefresh && loadedUrl != null) {
+            _avatarUrl.postValue(loadedUrl)
+            return
         }
+
+        UserCache.getUserDetails(uid, forceRefresh) { _, avatar ->
+            if (avatar.isNotEmpty()) {
+                // Append timestamp to bust Glide cache
+                val cacheBusted = "$avatar?v=${System.currentTimeMillis()}"
+                loadedUrl = cacheBusted
+                _avatarUrl.postValue(cacheBusted)
+            }
+        }
+    }
+
+    fun updateAvatar(newAvatarUrl: String) {
+        val cacheBusted = "$newAvatarUrl?v=${System.currentTimeMillis()}"
+        loadedUrl = cacheBusted
+        _avatarUrl.postValue(cacheBusted)
     }
 }

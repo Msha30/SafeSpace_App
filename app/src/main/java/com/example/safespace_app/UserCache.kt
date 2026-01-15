@@ -442,6 +442,54 @@ object UserCache {
             _peerSessionsLiveData.postValue(activeList)
         }
     }
+    fun forceRefreshUserDetails(uid: String, callback: ((String, String) -> Unit)? = null) {
+        FirebaseFirestore.getInstance()
+            .collection("account_details")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    callback?.invoke("User", "")
+                    return@addOnSuccessListener
+                }
+
+                // Get display name: prefer username if exists, else first+last name, else fallback
+                val displayName = doc.getString("username")
+                    ?: "${doc.getString("fname") ?: ""} ${doc.getString("lname") ?: ""}".trim()
+                        .ifEmpty { "User" }
+
+                val photoUrl = doc.getString("avatarUrl") ?: ""
+
+                // Update caches
+                userDetailsCache[uid] = Pair(displayName, photoUrl)
+                userDetailsFetchTime[uid] = System.currentTimeMillis()
+
+                Log.d("UserCache", "Force refreshed user details for $uid: $displayName, avatar=$photoUrl")
+
+                // Update peersMap if user exists there (so observers update)
+                peersMap[uid]?.let { existing ->
+                    if (existing.name != displayName || existing.photoUrl != photoUrl) {
+                        peersMap[uid] = existing.copy(name = displayName, photoUrl = photoUrl)
+                        _peersLiveData.postValue(peersMap.values.toList())
+                    }
+                }
+
+                // Return via callback
+                callback?.invoke(displayName, photoUrl)
+            }
+            .addOnFailureListener { e ->
+                Log.e("UserCache", "Failed to force refresh user details for $uid", e)
+                // fallback to cached value if exists
+                userDetailsCache[uid]?.let { (name, avatar) ->
+                    callback?.invoke(name, avatar)
+                } ?: callback?.invoke("User", "")
+            }
+    }
+    fun forceUpdateAllUsers() {
+        userDetailsCache.keys.forEach { uid ->
+            forceRefreshUserDetails(uid)
+        }
+    }
     fun updateSessionStatus(sessionId: String, status: String) {
         FirebaseFirestore.getInstance()
             .collection("peer_session_requests")

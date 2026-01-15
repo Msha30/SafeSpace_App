@@ -9,14 +9,16 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.safespace_app.R
+import com.example.safespace_app.SupaClient
+import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.bumptech.glide.Glide
-import com.example.safespace_app.SupaClient
-import com.example.safespace_app.UserCache
 import io.github.jan.supabase.storage.storage
 import io.github.jan.supabase.storage.upload
 import kotlinx.coroutines.launch
@@ -25,6 +27,9 @@ import java.io.File
 class ProfChangeAvatar : Fragment() {
 
     private var selectedImageUri: Uri? = null
+
+    // Use a single shared ViewModel for both Profile fragments
+    private val viewModel: ProfileViewModel by activityViewModels()
 
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -43,7 +48,7 @@ class ProfChangeAvatar : Fragment() {
 
         // Back button
         rootView.findViewById<ImageView>(R.id.backbtn).setOnClickListener {
-            requireActivity().onBackPressed()
+            findNavController().popBackStack()
         }
 
         // Pick photo
@@ -58,20 +63,17 @@ class ProfChangeAvatar : Fragment() {
             else Toast.makeText(requireContext(), "Please select an image first", Toast.LENGTH_SHORT).show()
         }
 
-        // ✅ Load current profile picture immediately
+        // Load current profile picture immediately
         val imgPreview = rootView.findViewById<ImageView>(R.id.imgPreview)
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid != null) {
             UserCache.getUserDetails(uid) { _, avatarUrl ->
-                if (avatarUrl.isNotEmpty()) {
-                    Glide.with(this)
-                        .load(avatarUrl)
-                        .placeholder(R.drawable.img_placeholder)
-                        .error(R.drawable.img_placeholder)
-                        .into(imgPreview)
-                } else {
-                    imgPreview.setImageResource(R.drawable.img_placeholder)
-                }
+                val url = if (avatarUrl.isNotEmpty()) "$avatarUrl?v=${System.currentTimeMillis()}" else null
+                Glide.with(this)
+                    .load(url)
+                    .placeholder(R.drawable.img_placeholder)
+                    .error(R.drawable.img_placeholder)
+                    .into(imgPreview)
             }
         }
 
@@ -109,19 +111,11 @@ class ProfChangeAvatar : Fragment() {
                     .document(userId)
                     .update("avatarUrl", publicUrl)
                     .addOnSuccessListener {
-                        // ✅ Update preview immediately
-                        view?.findViewById<ImageView>(R.id.imgPreview)?.let { imgView ->
-                            Glide.with(this@ProfChangeAvatar)
-                                .load(publicUrl)
-                                .placeholder(R.drawable.img_placeholder)
-                                .into(imgView)
-                        }
-
-                        // ✅ Update UserCache so all other screens reflect new avatar
-                        UserCache.clearActiveSession() // optional: clear if needed
-                        UserCache.getUserDetails(userId, forceRefresh = true) { _, _ -> }
+                        // Update ViewModel so all observing fragments reload
+                        viewModel.updateAvatar(publicUrl)
 
                         Toast.makeText(requireContext(), "Profile picture updated!", Toast.LENGTH_SHORT).show()
+                        findNavController().popBackStack()
                     }
                     .addOnFailureListener { e ->
                         e.printStackTrace()

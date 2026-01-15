@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.safespace_app.MainNavigation
@@ -29,7 +30,8 @@ class Profile : Fragment() {
         fun newInstance() = Profile()
     }
 
-    private val viewModel: ProfileViewModel by viewModels()
+    // Shared ViewModel between this fragment and ProfChangeAvatar
+    private val viewModel: ProfileViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,14 +52,15 @@ class Profile : Fragment() {
         val signout = view.findViewById<LinearLayout>(R.id.signout)
         val name = view.findViewById<TextView>(R.id.name)
         val prefname = view.findViewById<TextView>(R.id.prefname)
+        val profilePhoto = view.findViewById<ShapeableImageView>(R.id.photo)
 
         // Load cached user data
         val prefs = requireContext().getSharedPreferences("user_cache", Context.MODE_PRIVATE)
         val firstName = prefs.getString("fname", "") ?: ""
         val lastName = prefs.getString("lname", "") ?: ""
         val preferred = prefs.getString("username", "") ?: ""
-        val profilePhoto = view.findViewById<ShapeableImageView>(R.id.photo)
 
+        // Observe avatar changes
         viewModel.avatarUrl.observe(viewLifecycleOwner) { avatarUrl ->
             Glide.with(this)
                 .load(avatarUrl.takeIf { it.isNotEmpty() })
@@ -66,6 +69,7 @@ class Profile : Fragment() {
                 .into(profilePhoto)
         }
 
+        // Load avatar once (can force refresh if needed)
         viewModel.loadAvatar()
 
         name.text = "$firstName $lastName"
@@ -75,59 +79,35 @@ class Profile : Fragment() {
             findNavController().navigate(R.id.action_nav_profile_to_profChangeAvatar)
         }
 
-        info.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_profile_to_profInfo)
-        }
-
-        notif.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_profile_to_profNotification)
-        }
-
-        terms.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_profile_to_appTermsAndConditions)
-        }
-
-        privacy.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_profile_to_appPrivacyPolicy)
-        }
-
-        feedback.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_profile_to_profFeedback)
-        }
+        info.setOnClickListener { findNavController().navigate(R.id.action_nav_profile_to_profInfo) }
+        notif.setOnClickListener { findNavController().navigate(R.id.action_nav_profile_to_profNotification) }
+        terms.setOnClickListener { findNavController().navigate(R.id.action_nav_profile_to_appTermsAndConditions) }
+        privacy.setOnClickListener { findNavController().navigate(R.id.action_nav_profile_to_appPrivacyPolicy) }
+        feedback.setOnClickListener { findNavController().navigate(R.id.action_nav_profile_to_profFeedback) }
 
         signout.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.popup_logout, null)
-
             val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setView(dialogView)
                 .setCancelable(true)
                 .create()
 
-            // Get buttons from the layout
             val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btncancel)
             val btnOut = dialogView.findViewById<MaterialButton>(R.id.btnout)
 
-            btnCancel.setOnClickListener {
-                dialog.dismiss() // just close the dialog
-            }
+            btnCancel.setOnClickListener { dialog.dismiss() }
             btnOut.setOnClickListener {
                 dialog.dismiss()
-                // Mark offline in Realtime Database
-                (activity as? MainNavigation)?.presenceManager?.setOfflineManually()
-
                 // Clear cached user data
                 requireContext().getSharedPreferences("signup_cache", Context.MODE_PRIVATE).edit().clear().apply()
                 requireContext().getSharedPreferences("user_cache", Context.MODE_PRIVATE).edit().clear().apply()
-
-                // Sign out from Firebase
                 FirebaseAuth.getInstance().signOut()
 
-                // Go to Login activity
-                val intent = Intent(requireContext(), Login::class.java)
-                startActivity(intent)
+                startActivity(Intent(requireContext(), Login::class.java))
                 requireActivity().finish()
             }
             dialog.show()
         }
     }
 }
+
