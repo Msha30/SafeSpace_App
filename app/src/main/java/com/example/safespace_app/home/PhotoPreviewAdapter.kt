@@ -7,25 +7,18 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.safespace_app.R
 
 class PhotoPreviewAdapter(
-    private val onItemClick: (Int) -> Unit
+    private val onItemClick: () -> Unit
 ) : RecyclerView.Adapter<PhotoPreviewAdapter.PhotoViewHolder>() {
 
     private val photos = mutableListOf<Uri>()
 
-    fun setPhotos(list: List<Uri>) {
-        photos.clear()
-        photos.addAll(list)
-        notifyDataSetChanged()
-    }
-
-    override fun getItemCount(): Int {
-        return when {
-            photos.size <= 3 -> photos.size
-            else -> 3   // always show only 3 items
-        }
+    inner class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val imageViewThumbnail: ImageView = view.findViewById(R.id.imageViewThumbnail)
+        val textViewOverlay: TextView = view.findViewById(R.id.textViewOverlay)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
@@ -35,26 +28,42 @@ class PhotoPreviewAdapter(
     }
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-        val max = photos.size
+        if (position < 2) {
+            // Show first 2 photos
+            Glide.with(holder.itemView.context)
+                .load(photos[position])
+                .centerCrop()
+                .into(holder.imageViewThumbnail)
 
-        if (max > 3 && position == 2) {
-            // third item → overlay +X
-            val remaining = max - 2
-            holder.overlay.text = "+$remaining"
-            holder.overlay.visibility = View.VISIBLE
-            holder.image.setImageURI(photos[2])
-        } else {
-            holder.overlay.visibility = View.GONE
-            holder.image.setImageURI(photos[position])
+            holder.textViewOverlay.visibility = View.GONE
+        } else if (position == 2) {
+            // Third item shows photo with overlay
+            Glide.with(holder.itemView.context)
+                .load(photos[position])
+                .centerCrop()
+                .into(holder.imageViewThumbnail)
+
+            val remaining = photos.size - 3
+            if (remaining > 0) {
+                holder.textViewOverlay.visibility = View.VISIBLE
+                holder.textViewOverlay.text = "+$remaining"
+            } else {
+                holder.textViewOverlay.visibility = View.GONE
+            }
         }
 
         holder.itemView.setOnClickListener {
-            onItemClick(position)
+            onItemClick()
         }
     }
 
-    class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val image: ImageView = view.findViewById(R.id.imageViewThumbnail)
-        val overlay: TextView = view.findViewById(R.id.textViewOverlay)
+    override fun getItemCount(): Int {
+        return minOf(photos.size, 3)
+    }
+
+    fun setPhotos(newPhotos: List<Uri>) {
+        photos.clear()
+        photos.addAll(newPhotos)
+        notifyDataSetChanged()
     }
 }

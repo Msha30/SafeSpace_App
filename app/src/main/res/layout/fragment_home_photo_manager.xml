@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/light"
     android:paddingTop="50dp"
     android:paddingBottom="50dp"
@@ -42,5 +43,18 @@
         android:paddingBottom="12dp"
         android:clipToPadding="false"
         tools:listitem="@layout/item_photo_manager"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/addphoto"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="15dp"
+        android:padding="0dp"
+        android:text="Add photos"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"
+        android:textColor="@color/textgrey"
+        app:backgroundTint="@null"
+        android:background="@drawable/f_rounded_inactive"/>
 
 </LinearLayout>

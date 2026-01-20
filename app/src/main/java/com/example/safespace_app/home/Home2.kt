@@ -250,6 +250,7 @@ class Home2 : Fragment() {
         }
     }
 
+
     inner class NotificationAdapter(private var announcements: List<Announcement>) :
         RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
@@ -257,6 +258,7 @@ class Home2 : Fragment() {
             val photo: ShapeableImageView = view.findViewById(R.id.photo)
             val title: TextView = view.findViewById(R.id.title)
             val content: TextView = view.findViewById(R.id.content)
+            val photoRow: RecyclerView = view.findViewById(R.id.photorow)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
@@ -273,9 +275,23 @@ class Home2 : Fragment() {
 
             // Set image based on represented_by
             when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
-                "PEERS" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
+                "GCO" -> holder.photo.setImageResource(R.drawable.img_placeholder)
+                "PEERS" -> holder.photo.setImageResource(R.drawable.img_placeholder)
                 else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            }
+
+            // Handle photo display
+            if (announcement.photo_urls.isNotEmpty()) {
+                holder.photoRow.visibility = View.VISIBLE
+
+                val photoAdapter = PhotoDisplayAdapter(announcement.photo_urls)
+                holder.photoRow.adapter = photoAdapter
+                holder.photoRow.layoutManager = androidx.recyclerview.widget.GridLayoutManager(
+                    holder.itemView.context,
+                    3
+                )
+            } else {
+                holder.photoRow.visibility = View.GONE
             }
         }
 

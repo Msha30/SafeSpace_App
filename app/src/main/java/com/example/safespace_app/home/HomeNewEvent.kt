@@ -21,6 +21,8 @@ import com.example.safespace_app.databinding.FragmentHomeNewEventBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
+import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
 
 class HomeNewEvent : Fragment() {
 
@@ -46,8 +48,7 @@ class HomeNewEvent : Fragment() {
     ): View {
         binding = FragmentHomeNewEventBinding.inflate(inflater, container, false)
 
-        adapter = PhotoPreviewAdapter { index ->
-            // When clicking the "+X" overlay OR any item
+        adapter = PhotoPreviewAdapter {
             openPhotoManager()
         }
 
@@ -91,32 +92,94 @@ class HomeNewEvent : Fragment() {
 
         // Disable post button to prevent double posting
         binding.btnpost.isEnabled = false
+        binding.btnpost.text = "Posting..."
 
-        // Create announcement data
+        // If there are photos, upload them first
+        if (selectedPhotos.isNotEmpty()) {
+            uploadPhotosAndCreateAnnouncement(title, description, currentUserId)
+        } else {
+            // No photos, create announcement directly
+            saveAnnouncementToFirestore(title, description, currentUserId, emptyList())
+        }
+    }
+
+    private fun uploadPhotosAndCreateAnnouncement(
+        title: String,
+        description: String,
+        userId: String
+    ) {
+        val storage = FirebaseStorage.getInstance()
+        val uploadedUrls = mutableListOf<String>()
+        var uploadCount = 0
+
+        selectedPhotos.forEach { uri ->
+            val filename = "announcements/${userId}/${UUID.randomUUID()}.jpg"
+            val storageRef = storage.reference.child(filename)
+
+            storageRef.putFile(uri)
+                .addOnSuccessListener { taskSnapshot ->
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        uploadedUrls.add(downloadUri.toString())
+                        uploadCount++
+
+                        // When all photos are uploaded
+                        if (uploadCount == selectedPhotos.size) {
+                            saveAnnouncementToFirestore(title, description, userId, uploadedUrls)
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("HomeNewEvent", "Error uploading photo", e)
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to upload photos",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    binding.btnpost.isEnabled = true
+                    binding.btnpost.text = "Post"
+                }
+        }
+    }
+
+    private fun saveAnnouncementToFirestore(
+        title: String,
+        description: String,
+        userId: String,
+        photoUrls: List<String>
+    ) {
         val announcementData = hashMapOf(
             "title" to title,
             "description" to description,
             "represented_by" to "PEERS",
-            "created_by" to currentUserId,
-            "date_created" to Timestamp.now()
+            "created_by" to userId,
+            "date_created" to Timestamp.now(),
+            "photo_urls" to photoUrls
         )
 
-        // Save to Firestore
         val firestore = FirebaseFirestore.getInstance()
         firestore.collection("announcements")
             .add(announcementData)
             .addOnSuccessListener { documentReference ->
-                Toast.makeText(requireContext(), "Announcement posted successfully!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Announcement posted successfully!",
+                    Toast.LENGTH_SHORT
+                ).show()
 
                 // Navigate back to Home2
                 findNavController().navigateUp()
             }
             .addOnFailureListener { e ->
                 android.util.Log.e("HomeNewEvent", "Error posting announcement", e)
-                Toast.makeText(requireContext(), "Failed to post announcement", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to post announcement",
+                    Toast.LENGTH_SHORT
+                ).show()
 
                 // Re-enable post button
                 binding.btnpost.isEnabled = true
+                binding.btnpost.text = "Post"
             }
     }
 
@@ -140,6 +203,13 @@ class HomeNewEvent : Fragment() {
                 selectedPhotos.clear()
                 selectedPhotos.addAll(updated)
                 adapter.setPhotos(selectedPhotos)
+
+                // Show/hide RecyclerView based on photos
+                if (selectedPhotos.isEmpty()) {
+                    binding.recyclerViewPhotos.visibility = View.GONE
+                } else {
+                    binding.recyclerViewPhotos.visibility = View.VISIBLE
+                }
             }
     }
 }
