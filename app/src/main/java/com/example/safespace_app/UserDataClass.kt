@@ -1,5 +1,7 @@
 package com.example.safespace_app
 
+import com.google.firebase.firestore.DocumentId
+
 data class Peer(
     val uid: String = "",
     val name: String = "",
@@ -45,4 +47,14 @@ data class PeerSession(
     val requestId: String,
     var callStatus: String? = null,  // "waiting", "active", "ended"
     var callInitiatorUid: String? = null
+)
+
+data class Announcement(
+    @DocumentId
+    val id: String = "",
+    val created_by: String = "",
+    val date_created: com.google.firebase.Timestamp? = null,
+    val description: String = "",
+    val represented_by: String = "",
+    val title: String = ""
 )

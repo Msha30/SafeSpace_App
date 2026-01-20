@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.safespace_app.Announcement
 import com.example.safespace_app.CallActivity
 import com.example.safespace_app.PeerSession
 import com.example.safespace_app.R
@@ -21,6 +22,8 @@ import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class Home2 : Fragment() {
 
@@ -29,6 +32,7 @@ class Home2 : Fragment() {
     private lateinit var upcomingRecyclerView: RecyclerView
     private lateinit var notificationsRecyclerView: RecyclerView
     private lateinit var upcomingAdapter: UpcomingAdapter
+    private lateinit var notificationAdapter: NotificationAdapter
     private lateinit var emptyText: TextView
 
     override fun onCreateView(
@@ -56,12 +60,32 @@ class Home2 : Fragment() {
 
         // --- Notifications RecyclerView ---
         notificationsRecyclerView = view.findViewById(R.id.notifications)
-        val notificationAdapter =
-            NotificationAdapter(listOf("Session 1", "Session 2", "Session 3", "Session 4"))
+        notificationAdapter = NotificationAdapter(listOf())
         notificationsRecyclerView.adapter = notificationAdapter
         notificationsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        // Load announcements
+        loadAnnouncements()
+
         return view
+    }
+
+    private fun loadAnnouncements() {
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("announcements")
+            .orderBy("date_created", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("Home2", "Error loading announcements", error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val announcements = snapshot.toObjects(Announcement::class.java)
+                    notificationAdapter.updateAnnouncements(announcements)
+                }
+            }
     }
 
     private fun observeUpcomingSessions() {
@@ -193,7 +217,7 @@ class Home2 : Fragment() {
                         }
                     }
                     .addOnFailureListener { e ->
-                        android.util.Log.e("Home", "Failed to update call status", e)
+                        android.util.Log.e("Home2", "Failed to update call status", e)
                         android.widget.Toast.makeText(
                             requireContext(),
                             "Failed to start call",
@@ -226,10 +250,14 @@ class Home2 : Fragment() {
         }
     }
 
-    inner class NotificationAdapter(private val dataList: List<String>) :
+    inner class NotificationAdapter(private var announcements: List<Announcement>) :
         RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
-        inner class NotificationViewHolder(view: View) : RecyclerView.ViewHolder(view)
+        inner class NotificationViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val photo: ShapeableImageView = view.findViewById(R.id.photo)
+            val title: TextView = view.findViewById(R.id.title)
+            val content: TextView = view.findViewById(R.id.content)
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
             val view = LayoutInflater.from(parent.context)
@@ -237,9 +265,26 @@ class Home2 : Fragment() {
             return NotificationViewHolder(view)
         }
 
-        override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {}
+        override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {
+            val announcement = announcements[position]
 
-        override fun getItemCount() = dataList.size
+            holder.title.text = announcement.title
+            holder.content.text = announcement.description
+
+            // Set image based on represented_by
+            when (announcement.represented_by.uppercase()) {
+                "GCO" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
+                "PEERS" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
+                else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            }
+        }
+
+        override fun getItemCount() = announcements.size
+
+        fun updateAnnouncements(newAnnouncements: List<Announcement>) {
+            announcements = newAnnouncements
+            notifyDataSetChanged()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -264,6 +309,5 @@ class Home2 : Fragment() {
         btnschedule.setOnClickListener {
             findNavController().navigate(R.id.action_nav_home2_to_homeSchedule)
         }
-
     }
 }

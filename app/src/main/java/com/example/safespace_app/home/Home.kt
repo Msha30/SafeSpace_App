@@ -17,9 +17,12 @@ import com.example.safespace_app.CallActivity
 import com.example.safespace_app.PeerSession
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
+import com.example.safespace_app.Announcement
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class Home : Fragment() {
 
@@ -28,6 +31,7 @@ class Home : Fragment() {
     private lateinit var upcomingRecyclerView: RecyclerView
     private lateinit var notificationsRecyclerView: RecyclerView
     private lateinit var upcomingAdapter: UpcomingAdapter
+    private lateinit var notificationAdapter: NotificationAdapter
     private lateinit var emptyText: TextView
 
     override fun onCreateView(
@@ -55,10 +59,12 @@ class Home : Fragment() {
 
         // --- Notifications RecyclerView ---
         notificationsRecyclerView = view.findViewById(R.id.notifications)
-        val notificationAdapter =
-            NotificationAdapter(listOf("Session 1", "Session 2", "Session 3", "Session 4"))
+        notificationAdapter = NotificationAdapter(listOf())
         notificationsRecyclerView.adapter = notificationAdapter
         notificationsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Load announcements
+        loadAnnouncements()
 
         // Load student sessions
         val currentStudentUid = FirebaseAuth.getInstance().currentUser?.uid
@@ -73,9 +79,26 @@ class Home : Fragment() {
         return view
     }
 
+    private fun loadAnnouncements() {
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("announcements")
+            .orderBy("date_created", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("Home", "Error loading announcements", error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val announcements = snapshot.toObjects(Announcement::class.java)
+                    notificationAdapter.updateAnnouncements(announcements)
+                }
+            }
+    }
+
     private fun observeUpcomingSessions() {
         UserCache.activeSessionsLiveData.observe(viewLifecycleOwner) { sessions ->
-            // Filter sessions: only CONFIRMED sessions that belong to this student
             val currentStudentUid = FirebaseAuth.getInstance().currentUser?.uid
             val upcomingSessions = sessions.filter {
                 it.studentUid == currentStudentUid &&
@@ -84,7 +107,6 @@ class Home : Fragment() {
             }
             upcomingAdapter.updateSessions(upcomingSessions)
 
-            // Toggle empty view
             if (upcomingSessions.isEmpty()) {
                 emptyText.visibility = View.VISIBLE
                 upcomingRecyclerView.visibility = View.GONE
@@ -133,11 +155,9 @@ class Home : Fragment() {
                 (holder.itemView.context.resources.displayMetrics.widthPixels * 0.42).toInt()
             holder.itemView.layoutParams = params
 
-            // Show call button for video/voice calls
             if (session.preferredMode == "Video Call" || session.preferredMode == "Call") {
                 holder.btnCallAction?.visibility = View.VISIBLE
 
-                // Update button based on call status
                 when (session.callStatus) {
                     "active" -> {
                         holder.btnCallAction?.text = "Join Call"
@@ -161,9 +181,7 @@ class Home : Fragment() {
             val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
             val isVideoCall = session.preferredMode == "Video Call"
 
-            // Check if call is already active
             if (session.callStatus == "active" && session.callInitiatorUid != null) {
-                // Call is active, JOIN as receiver
                 val isInitiator = false
 
                 UserCache.getUserDetails(session.peerUid) { peerName, _ ->
@@ -176,10 +194,8 @@ class Home : Fragment() {
                     startActivity(intent)
                 }
             } else {
-                // Call not active, START as initiator
                 val isInitiator = true
 
-                // Update call status atomically to prevent race condition
                 val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 firestore.collection("peer_session_requests")
                     .document(session.sessionId)
@@ -192,7 +208,6 @@ class Home : Fragment() {
                         session.callInitiatorUid = currentUid
                         notifyDataSetChanged()
 
-                        // Now start the call
                         UserCache.getUserDetails(session.peerUid) { peerName, _ ->
                             val intent = Intent(requireContext(), CallActivity::class.java).apply {
                                 putExtra(CallActivity.EXTRA_SESSION_ID, session.sessionId)
@@ -214,21 +229,6 @@ class Home : Fragment() {
             }
         }
 
-        private fun updateCallStatus(session: PeerSession, status: String, initiatorUid: String) {
-            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-            firestore.collection("peer_session_requests")
-                .document(session.sessionId)
-                .update(mapOf(
-                    "callStatus" to status,
-                    "callInitiatorUid" to initiatorUid
-                ))
-                .addOnSuccessListener {
-                    session.callStatus = status
-                    session.callInitiatorUid = initiatorUid
-                    notifyDataSetChanged()
-                }
-        }
-
         override fun getItemCount() = sessions.size
 
         fun updateSessions(newSessions: List<PeerSession>) {
@@ -237,10 +237,14 @@ class Home : Fragment() {
         }
     }
 
-    inner class NotificationAdapter(private val dataList: List<String>) :
+    inner class NotificationAdapter(private var announcements: List<Announcement>) :
         RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
-        inner class NotificationViewHolder(view: View) : RecyclerView.ViewHolder(view)
+        inner class NotificationViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val photo: ShapeableImageView = view.findViewById(R.id.photo)
+            val title: TextView = view.findViewById(R.id.title)
+            val content: TextView = view.findViewById(R.id.content)
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
             val view = LayoutInflater.from(parent.context)
@@ -248,9 +252,26 @@ class Home : Fragment() {
             return NotificationViewHolder(view)
         }
 
-        override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {}
+        override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {
+            val announcement = announcements[position]
 
-        override fun getItemCount() = dataList.size
+            holder.title.text = announcement.title
+            holder.content.text = announcement.description
+
+            // Set image based on represented_by
+            when (announcement.represented_by.uppercase()) {
+                "GCO" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
+                "PEERS" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
+                else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            }
+        }
+
+        override fun getItemCount() = announcements.size
+
+        fun updateAnnouncements(newAnnouncements: List<Announcement>) {
+            announcements = newAnnouncements
+            notifyDataSetChanged()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -261,6 +282,5 @@ class Home : Fragment() {
         btnCounseling.setOnClickListener {
             findNavController().navigate(R.id.action_nav_home_to_homeCounseling)
         }
-
     }
 }

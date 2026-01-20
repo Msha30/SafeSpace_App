@@ -55,7 +55,7 @@
         app:hintEnabled="false">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/fname"
+            android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/f_transparent"
@@ -78,6 +78,7 @@
         app:hintEnabled="false">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/content"
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:gravity="top|start"
