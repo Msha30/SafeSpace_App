@@ -58,3 +58,10 @@ data class Announcement(
     val date_created: Timestamp = Timestamp.now(),
     val photo_urls: List<String> = emptyList()
 )
+
+data class SupportGroup(
+    val id: String = "",
+    val name: String = "",
+    val pfpUrl: String? = null,
+    val members: List<String> = emptyList()
+)
