@@ -67,6 +67,7 @@
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageView
+            android:id="@+id/changebtn"
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:src="@drawable/ic_switchphoto"

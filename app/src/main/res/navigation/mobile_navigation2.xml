@@ -54,6 +54,9 @@
         <action
             android:id="@+id/action_nav_profile2_to_appPrivacyPolicy2"
             app:destination="@id/appPrivacyPolicy2" />
+        <action
+            android:id="@+id/action_nav_profile2_to_profChangeAvatar2"
+            app:destination="@id/profChangeAvatar2" />
     </fragment>
 
     <fragment
@@ -103,4 +106,9 @@
         android:id="@+id/photoManagerFragment"
         android:name="com.example.safespace_app.home.PhotoManagerFragment"
         android:label="PhotoManagerFragment" />
+    <fragment
+        android:id="@+id/profChangeAvatar2"
+        android:name="com.example.safespace_app.profile.ProfChangeAvatar"
+        android:label="fragment_prof_change_avatar"
+        tools:layout="@layout/fragment_prof_change_avatar" />
 </navigation>

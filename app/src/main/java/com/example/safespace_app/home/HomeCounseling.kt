@@ -1,64 +1,68 @@
 package com.example.safespace_app.home
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 import com.example.safespace_app.R
+import com.google.firebase.firestore.FirebaseFirestore
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [HomeCounseling.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HomeCounseling : Fragment() {
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private val db by lazy { FirebaseFirestore.getInstance() }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
         val rootView = inflater.inflate(R.layout.fragment_home_counseling, container, false)
 
-        val backBtn = rootView.findViewById<ImageView>(R.id.backbtn)
-        backBtn.setOnClickListener {
+        val formTitle = rootView.findViewById<TextView>(R.id.form_title)
+        val formDesc  = rootView.findViewById<TextView>(R.id.form_desc)
+
+        // 🔹 Load form metadata from Firestore
+        loadRequestFormMetadata(formTitle, formDesc)
+
+        // Back button
+        rootView.findViewById<ImageView>(R.id.backbtn).setOnClickListener {
             findNavController().navigateUp()
         }
 
-        val btnStart = rootView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnstart)
-        btnStart.setOnClickListener {
-            // Make sure you have this action in nav_graph.xml
-            findNavController().navigate(R.id.action_homeCounseling_to_homeCounselingForm)
-        }
+        // Start button
+        rootView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnstart)
+            .setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_homeCounseling_to_homeCounselingForm
+                )
+            }
 
         return rootView
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HomeCounseling().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    private fun loadRequestFormMetadata(
+        titleView: TextView,
+        descView: TextView
+    ) {
+        db.collection("CounselingForm")
+            .document("RequestForm_Format")
+            .get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    Log.w("HomeCounseling", "RequestForm_Format not found")
+                    return@addOnSuccessListener
                 }
+
+                titleView.text = doc.getString("title") ?: "Counseling Request"
+                descView.text  = doc.getString("description") ?: ""
+            }
+            .addOnFailureListener { e ->
+                Log.e("HomeCounseling", "Failed to load form metadata", e)
             }
     }
 }

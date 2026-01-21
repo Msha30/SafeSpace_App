@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -38,6 +39,7 @@ class Profile2 : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val pic = view.findViewById<ImageView>(R.id.changebtn)
         val info = view.findViewById<LinearLayout>(R.id.info)
         val notif = view.findViewById<LinearLayout>(R.id.notif)
         val terms = view.findViewById<LinearLayout>(R.id.terms)
@@ -68,6 +70,10 @@ class Profile2 : Fragment() {
 
         name.text = "$firstName $lastName"
         prefname.text = preferred
+
+        pic.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_profile2_to_profChangeAvatar2)
+        }
 
         info.setOnClickListener { findNavController().navigate(R.id.action_nav_profile2_to_profInfo2) }
         notif.setOnClickListener { findNavController().navigate(R.id.action_nav_profile2_to_profNotification2) }
