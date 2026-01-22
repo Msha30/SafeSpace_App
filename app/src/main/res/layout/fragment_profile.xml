@@ -234,13 +234,13 @@
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@drawable/ic_profile_feedback"/>
+            android:src="@drawable/ic_profile_contact"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:text="Feedback"
+            android:text="Contact Us"
             android:textColor="@color/textgrey"
             android:fontFamily="@font/psbold"
             android:textSize="@dimen/reg"/>
