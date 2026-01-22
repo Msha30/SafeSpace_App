@@ -10,22 +10,44 @@ class ChatViewModel : ViewModel() {
     private val _messages = MutableLiveData<List<GroupChatMessage>>(emptyList())
     val messages: LiveData<List<GroupChatMessage>> = _messages
 
+    // Canonical source of truth
+    private val messageMap = LinkedHashMap<String, GroupChatMessage>()
+
     val userDisplayNameCache = mutableMapOf<String, String>()
 
     fun addMessages(newMessages: List<GroupChatMessage>) {
-        val updated = (_messages.value ?: emptyList()) + newMessages
-        _messages.value = updated
+        var changed = false
+
+        for (msg in newMessages) {
+            if (!messageMap.containsKey(msg.id)) {
+                messageMap[msg.id] = msg
+                changed = true
+            }
+        }
+
+        if (changed) {
+            _messages.value = messageMap.values.sortedBy { it.timestamp }
+        }
     }
 
     fun prependMessages(oldMessages: List<GroupChatMessage>) {
-        val updated = oldMessages + (_messages.value ?: emptyList())
-        _messages.value = updated
+        var changed = false
+
+        for (msg in oldMessages) {
+            if (!messageMap.containsKey(msg.id)) {
+                messageMap[msg.id] = msg
+                changed = true
+            }
+        }
+
+        if (changed) {
+            _messages.value = messageMap.values.sortedBy { it.timestamp }
+        }
     }
 
-    fun updateMessageSenderName(messageId: String, newName: String) {
-        val current = _messages.value ?: return
-        _messages.value = current.map {
-            if (it.id == messageId) it.copy(senderName = newName) else it
-        }
+    fun updateMessageSenderName(messageId: String, name: String) {
+        val msg = messageMap[messageId] ?: return
+        messageMap[messageId] = msg.copy(senderName = name)
+        _messages.value = messageMap.values.sortedBy { it.timestamp }
     }
 }

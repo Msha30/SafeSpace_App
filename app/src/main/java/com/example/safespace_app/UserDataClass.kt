@@ -73,3 +73,9 @@ data class GroupChatMessage(
     val message: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )
+
+data class ModerationResponse(
+    val flagged: Boolean,
+    val categories: Map<String, Boolean>,
+    val categoryScores: Map<String, Double>
+)

@@ -8,15 +8,21 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.GroupChatMessage
 import com.example.safespace_app.R
+import com.example.safespace_app.moderation.ModerationManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class ChatSupportGroupChat : Fragment() {
 
@@ -46,6 +52,10 @@ class ChatSupportGroupChat : Fragment() {
     private var firstVisibleMessage: GroupChatMessage? = null
     private var isLoadingOlderMessages = false
 
+    // For real-time moderation feedback
+    private var moderationCheckJob: Job? = null
+    private var lastQuickCheckResult: ModerationManager.QuickCheckResult? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -68,11 +78,16 @@ class ChatSupportGroupChat : Fragment() {
         headerName = view.findViewById(R.id.groupchat_name)
         backBtn = view.findViewById(R.id.backbtn)
 
-        recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply { stackFromEnd = true }
+        recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
+            stackFromEnd = true
+        }
         recyclerView.adapter = adapter
 
+        setupInputFieldModeration()
         sendBtn.setOnClickListener { sendMessage() }
-        backBtn.setOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        backBtn.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
 
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
@@ -96,6 +111,46 @@ class ChatSupportGroupChat : Fragment() {
         loadInitialMessages()
     }
 
+    /**
+     * Setup real-time moderation feedback while typing
+     */
+    private fun setupInputFieldModeration() {
+        inputField.addTextChangedListener { editable ->
+            val text = editable?.toString() ?: ""
+
+            // Cancel previous check
+            moderationCheckJob?.cancel()
+
+            if (text.length < 3) {
+                // Reset UI for short text
+                inputField.error = null
+                return@addTextChangedListener
+            }
+
+            // Perform quick client-side check
+            val quickCheck = ModerationManager.quickCheck(text)
+
+            if (quickCheck.isFlagged && quickCheck.source == "pattern") {
+                inputField.error = "⚠️ Message may contain inappropriate content"
+            } else {
+                inputField.error = null
+            }
+
+            // Schedule API-based moderation (debounced)
+            moderationCheckJob = lifecycleScope.launch {
+                val result = ModerationManager.moderateMessage(text, skipDebounce = false)
+
+                result?.let {
+                    if (it.flagged) {
+                        inputField.error = "⚠️ This message may violate community guidelines"
+                    } else {
+                        inputField.error = null
+                    }
+                }
+            }
+        }
+    }
+
     private fun messagesCollection(): CollectionReference? {
         if (groupId.isNullOrBlank() || groupchatId.isNullOrBlank()) return null
         return db.collection("supportgroup")
@@ -117,7 +172,6 @@ class ChatSupportGroupChat : Fragment() {
             }
     }
 
-    /** Load the initial last PAGE_SIZE messages */
     private fun loadInitialMessages() {
         val coll = messagesCollection() ?: return
 
@@ -131,12 +185,17 @@ class ChatSupportGroupChat : Fragment() {
             }
     }
 
-    /** Load older messages for pagination */
     private fun loadOlderMessages() {
         if (isLoadingOlderMessages) return
         isLoadingOlderMessages = true
-        val firstMsg = firstVisibleMessage ?: run { isLoadingOlderMessages = false; return }
-        val coll = messagesCollection() ?: run { isLoadingOlderMessages = false; return }
+        val firstMsg = firstVisibleMessage ?: run {
+            isLoadingOlderMessages = false
+            return
+        }
+        val coll = messagesCollection() ?: run {
+            isLoadingOlderMessages = false
+            return
+        }
 
         coll.orderBy("timestamp", Query.Direction.ASCENDING)
             .endBefore(firstMsg.timestamp)
@@ -147,10 +206,11 @@ class ChatSupportGroupChat : Fragment() {
                 viewModel.prependMessages(oldMessages)
                 isLoadingOlderMessages = false
             }
-            .addOnFailureListener { isLoadingOlderMessages = false }
+            .addOnFailureListener {
+                isLoadingOlderMessages = false
+            }
     }
 
-    /** Start listener for new messages only */
     private fun startRealtimeListener(lastTimestamp: Long?) {
         val coll = messagesCollection() ?: return
 
@@ -162,12 +222,14 @@ class ChatSupportGroupChat : Fragment() {
         listener?.remove()
         listener = query.addSnapshotListener { snapshot, error ->
             if (error != null || snapshot == null) return@addSnapshotListener
-            val newMessages = snapshot.documents.map { doc -> toMessage(doc) }
+            val newMessages = snapshot.documentChanges
+                .filter { it.type == DocumentChange.Type.ADDED }
+                .map { toMessage(it.document) }
+
             viewModel.addMessages(newMessages)
         }
     }
 
-    /** Convert Firestore document to GroupChatMessage with resolved senderName */
     private fun toMessage(doc: DocumentSnapshot): GroupChatMessage {
         val senderId = doc.getString("senderId") ?: ""
         val message = doc.getString("message") ?: ""
@@ -195,30 +257,131 @@ class ChatSupportGroupChat : Fragment() {
                 viewModel.updateMessageSenderName(doc.id, name)
             }
 
-        return GroupChatMessage(doc.id, senderId, cachedName ?: "Loading...", message, timestamp)
+        return GroupChatMessage(
+            doc.id,
+            senderId,
+            cachedName ?: "Loading...",
+            message,
+            timestamp
+        )
     }
-
 
     private fun sendMessage() {
         val text = inputField.text.toString().trim()
         if (text.isEmpty()) return
 
-        val coll = messagesCollection() ?: return
+        // Disable send button temporarily
+        sendBtn.isEnabled = false
+        inputField.isEnabled = false
 
-        val senderName = FirebaseAuth.getInstance().currentUser?.displayName ?: "You"
-        val msg = hashMapOf(
+        val coll = messagesCollection() ?: run {
+            Toast.makeText(context, "Failed to send message", Toast.LENGTH_SHORT).show()
+            sendBtn.isEnabled = true
+            inputField.isEnabled = true
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                // Check rate limit status first
+                val rateLimit = ModerationManager.getRateLimitStatus()
+
+                if (rateLimit.remaining <= 0) {
+                    // Rate limited - send without moderation
+                    sendMessageWithoutModeration(coll, text)
+                    Toast.makeText(
+                        context,
+                        "Moderation temporarily unavailable - message sent",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    // Perform final moderation check (no debounce)
+                    val moderation = ModerationManager.moderateMessage(
+                        text,
+                        skipDebounce = true
+                    )
+
+                    if (moderation != null) {
+                        sendMessageWithModeration(coll, text, moderation)
+                    } else {
+                        // Moderation failed - send anyway
+                        sendMessageWithoutModeration(coll, text)
+                    }
+                }
+
+                // Clear input on success
+                inputField.setText("")
+                inputField.error = null
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Failed to send message: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                sendBtn.isEnabled = true
+                inputField.isEnabled = true
+            }
+        }
+    }
+
+    private fun sendMessageWithModeration(
+        collection: CollectionReference,
+        text: String,
+        moderation: com.example.safespace_app.ModerationResponse
+    ) {
+        val baseMsg = mutableMapOf<String, Any>(
             "senderId" to currentUserId,
-            "senderName" to senderName, // stored locally, name resolution is separate for other users
             "message" to text,
             "timestamp" to System.currentTimeMillis()
         )
 
-        coll.add(msg).addOnSuccessListener { inputField.text.clear() }
+        val categoriesMap = moderation.categories.mapValues { (_, v) -> v ?: false }
+        val scoresMap = moderation.categoryScores.mapValues { (_, v) -> v ?: 0.0 }
+
+        baseMsg["moderation"] = mapOf(
+            "flagged" to moderation.flagged,
+            "categories" to categoriesMap,
+            "scores" to scoresMap,
+            "reviewed" to false
+        )
+
+        collection.add(baseMsg)
+            .addOnFailureListener { err ->
+                Toast.makeText(
+                    context,
+                    "Failed to send: ${err.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+    }
+
+    private fun sendMessageWithoutModeration(
+        collection: CollectionReference,
+        text: String
+    ) {
+        val baseMsg = mapOf(
+            "senderId" to currentUserId,
+            "message" to text,
+            "timestamp" to System.currentTimeMillis(),
+            "moderationSkipped" to true
+        )
+
+        collection.add(baseMsg)
+            .addOnFailureListener { err ->
+                Toast.makeText(
+                    context,
+                    "Failed to send: ${err.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         listener?.remove()
         listener = null
+        moderationCheckJob?.cancel()
     }
 }
