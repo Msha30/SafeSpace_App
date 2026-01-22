@@ -65,3 +65,11 @@ data class SupportGroup(
     val pfpUrl: String? = null,
     val members: List<String> = emptyList()
 )
+
+data class GroupChatMessage(
+    val id: String = "",
+    val senderId: String = "",
+    val senderName: String = "",
+    val message: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)

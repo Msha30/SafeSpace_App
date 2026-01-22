@@ -22,12 +22,14 @@
         android:gravity="center_vertical">
 
         <ImageView
+            android:id="@+id/backbtn"
             android:layout_width="17dp"
             android:layout_height="17dp"
             android:layout_marginRight="15dp"
             android:src="@drawable/ic_return"/>
 
         <TextView
+            android:id="@+id/supportgroupName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/header"
@@ -49,6 +51,7 @@
         android:gravity="center">
 
         <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/support_pfp"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/img_placeholder"
@@ -65,6 +68,7 @@
             android:padding="25dp">
 
             <TextView
+                android:id="@+id/support_desc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/para2"
@@ -75,7 +79,7 @@
                 android:lineHeight="20dp"/>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnlogin"
+                android:id="@+id/btnjoin"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginTop="25dp"

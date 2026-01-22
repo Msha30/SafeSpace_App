@@ -1,60 +1,131 @@
 package com.example.safespace_app.chat
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.safespace_app.R
+import com.example.safespace_app.databinding.FragmentChatSupportGroupBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ChatSupportGroup.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ChatSupportGroup : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    companion object {
+        const val ARG_GROUP_ID = "supportGroupId"
+        const val ARG_GROUP_NAME = "supportGroupName"
+        const val ARG_GROUP_PFP = "supportGroupPfp"
+        const val ARG_GROUP_DESC = "supportGroupDesc"
+    }
+
+    private var _binding: FragmentChatSupportGroupBinding? = null
+    private val binding get() = _binding!!
+
+    private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+
+    private lateinit var groupId: String
+    private var groupName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+            groupId = it.getString(ARG_GROUP_ID)
+                ?: error("supportGroupId is required")
+            groupName = it.getString(ARG_GROUP_NAME)
         }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chat_support_group, container, false)
+    ): View {
+        _binding = FragmentChatSupportGroupBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ChatSupportGroup.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ChatSupportGroup().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            Toast.makeText(requireContext(), "You must be logged in", Toast.LENGTH_SHORT).show()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+            return
+        }
+
+        // Set initial info from arguments
+        binding.supportgroupName.text = groupName ?: "Support Group"
+        binding.supportDesc.text = arguments?.getString(ARG_GROUP_DESC) ?: ""
+        val pfpUrl = arguments?.getString(ARG_GROUP_PFP)
+        if (!pfpUrl.isNullOrBlank()) {
+            Glide.with(this)
+                .load(pfpUrl)
+                .placeholder(R.drawable.img_placeholder)
+                .circleCrop()
+                .into(binding.supportPfp)
+        }
+
+        // Back button
+        binding.backbtn.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        checkMembershipAndHandle(uid)
+    }
+
+    private fun checkMembershipAndHandle(uid: String) {
+        db.collection("supportgroup").document(groupId)
+            .get()
+            .addOnSuccessListener { doc ->
+                val members = (doc.get("member_list") as? List<*>)?.map { it.toString() } ?: emptyList()
+
+                if (members.contains(uid)) {
+                    // Already a member → navigate straight to ChatSupportGroupHome
+                    navigateToHome()
+                } else {
+                    // Show join button
+                    binding.btnjoin.visibility = View.VISIBLE
+                    binding.btnjoin.setOnClickListener {
+                        joinGroup(uid)
+                    }
                 }
             }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to load group info", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun joinGroup(uid: String) {
+        db.collection("supportgroup").document(groupId)
+            .update("member_list", FieldValue.arrayUnion(uid))
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "You joined the group!", Toast.LENGTH_SHORT).show()
+                binding.btnjoin.visibility = View.GONE
+                binding.supportDesc.text = "Welcome to the group!"
+                // Navigate after joining
+                navigateToHome()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to join: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun navigateToHome() {
+        val bundle = Bundle().apply {
+            putString(ChatSupportGroupHome.ARG_GROUP_ID, groupId)
+            putString(ChatSupportGroupHome.ARG_GROUP_NAME, groupName)
+        }
+        findNavController().navigate(R.id.action_chatSupportGroup_to_chatSupportGroupHome, bundle)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

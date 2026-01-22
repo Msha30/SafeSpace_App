@@ -21,12 +21,14 @@
         android:gravity="center_vertical">
 
         <ImageView
+            android:id="@+id/backbtn"
             android:layout_width="17dp"
             android:layout_height="17dp"
             android:layout_marginRight="15dp"
             android:src="@drawable/ic_return"/>
 
         <TextView
+            android:id="@+id/supportgroup_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/header"
@@ -37,15 +39,16 @@
     </LinearLayout>
 
     <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/supportgroup_banner"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:src="@drawable/img_placeholder"
         android:layout_marginBottom="25dp"
-        android:tint="@color/navgrey"
         app:shapeAppearanceOverlay="@style/RoundedImage"
-        android:scaleType="center"/>
+        android:scaleType="centerInside"/>
 
     <LinearLayout
+        android:id="@+id/gc1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp"
@@ -56,6 +59,7 @@
         android:orientation="horizontal">
 
         <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/gc1_pfp"
             android:layout_width="50dp"
             android:layout_height="50dp"
             app:shapeAppearanceOverlay="@style/RoundedImage"
@@ -68,6 +72,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/gc1_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/header"
@@ -76,10 +81,10 @@
                 android:textSize="@dimen/reg"/>
 
             <TextView
+                android:id="@+id/gc1_membercount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
-                android:text="00 Members  |  Join Now!"
                 android:textStyle="italic"
                 android:textColor="@color/textgrey"
                 android:fontFamily="@font/ps"
@@ -90,6 +95,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/gc2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/f_rounded_white"
@@ -99,6 +105,7 @@
         android:orientation="horizontal">
 
         <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/gc2_pfp"
             android:layout_width="50dp"
             android:layout_height="50dp"
             app:shapeAppearanceOverlay="@style/RoundedImage"
@@ -111,6 +118,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/gc2_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/header"
@@ -119,10 +127,10 @@
                 android:textSize="@dimen/reg"/>
 
             <TextView
+                android:id="@+id/gc2_membercount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
-                android:text="00 Members  |  Join Now!"
                 android:textStyle="italic"
                 android:textColor="@color/textgrey"
                 android:fontFamily="@font/ps"

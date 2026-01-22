@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_chat"
+    app:startDestination="@id/chat">
+
+    <fragment
+        android:id="@+id/chat"
+        android:name="com.example.safespace_app.chat.Chat"
+        android:label="fragment_chat"
+        tools:layout="@layout/fragment_chat" >
+        <action
+            android:id="@+id/action_chat_to_chatSupportGroupHome"
+            app:destination="@id/chatSupportGroupHome" />
+        <action
+            android:id="@+id/action_chat_to_chatSupportGroup"
+            app:destination="@id/chatSupportGroup" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatSupportGroupHome"
+        android:name="com.example.safespace_app.chat.ChatSupportGroupHome"
+        android:label="fragment_chat_support_group_home"
+        tools:layout="@layout/fragment_chat_support_group_home" >
+        <action
+            android:id="@+id/action_chatSupportGroupHome_to_chatSupportGroupChat"
+            app:destination="@id/chatSupportGroupChat" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatSupportGroup"
+        android:name="com.example.safespace_app.chat.ChatSupportGroup"
+        android:label="fragment_chat_support_group"
+        tools:layout="@layout/fragment_chat_support_group" >
+        <action
+            android:id="@+id/action_chatSupportGroup_to_chatSupportGroupHome"
+            app:destination="@id/chatSupportGroupHome" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatSupportGroupChat"
+        android:name="com.example.safespace_app.chat.ChatSupportGroupChat"
+        android:label="fragment_chat_support_group_chat"
+        tools:layout="@layout/fragment_chat_support_group_chat" />
+</navigation>

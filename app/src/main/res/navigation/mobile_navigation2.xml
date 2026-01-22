@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation2"
     app:startDestination="@+id/nav_home2">
+    <include app:graph="@navigation/nav_chat" />
 
     <fragment
         android:id="@+id/nav_home2"
@@ -30,12 +31,6 @@
             android:id="@+id/action_nav_peers2_to_chatMessageFragment"
             app:destination="@id/chatMessageFragment" />
     </fragment>
-
-    <fragment
-        android:id="@+id/nav_chat"
-        android:name="com.example.safespace_app.chat.Chat"
-        android:label="@string/title_support"
-        tools:layout="@layout/fragment_chat" />
 
     <fragment
         android:id="@+id/nav_profile2"

@@ -16,39 +16,40 @@ class SupportGroupAdapter(
 ) : RecyclerView.Adapter<SupportGroupAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val pfp: ShapeableImageView = itemView.findViewById(R.id.support_pfp)
-        val name: TextView = itemView.findViewById(R.id.support_name)
-        val memberNum: TextView = itemView.findViewById(R.id.support_memberNum)
+        private val pfp: ShapeableImageView = itemView.findViewById(R.id.support_pfp)
+        private val name: TextView = itemView.findViewById(R.id.support_name)
+        private val memberNum: TextView = itemView.findViewById(R.id.support_memberNum)
+
+        fun bind(group: SupportGroup) {
+            name.text = group.name
+            memberNum.text = "${group.members.size} Members  |  Join Now!"
+
+            if (!group.pfpUrl.isNullOrBlank()) {
+                Glide.with(itemView)
+                    .load(group.pfpUrl)
+                    .placeholder(R.drawable.img_placeholder)
+                    .into(pfp)
+            } else {
+                pfp.setImageResource(R.drawable.img_placeholder)
+            }
+
+            itemView.setOnClickListener {
+                // Prevent multiple rapid clicks
+                itemView.isEnabled = false
+                onClick(group)
+                itemView.isEnabled = true
+            }
+        }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_supportgroup, parent, false)
-        return ViewHolder(view)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_supportgroup, parent, false))
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val group = groups[position]
-
-        holder.name.text = group.name
-        holder.memberNum.text =
-            "${group.members.size} Members  |  Join Now!"
-
-        if (!group.pfpUrl.isNullOrEmpty()) {
-            Glide.with(holder.itemView)
-                .load(group.pfpUrl)
-                .placeholder(R.drawable.img_placeholder)
-                .into(holder.pfp)
-        } else {
-            holder.pfp.setImageResource(R.drawable.img_placeholder)
-        }
-
-        holder.itemView.setOnClickListener {
-            onClick(group)
-        }
+        holder.bind(groups[position])
     }
 
-    override fun getItemCount() = groups.size
+    override fun getItemCount(): Int = groups.size
 
     fun updateData(newGroups: List<SupportGroup>) {
         groups.clear()
@@ -56,3 +57,4 @@ class SupportGroupAdapter(
         notifyDataSetChanged()
     }
 }
+
