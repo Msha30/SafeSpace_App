@@ -6,21 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
+import android.widget.ProgressBar
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AppTermsAndConditions.newInstance] factory method to
- * create an instance of this fragment.
- */
 class AppTermsAndConditions : Fragment() {
-    // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private lateinit var db: FirebaseFirestore
+    private var listenerRegistration: ListenerRegistration? = null
+    private lateinit var contentTextView: TextView
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +26,9 @@ class AppTermsAndConditions : Fragment() {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance()
     }
 
     override fun onCreateView(
@@ -41,23 +42,58 @@ class AppTermsAndConditions : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize views
         val backButton = view.findViewById<ImageView>(R.id.back)
+        contentTextView = view.findViewById<TextView>(R.id.contentTextView)
+        progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
+
         backButton.setOnClickListener {
-            parentFragmentManager.popBackStack() // goes back to previous fragment
+            parentFragmentManager.popBackStack()
         }
+
+        // Set up real-time listener for Terms and Conditions
+        setupFirestoreListener()
     }
 
+    private fun setupFirestoreListener() {
+        // Show loading indicator
+        progressBar.visibility = View.VISIBLE
+        contentTextView.visibility = View.GONE
+
+        // Set up real-time listener
+        listenerRegistration = db.collection("TermsAndPrivacy")
+            .document("TermsAndConditions")
+            .addSnapshotListener { snapshot, error ->
+                // Hide loading indicator
+                progressBar.visibility = View.GONE
+                contentTextView.visibility = View.VISIBLE
+
+                if (error != null) {
+                    // Handle error
+                    contentTextView.text = "Error loading terms and conditions. Please try again later."
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    // Get content from Firestore
+                    val content = snapshot.getString("content")
+                    contentTextView.text = content ?: "No content available."
+                } else {
+                    contentTextView.text = "Terms and conditions not found."
+                }
+            }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Remove the listener when the fragment is destroyed
+        listenerRegistration?.remove()
+    }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AppTermsAndConditions.
-         */
-        // TODO: Rename and change types and number of parameters
+        private const val ARG_PARAM1 = "param1"
+        private const val ARG_PARAM2 = "param2"
+
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
             AppTermsAndConditions().apply {

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light"
+    android:padding="25dp"
+    android:orientation="vertical"
+    tools:context=".profile.ProfChangeAvatar">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/backbtn"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginRight="15dp"
+            android:src="@drawable/ic_return"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Avatar"
+            android:fontFamily="@font/psbold"
+            android:textColor="@color/midblue"
+            android:textSize="@dimen/mid"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:id="@+id/imgPreview1"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="150dp"
+            android:src="@drawable/avatar_panda"
+            android:scaleType="centerCrop"
+            android:background="@drawable/img_placeholder"/>
+
+        <ImageView
+            android:id="@+id/imgPreview2"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="150dp"
+            android:layout_marginStart="20dp"
+            android:src="@drawable/avatar_butterfly"
+            android:scaleType="centerCrop"
+            android:background="@drawable/img_placeholder"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:id="@+id/imgPreview3"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="150dp"
+            android:src="@drawable/avatar_wolf"
+            android:scaleType="centerCrop"
+            android:background="@drawable/img_placeholder"/>
+
+        <ImageView
+            android:id="@+id/imgPreview4"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="150dp"
+            android:layout_marginStart="20dp"
+            android:src="@drawable/avatar_buffalo"
+            android:scaleType="centerCrop"
+            android:background="@drawable/img_placeholder"/>
+
+    </LinearLayout>
+
+    <!-- Save Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Save"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/reg"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/midblue"/>
+</LinearLayout>

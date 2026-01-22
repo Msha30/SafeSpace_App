@@ -260,8 +260,8 @@ class Home : Fragment() {
 
             // Set image based on represented_by
             when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
-                "PEERS" -> holder.photo.setImageResource(R.drawable.img_placeholder) // Replace with your actual drawable
+                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco) // Replace with your actual drawable
+                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers) // Replace with your actual drawable
                 else -> holder.photo.setImageResource(R.drawable.img_placeholder)
             }
         }

@@ -37,23 +37,37 @@
 
     </LinearLayout>
 
-    <ScrollView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="@drawable/f_rounded_white"
         android:padding="25dp">
 
-        <TextView
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingRight="10dp"
-            android:text="@string/longlorem"
-            android:justificationMode="inter_word"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/small"
-            android:textColor="@color/black"
-            android:lineHeight="20dp"/>
+            android:layout_height="match_parent">
 
-    </ScrollView>
+            <TextView
+                android:id="@+id/contentTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingRight="10dp"
+                android:text=""
+                android:justificationMode="inter_word"
+                android:fontFamily="@font/ps"
+                android:textSize="@dimen/small"
+                android:textColor="@color/black"
+                android:lineHeight="20dp"/>
+
+        </ScrollView>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+
+    </FrameLayout>
 
 </LinearLayout>

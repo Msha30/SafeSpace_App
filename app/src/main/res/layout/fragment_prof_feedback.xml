@@ -39,7 +39,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="You can get in touch with us through below platforms. We will reach out to you as soon as possible."
+        android:text="You can get in touch with us through the platforms below. We will reach out to you as soon as possible."
         android:fontFamily="@font/psmedium"
         android:textSize="@dimen/small"
         android:textColor="@color/textgrey"
@@ -53,9 +53,10 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_star"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_profile_call"
             android:layout_marginRight="15dp"/>
 
         <LinearLayout
@@ -80,6 +81,9 @@
                 android:fontFamily="@font/ps"
                 android:textSize="@dimen/reg"
                 android:textColor="@color/textgrey"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
                 android:gravity="center_vertical"/>
 
         </LinearLayout>
@@ -95,9 +99,10 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_star"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_profile_email"
             android:layout_marginRight="15dp"/>
 
         <LinearLayout
@@ -122,6 +127,9 @@
                 android:fontFamily="@font/ps"
                 android:textSize="@dimen/reg"
                 android:textColor="@color/textgrey"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
                 android:gravity="center_vertical"/>
 
         </LinearLayout>
@@ -137,9 +145,10 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_star"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_profile_facebook"
             android:layout_marginRight="15dp"/>
 
         <LinearLayout
@@ -164,6 +173,9 @@
                 android:fontFamily="@font/ps"
                 android:textSize="@dimen/reg"
                 android:textColor="@color/textgrey"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
                 android:gravity="center_vertical"/>
 
         </LinearLayout>
