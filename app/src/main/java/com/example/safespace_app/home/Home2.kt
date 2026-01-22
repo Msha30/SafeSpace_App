@@ -275,8 +275,8 @@ class Home2 : Fragment() {
 
             // Set image based on represented_by
             when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.img_placeholder)
-                "PEERS" -> holder.photo.setImageResource(R.drawable.img_placeholder)
+                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco)
+                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers)
                 else -> holder.photo.setImageResource(R.drawable.img_placeholder)
             }
 

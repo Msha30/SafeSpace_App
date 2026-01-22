@@ -39,7 +39,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="You can get in touch with us through below platforms. We will reach out to you as soon as possible."
+        android:text="You can get in touch with us through the platforms below. We will reach out to you as soon as possible."
         android:fontFamily="@font/psmedium"
         android:textSize="@dimen/small"
         android:textColor="@color/textgrey"
