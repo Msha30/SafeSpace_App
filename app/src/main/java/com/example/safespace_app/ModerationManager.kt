@@ -1,66 +1,65 @@
-package com.example.safespace_app.moderation
+package com.example.safespace_app
 
 import android.util.Log
 import com.example.safespace_app.ModerationResponse
-import kotlinx.coroutines.delay
+import com.example.safespace_app.moderation.MistralModeration
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Manages message moderation with rate limiting, caching, and batching
- * to prevent hitting OpenAI rate limits
+ * Manages message moderation with Mistral AI
+ * - Uses pattern matching for instant flagging
+ * - Queues messages to backend for Mistral moderation
+ * - No rate limiting needed (handled by backend queue)
  */
 object ModerationManager {
 
     private const val TAG = "ModerationManager"
 
-    // Rate limiting: max 3 requests per minute (conservative limit)
-    private const val MAX_REQUESTS_PER_MINUTE = 3
-    private const val MINUTE_IN_MILLIS = 60_000L
+    // Cache moderation results for 10 minutes
+    private const val CACHE_DURATION_MS = 10 * 60 * 1000L
 
-    // Cache moderation results for 5 minutes
-    private const val CACHE_DURATION_MS = 5 * 60 * 1000L
-
-    // Debounce delay: wait 2 seconds after user stops typing
-    private const val DEBOUNCE_DELAY_MS = 2000L
-
-    // Track request timestamps for rate limiting
-    private val requestTimestamps = mutableListOf<Long>()
     private val mutex = Mutex()
 
     // Cache for moderation results: text hash -> (result, timestamp)
     private val moderationCache = ConcurrentHashMap<Int, Pair<ModerationResponse, Long>>()
 
-    // Track pending debounced checks
-    private val pendingChecks = ConcurrentHashMap<Int, Long>()
-
     /**
-     * Check if we can make a request now (rate limiting)
+     * Client-side pattern matching for instant flagging
+     * Returns true if message should be flagged immediately
      */
-    private suspend fun canMakeRequest(): Boolean = mutex.withLock {
-        val now = System.currentTimeMillis()
+    private fun quickPatternCheck(text: String): Boolean {
+        val lowerText = text.lowercase()
 
-        // Remove timestamps older than 1 minute
-        requestTimestamps.removeAll { now - it > MINUTE_IN_MILLIS }
+        val patterns = listOf(
+            // Self-harm
+            Regex("\\bk\\s*y\\s*s\\b"),
+            Regex("\\bkill\\s+yourself\\b"),
+            Regex("\\bsuicide\\b"),
+            Regex("\\bself\\s*harm\\b"),
+            Regex("\\bend\\s+it\\s+all\\b"),
 
-        // Check if we're under the limit
-        if (requestTimestamps.size >= MAX_REQUESTS_PER_MINUTE) {
-            val oldestTimestamp = requestTimestamps.minOrNull() ?: now
-            val waitTime = MINUTE_IN_MILLIS - (now - oldestTimestamp)
+            // Violence
+            Regex("\\bi\\s+will\\s+kill\\b"),
+            Regex("\\bgonna\\s+kill\\b"),
+            Regex("\\bmurder\\b"),
+            Regex("\\bstab\\b"),
 
-            Log.w(TAG, "Rate limit reached. Need to wait ${waitTime}ms")
-            return@withLock false
-        }
+            // Hate speech
+            Regex("\\bnigger\\b"),
+            Regex("\\bfaggot\\b"),
+            Regex("\\btranny\\b"),
+            Regex("\\bchink\\b"),
+            Regex("\\bkike\\b"),
 
-        return@withLock true
-    }
+            // Severe harassment
+            Regex("\\bfuck\\s+you\\b"),
+            Regex("\\bpiece\\s+of\\s+shit\\b"),
+            Regex("\\bretard(ed)?\\b"),
+        )
 
-    /**
-     * Record that we made a request
-     */
-    private suspend fun recordRequest() = mutex.withLock {
-        requestTimestamps.add(System.currentTimeMillis())
+        return patterns.any { it.containsMatchIn(lowerText) }
     }
 
     /**
@@ -78,7 +77,7 @@ object ModerationManager {
             return null
         }
 
-        Log.d(TAG, "Using cached moderation result for text (age: ${age}ms)")
+        Log.d(TAG, "Using cached moderation result (age: ${age}ms)")
         return result
     }
 
@@ -90,7 +89,7 @@ object ModerationManager {
         moderationCache[hash] = Pair(result, System.currentTimeMillis())
 
         // Clean up old cache entries
-        if (moderationCache.size > 100) {
+        if (moderationCache.size > 200) {
             val now = System.currentTimeMillis()
             moderationCache.entries.removeIf { (_, pair) ->
                 now - pair.second > CACHE_DURATION_MS
@@ -99,16 +98,17 @@ object ModerationManager {
     }
 
     /**
-     * Moderate a message with debouncing, rate limiting, and caching
+     * Moderate a message before sending
+     *
+     * Flow:
+     * 1. Check cache
+     * 2. Run quick pattern check (instant flag)
+     * 3. Send to backend for Mistral moderation (queued)
      *
      * @param text The text to moderate
-     * @param skipDebounce If true, skip debouncing (for final send)
-     * @return ModerationResponse or null if rate limited
+     * @return ModerationResponse with flagging info
      */
-    suspend fun moderateMessage(
-        text: String,
-        skipDebounce: Boolean = false
-    ): ModerationResponse? {
+    suspend fun moderateMessage(text: String): ModerationResponse {
         // Quick validation
         if (text.isBlank()) {
             return ModerationResponse(
@@ -124,40 +124,23 @@ object ModerationManager {
             return it
         }
 
-        // Apply debouncing unless skipped
-        if (!skipDebounce) {
-            val hash = text.hashCode()
-            val now = System.currentTimeMillis()
-            pendingChecks[hash] = now
-
-            delay(DEBOUNCE_DELAY_MS)
-
-            // Check if this is still the latest request
-            if (pendingChecks[hash] != now) {
-                Log.d(TAG, "Debounced check superseded")
-                return null
-            }
-
-            pendingChecks.remove(hash)
-        }
-
-        // Check rate limit
-        if (!canMakeRequest()) {
-            Log.w(TAG, "Rate limit exceeded, skipping moderation")
-
-            // Return safe default (not flagged) when rate limited
-            return ModerationResponse(
-                flagged = false,
-                categories = emptyMap(),
-                categoryScores = emptyMap()
+        // Quick pattern check (client-side)
+        if (quickPatternCheck(text)) {
+            Log.w(TAG, "Message flagged by client-side pattern matching")
+            val result = ModerationResponse(
+                flagged = true,
+                categories = mapOf("pattern_detected" to true),
+                categoryScores = mapOf("pattern_detected" to 0.95),
+                patternBased = true
             )
+            cacheResult(text, result)
+            return result
         }
 
+        // Send to backend for Mistral moderation (queued)
         return try {
-            recordRequest()
-
-            Log.d(TAG, "Making moderation API call")
-            val result = OpenAIModeration.moderateMessage(text)
+            Log.d(TAG, "Sending to backend for Mistral moderation")
+            val result = MistralModeration.moderateMessage(text)
 
             // Cache the result
             cacheResult(text, result)
@@ -170,92 +153,20 @@ object ModerationManager {
             ModerationResponse(
                 flagged = false,
                 categories = emptyMap(),
-                categoryScores = emptyMap()
+                categoryScores = emptyMap(),
+                error = e.message
             )
         }
     }
 
     /**
-     * Perform a lightweight check without hitting the API
-     * Useful for real-time feedback while typing
-     */
-    fun quickCheck(text: String): QuickCheckResult {
-        // Check cache
-        getCachedResult(text)?.let {
-            return QuickCheckResult(
-                hasResult = true,
-                isFlagged = it.flagged,
-                source = "cache"
-            )
-        }
-
-        // Simple client-side checks (no API call)
-        val lowerText = text.lowercase()
-
-        // Check for common inappropriate patterns
-        val suspiciousPatterns = listOf(
-            "kill yourself",
-            "kys",
-            "die",
-            "suicide",
-            "self harm",
-            // Add more patterns as needed
-        )
-
-        val containsSuspiciousPattern = suspiciousPatterns.any {
-            lowerText.contains(it)
-        }
-
-        return QuickCheckResult(
-            hasResult = false,
-            isFlagged = containsSuspiciousPattern,
-            source = "pattern"
-        )
-    }
-
-    /**
-     * Get current rate limit status
-     */
-    suspend fun getRateLimitStatus(): RateLimitStatus = mutex.withLock {
-        val now = System.currentTimeMillis()
-        requestTimestamps.removeAll { now - it > MINUTE_IN_MILLIS }
-
-        val remaining = MAX_REQUESTS_PER_MINUTE - requestTimestamps.size
-        val resetTime = if (requestTimestamps.isNotEmpty()) {
-            requestTimestamps.minOrNull()?.plus(MINUTE_IN_MILLIS)
-        } else {
-            now
-        }
-
-        RateLimitStatus(
-            remaining = remaining,
-            total = MAX_REQUESTS_PER_MINUTE,
-            resetTimeMs = resetTime ?: now
-        )
-    }
-
-    /**
-     * Clear all caches and reset rate limiting
+     * Clear all caches
      * Use sparingly - mainly for testing
      */
     suspend fun reset() {
         mutex.withLock {
-            requestTimestamps.clear()
+            moderationCache.clear()
         }
-        moderationCache.clear()
-        pendingChecks.clear()
         Log.d(TAG, "ModerationManager reset")
     }
-
-    data class QuickCheckResult(
-        val hasResult: Boolean,
-        val isFlagged: Boolean,
-        val source: String
-    )
-
-    data class RateLimitStatus(
-        val remaining: Int,
-        val total: Int,
-        val resetTimeMs: Long
-    )
 }

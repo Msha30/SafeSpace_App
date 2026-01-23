@@ -9,7 +9,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -18,10 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.GroupChatMessage
 import com.example.safespace_app.R
-import com.example.safespace_app.moderation.ModerationManager
+import com.example.safespace_app.ModerationManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class ChatSupportGroupChat : Fragment() {
@@ -52,10 +50,6 @@ class ChatSupportGroupChat : Fragment() {
     private var firstVisibleMessage: GroupChatMessage? = null
     private var isLoadingOlderMessages = false
 
-    // For real-time moderation feedback
-    private var moderationCheckJob: Job? = null
-    private var lastQuickCheckResult: ModerationManager.QuickCheckResult? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -83,7 +77,7 @@ class ChatSupportGroupChat : Fragment() {
         }
         recyclerView.adapter = adapter
 
-        setupInputFieldModeration()
+        // NO MORE typing warnings - only moderate on send
         sendBtn.setOnClickListener { sendMessage() }
         backBtn.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -109,46 +103,6 @@ class ChatSupportGroupChat : Fragment() {
 
         loadGroupChatName()
         loadInitialMessages()
-    }
-
-    /**
-     * Setup real-time moderation feedback while typing
-     */
-    private fun setupInputFieldModeration() {
-        inputField.addTextChangedListener { editable ->
-            val text = editable?.toString() ?: ""
-
-            // Cancel previous check
-            moderationCheckJob?.cancel()
-
-            if (text.length < 3) {
-                // Reset UI for short text
-                inputField.error = null
-                return@addTextChangedListener
-            }
-
-            // Perform quick client-side check
-            val quickCheck = ModerationManager.quickCheck(text)
-
-            if (quickCheck.isFlagged && quickCheck.source == "pattern") {
-                inputField.error = "⚠️ Message may contain inappropriate content"
-            } else {
-                inputField.error = null
-            }
-
-            // Schedule API-based moderation (debounced)
-            moderationCheckJob = lifecycleScope.launch {
-                val result = ModerationManager.moderateMessage(text, skipDebounce = false)
-
-                result?.let {
-                    if (it.flagged) {
-                        inputField.error = "⚠️ This message may violate community guidelines"
-                    } else {
-                        inputField.error = null
-                    }
-                }
-            }
-        }
     }
 
     private fun messagesCollection(): CollectionReference? {
@@ -283,35 +237,23 @@ class ChatSupportGroupChat : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // Check rate limit status first
-                val rateLimit = ModerationManager.getRateLimitStatus()
+                // Moderate message before sending
+                val moderation = ModerationManager.moderateMessage(text)
 
-                if (rateLimit.remaining <= 0) {
-                    // Rate limited - send without moderation
-                    sendMessageWithoutModeration(coll, text)
+                // Always send the message with moderation data
+                sendMessageWithModeration(coll, text, moderation)
+
+                // Show warning if flagged
+                if (moderation.flagged) {
                     Toast.makeText(
                         context,
-                        "Moderation temporarily unavailable - message sent",
-                        Toast.LENGTH_SHORT
+                        "Message sent but flagged for review",
+                        Toast.LENGTH_LONG
                     ).show()
-                } else {
-                    // Perform final moderation check (no debounce)
-                    val moderation = ModerationManager.moderateMessage(
-                        text,
-                        skipDebounce = true
-                    )
-
-                    if (moderation != null) {
-                        sendMessageWithModeration(coll, text, moderation)
-                    } else {
-                        // Moderation failed - send anyway
-                        sendMessageWithoutModeration(coll, text)
-                    }
                 }
 
                 // Clear input on success
                 inputField.setText("")
-                inputField.error = null
 
             } catch (e: Exception) {
                 Toast.makeText(
@@ -337,35 +279,17 @@ class ChatSupportGroupChat : Fragment() {
             "timestamp" to System.currentTimeMillis()
         )
 
-        val categoriesMap = moderation.categories.mapValues { (_, v) -> v ?: false }
-        val scoresMap = moderation.categoryScores.mapValues { (_, v) -> v ?: 0.0 }
+        // Add moderation data
+        val categoriesMap = moderation.categories.mapValues { (_, v) -> v }
+        val scoresMap = moderation.categoryScores.mapValues { (_, v) -> v }
 
         baseMsg["moderation"] = mapOf(
             "flagged" to moderation.flagged,
             "categories" to categoriesMap,
             "scores" to scoresMap,
+            "patternBased" to moderation.patternBased,
+            "mistralUsed" to moderation.mistralUsed,
             "reviewed" to false
-        )
-
-        collection.add(baseMsg)
-            .addOnFailureListener { err ->
-                Toast.makeText(
-                    context,
-                    "Failed to send: ${err.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-    }
-
-    private fun sendMessageWithoutModeration(
-        collection: CollectionReference,
-        text: String
-    ) {
-        val baseMsg = mapOf(
-            "senderId" to currentUserId,
-            "message" to text,
-            "timestamp" to System.currentTimeMillis(),
-            "moderationSkipped" to true
         )
 
         collection.add(baseMsg)
@@ -382,6 +306,5 @@ class ChatSupportGroupChat : Fragment() {
         super.onDestroyView()
         listener?.remove()
         listener = null
-        moderationCheckJob?.cancel()
     }
 }

@@ -1,4 +1,3 @@
-// OpenAIModeration.kt
 package com.example.safespace_app.moderation
 
 import com.example.safespace_app.ModerationResponse
@@ -11,22 +10,22 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-object OpenAIModeration {
+object MistralModeration {
 
-    private const val OPENAI_MODERATIONS_URL =
+    private const val BACKEND_URL =
         "https://safe-space-backend.vercel.app/api/moderate"
 
     private val client = OkHttpClient.Builder()
-        .callTimeout(10, TimeUnit.SECONDS)
+        .callTimeout(15, TimeUnit.SECONDS)
         .build()
 
     suspend fun moderateMessage(text: String): ModerationResponse =
         withContext(Dispatchers.IO) {
-            println("Moderating text: $text")
+            println("Moderating text with Mistral: $text")
 
             val json = JSONObject().put("text", text).toString()
             val request = Request.Builder()
-                .url(OPENAI_MODERATIONS_URL)
+                .url(BACKEND_URL)
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .addHeader("Content-Type", "application/json")
                 .build()
@@ -39,25 +38,41 @@ object OpenAIModeration {
                     println("Moderation failed: $body")
                     return@use ModerationResponse(
                         flagged = false,
-                        categories = emptyMap(),
-                        categoryScores = emptyMap()
+                        categories = emptyMap<String, Boolean>(),
+                        categoryScores = emptyMap<String, Double>(),
+                        patternBased = false,
+                        mistralUsed = false,
+                        cached = false,
+                        error = "HTTP ${response.code}"
                     )
                 }
 
                 val obj = JSONObject(body)
+
+                // Check if it was pattern-based flagging
+                val patternBased = obj.optBoolean("patternBased", false)
                 val flagged = obj.optBoolean("flagged", false)
-                val categories = obj.optJSONObject("categories")?.let { o ->
-                    o.keys().asSequence().associateWith { o.getBoolean(it) }
+
+                val categories: Map<String, Boolean> = obj.optJSONObject("categories")?.let { o ->
+                    o.keys().asSequence().associateWith { key ->
+                        o.optBoolean(key, false)
+                    }
                 } ?: emptyMap()
 
-                val categoryScores = (obj.optJSONObject("categoryScores") ?: obj.optJSONObject("category_scores"))?.let { o ->
-                    o.keys().asSequence().associateWith { o.getDouble(it) }
+                val categoryScores: Map<String, Double> = obj.optJSONObject("categoryScores")?.let { o ->
+                    o.keys().asSequence().associateWith { key ->
+                        o.optDouble(key, 0.0)
+                    }
                 } ?: emptyMap()
 
                 ModerationResponse(
                     flagged = flagged,
                     categories = categories,
-                    categoryScores = categoryScores
+                    categoryScores = categoryScores,
+                    patternBased = patternBased,
+                    mistralUsed = obj.optBoolean("mistralUsed", false),
+                    cached = obj.optBoolean("cached", false),
+                    error = null
                 )
             }
         }

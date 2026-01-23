@@ -77,5 +77,9 @@ data class GroupChatMessage(
 data class ModerationResponse(
     val flagged: Boolean,
     val categories: Map<String, Boolean>,
-    val categoryScores: Map<String, Double>
+    val categoryScores: Map<String, Double>,
+    val patternBased: Boolean = false,
+    val mistralUsed: Boolean = false,
+    val cached: Boolean = false,
+    val error: String? = null
 )
