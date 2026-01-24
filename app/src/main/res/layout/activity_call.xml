@@ -10,14 +10,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Local Video (Small Box) -->
+    <!-- Local Video (Small Box - Must be on top) -->
     <org.webrtc.SurfaceViewRenderer
         android:id="@+id/localView"
-        android:layout_width="100dp"
-        android:layout_height="150dp"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:background="#333" />
+        android:layout_width="120dp"
+        android:layout_height="160dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp" />
 
     <!-- Hangup Button -->
     <Button

@@ -25,8 +25,8 @@ class CallActivity : AppCompatActivity() {
 
     private lateinit var peerConnectionFactory: PeerConnectionFactory
     private var peerConnection: PeerConnection? = null
-    private lateinit var localVideoTrack: VideoTrack
-    private lateinit var localAudioTrack: AudioTrack
+    private var localVideoTrack: VideoTrack? = null
+    private var localAudioTrack: AudioTrack? = null
     private val eglBase = EglBase.create()
     private var videoCapturer: CameraVideoCapturer? = null
 
@@ -56,14 +56,8 @@ class CallActivity : AppCompatActivity() {
 
         Log.d(TAG, "CallActivity started with callId: $callId")
 
-        localView.init(eglBase.eglBaseContext, null)
-        remoteView.init(eglBase.eglBaseContext, null)
-        localView.setMirror(true)
-        remoteView.setMirror(false)
-        localView.setZOrderMediaOverlay(true)
-        remoteView.setZOrderMediaOverlay(false)
-        localView.setEnableHardwareScaler(true)
-        remoteView.setEnableHardwareScaler(true)
+        // Initialize views first
+        initializeViews()
 
         hangupBtn.setOnClickListener {
             endCall()
@@ -76,6 +70,22 @@ class CallActivity : AppCompatActivity() {
         } else {
             requestPermissions()
         }
+    }
+
+    private fun initializeViews() {
+        // Remote view (fullscreen background)
+        remoteView.init(eglBase.eglBaseContext, null)
+        remoteView.setMirror(false)
+        remoteView.setZOrderMediaOverlay(false)  // Bottom layer
+        remoteView.setEnableHardwareScaler(true)
+
+        // Local view (small overlay on top)
+        localView.init(eglBase.eglBaseContext, null)
+        localView.setMirror(true)  // Mirror for selfie effect
+        localView.setZOrderMediaOverlay(true)  // CRITICAL: Must be true to show on top!
+        localView.setEnableHardwareScaler(true)
+
+        Log.d(TAG, "Views initialized")
     }
 
     private fun checkPermissions(): Boolean {
@@ -131,7 +141,6 @@ class CallActivity : AppCompatActivity() {
         )
 
         val rtcConfig = PeerConnection.RTCConfiguration(iceServers).apply {
-            // CRITICAL: Use Unified Plan (this is the default, but being explicit)
             sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
             bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
             rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
@@ -170,7 +179,6 @@ class CallActivity : AppCompatActivity() {
                 }
 
                 override fun onAddStream(stream: MediaStream?) {
-                    // This won't be called with Unified Plan, use onTrack instead
                     Log.d(TAG, "onAddStream called (shouldn't happen with Unified Plan)")
                 }
 
@@ -223,10 +231,16 @@ class CallActivity : AppCompatActivity() {
             }
         )
 
-        // Get Local Media
+        // Setup local media AFTER peer connection is created
+        setupLocalMedia()
+    }
+
+    private fun setupLocalMedia() {
+        // Get Local Audio
         val audioSource = peerConnectionFactory.createAudioSource(MediaConstraints())
         localAudioTrack = peerConnectionFactory.createAudioTrack("AUDIO", audioSource)
 
+        // Get Local Video
         val videoSource = peerConnectionFactory.createVideoSource(false)
         val surfaceTextureHelper = SurfaceTextureHelper.create(
             "CaptureThread",
@@ -245,14 +259,20 @@ class CallActivity : AppCompatActivity() {
             this,
             videoSource.capturerObserver
         )
-        videoCapturer?.startCapture(640, 480, 30)
 
         localVideoTrack = peerConnectionFactory.createVideoTrack("VIDEO", videoSource)
-        localVideoTrack.addSink(localView)
 
-        // FIXED: Use addTrack instead of addStream for Unified Plan
-        peerConnection?.addTrack(localAudioTrack, listOf("LOCAL_STREAM"))
-        peerConnection?.addTrack(localVideoTrack, listOf("LOCAL_STREAM"))
+        // IMPORTANT: Add sink to local view BEFORE starting capture
+        localVideoTrack?.addSink(localView)
+        Log.d(TAG, "Local video sink added to localView")
+
+        // NOW start capture
+        videoCapturer?.startCapture(640, 480, 30)
+        Log.d(TAG, "Video capture started")
+
+        // Add tracks to peer connection
+        localAudioTrack?.let { peerConnection?.addTrack(it, listOf("LOCAL_STREAM")) }
+        localVideoTrack?.let { peerConnection?.addTrack(it, listOf("LOCAL_STREAM")) }
 
         Log.d(TAG, "Local tracks added to peer connection")
     }
@@ -386,8 +406,10 @@ class CallActivity : AppCompatActivity() {
     private fun endCall() {
         videoCapturer?.stopCapture()
         videoCapturer?.dispose()
-        localVideoTrack.dispose()
-        localAudioTrack.dispose()
+
+        localVideoTrack?.removeSink(localView)
+        localVideoTrack?.dispose()
+        localAudioTrack?.dispose()
 
         peerConnection?.close()
         peerConnection = null
@@ -403,9 +425,9 @@ class CallActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        endCall()
         localView.release()
         remoteView.release()
         eglBase.release()
-        endCall()
     }
 }
