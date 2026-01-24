@@ -398,6 +398,7 @@ class ChatMessageFragment : Fragment() {
         }
     }
 
+
     private fun loadCurrentUserName() {
         UserCache.getUserDetails(currentUserId) { name, photoUrl ->
             if (isAdded) {
