@@ -58,6 +58,7 @@
             android:text="Refer"
             android:textColor="@color/white"
             android:textSize="@dimen/reg"
+            android:visibility="gone"
             app:backgroundTint="@color/btngrey" />
 
         <com.google.android.material.button.MaterialButton
@@ -94,12 +95,13 @@
     <LinearLayout
         android:id="@+id/bar"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@color/white"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="40dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="60dp"
         android:gravity="center"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -111,8 +113,8 @@
             android:layout_height="25dp"
             android:layout_marginRight="15dp"
             android:background="@drawable/ic_type_counseling"
-            android:backgroundTint="@color/midblue" />
-
+            android:backgroundTint="@color/midblue"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="0dp"

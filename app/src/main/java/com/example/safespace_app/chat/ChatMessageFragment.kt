@@ -12,7 +12,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +22,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -51,6 +49,8 @@ class ChatMessageFragment : Fragment() {
     private var currentUserDisplayName: String = "You"
     private var otherUserId: String = ""
     private var userType: String = ""
+    private var studentId: String = ""
+    private var peerId: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,7 +62,6 @@ class ChatMessageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize views
         recyclerView = view.findViewById(R.id.recyclerViewChat)
         messageInput = view.findViewById(R.id.messageInput)
         sendButton = view.findViewById(R.id.send)
@@ -117,7 +116,6 @@ class ChatMessageFragment : Fragment() {
                     userType = document.getString("userType") ?: ""
                     Log.d("ChatMessage", "User type loaded: $userType")
 
-                    // Show/hide buttons based on user type
                     if (userType == "peer") {
                         referButton.visibility = View.VISIBLE
                         schedButton.visibility = View.VISIBLE
@@ -129,7 +127,6 @@ class ChatMessageFragment : Fragment() {
             }
             .addOnFailureListener { e ->
                 Log.e("ChatMessage", "Error loading user type", e)
-                // Hide buttons by default on error
                 referButton.visibility = View.GONE
                 schedButton.visibility = View.GONE
             }
@@ -138,13 +135,11 @@ class ChatMessageFragment : Fragment() {
     private fun showReferralDialog() {
         val dialogView = layoutInflater.inflate(R.layout.popup_referral, null)
 
-        val titleText = dialogView.findViewById<TextView>(R.id.title)
         val contentText = dialogView.findViewById<TextView>(R.id.content)
         val reasonInput = dialogView.findViewById<TextInputEditText>(R.id.reason)
         val cancelBtn = dialogView.findViewById<MaterialButton>(R.id.btnkeep)
         val submitBtn = dialogView.findViewById<MaterialButton>(R.id.btncancel)
 
-        // Replace [name] with other user's name
         contentText.text = contentText.text.toString().replace("[name]", otherUserName)
 
         val dialog = android.app.AlertDialog.Builder(requireContext())
@@ -176,7 +171,7 @@ class ChatMessageFragment : Fragment() {
             "date_submitted" to com.google.firebase.Timestamp.now(),
             "messageId" to (currentSessionId ?: ""),
             "reason" to reason,
-            "studentUid" to otherUserId,
+            "studentUid" to studentId,
             "submitted_by" to currentUserId
         )
 
@@ -207,7 +202,6 @@ class ChatMessageFragment : Fragment() {
         var selectedStartTime: Pair<Int, Int>? = null
         var selectedEndTime: Pair<Int, Int>? = null
 
-        // Date picker
         dateInput.setOnClickListener {
             DatePickerDialog(
                 requireContext(),
@@ -223,7 +217,6 @@ class ChatMessageFragment : Fragment() {
             ).show()
         }
 
-        // Time from picker
         timeFromInput.setOnClickListener {
             TimePickerDialog(
                 requireContext(),
@@ -237,7 +230,6 @@ class ChatMessageFragment : Fragment() {
             ).show()
         }
 
-        // Time to picker
         timeToInput.setOnClickListener {
             TimePickerDialog(
                 requireContext(),
@@ -281,7 +273,6 @@ class ChatMessageFragment : Fragment() {
         endTime: Pair<Int, Int>,
         location: String
     ) {
-        // Create start and end timestamps
         val startCalendar = Calendar.getInstance().apply {
             time = date
             set(Calendar.HOUR_OF_DAY, startTime.first)
@@ -298,7 +289,7 @@ class ChatMessageFragment : Fragment() {
 
         val sessionData = hashMapOf(
             "date_submitted" to com.google.firebase.Timestamp.now(),
-            "studentUid" to otherUserId,
+            "studentUid" to studentId,
             "peerUid" to currentUserId,
             "start_time" to com.google.firebase.Timestamp(startCalendar.time),
             "end_time" to com.google.firebase.Timestamp(endCalendar.time),
@@ -320,12 +311,16 @@ class ChatMessageFragment : Fragment() {
     private fun showEndChatDialog() {
         val dialogView = layoutInflater.inflate(R.layout.popup_endchat, null)
 
-        val titleText = dialogView.findViewById<TextView>(R.id.title)
         val contentText = dialogView.findViewById<TextView>(R.id.content)
         val cancelBtn = dialogView.findViewById<MaterialButton>(R.id.btncancel)
         val confirmBtn = dialogView.findViewById<MaterialButton>(R.id.btnout)
 
-        contentText.text = contentText.text.toString().replace("[user]", otherUserName)
+        val message = if (userType == "peer") {
+            "Chat history will be removed from $otherUserName's view. You won't be able to message $otherUserName unless you get paired again.\n\nAre you sure you want to end the chat?"
+        } else {
+            "Chat history will be removed. You won't be able to message $otherUserName unless you get paired again.\n\nAre you sure you want to end the chat?"
+        }
+        contentText.text = message
 
         val dialog = android.app.AlertDialog.Builder(requireContext())
             .setView(dialogView)
@@ -350,25 +345,47 @@ class ChatMessageFragment : Fragment() {
                 val (sessionId, userId) = session
 
                 if (currentSessionId != sessionId) {
-                    messageListener?.let {
-                        currentSessionId?.let { oldSessionId ->
-                            chatManager.removeListener(oldSessionId, it)
-                        }
-                    }
+                    // ... cleanup code ...
 
                     currentSessionId = sessionId
                     otherUserId = userId
+
+                    // Determine roles first
+                    determineRoles(userId)
+
                     loadOtherUserInfo(userId)
-                    startListeningForMessages(sessionId)
-                    markMessagesAsRead(sessionId)
-                }
-            } else {
-                Log.d("ChatMessage", "Session ended, navigating back")
-                if (isAdded) {
-                    findNavController().navigateUp()
+
+                    // DON'T call startListeningForMessages() here
+                    // It's called inside determineRoles() after roles are set
+                    markMessagesAsRead()
                 }
             }
         }
+    }
+
+    private fun determineRoles(otherUserId: String) {
+        Log.d("ChatMessage", "Determining roles - currentUserId: $currentUserId, otherUserId: $otherUserId")
+
+        firestore.collection("account_details").document(currentUserId)
+            .get()
+            .addOnSuccessListener { currentDoc ->
+                val currentUserType = currentDoc.getString("userType") ?: ""
+
+                Log.d("ChatMessage", "Current user type: $currentUserType")
+
+                if (currentUserType == "student") {
+                    studentId = currentUserId
+                    peerId = otherUserId
+                } else {
+                    studentId = otherUserId
+                    peerId = currentUserId
+                }
+
+                Log.d("ChatMessage", "✅ Roles determined - Student: $studentId, Peer: $peerId")
+
+                // Start listening AFTER roles are determined
+                startListeningForMessages()
+            }
     }
 
     private fun loadOtherUserInfo(userId: String) {
@@ -390,23 +407,44 @@ class ChatMessageFragment : Fragment() {
         }
     }
 
-    private fun startListeningForMessages(sessionId: String) {
-        Log.d("ChatMessage", "Starting to listen for messages in session: $sessionId")
+    private fun startListeningForMessages() {
+        if (studentId.isEmpty() || peerId.isEmpty()) {
+            Log.e("ChatMessage", "Cannot listen - student or peer ID is empty")
+            Log.e("ChatMessage", "studentId: $studentId, peerId: $peerId")
+            return
+        }
 
-        messageListener = chatManager.listenForMessages(sessionId) { messages ->
+        Log.d("ChatMessage", "Starting to listen for messages")
+        Log.d("ChatMessage", "Student: $studentId, Peer: $peerId, UserType: $userType")
+
+        messageListener = chatManager.listenForMessages(studentId, peerId, currentUserId, userType) { messages ->
+            Log.d("ChatMessage", "Received ${messages.size} messages")
+
+            if (messages.isEmpty()) {
+                Log.w("ChatMessage", "No messages received - check database path")
+            } else {
+                messages.forEach { msg ->
+                    Log.d("ChatMessage", "Message: ${msg.message} (session: ${msg.sessionNo})")
+                }
+            }
+
             if (isAdded) {
                 adapter.submitList(messages) {
                     if (messages.isNotEmpty()) {
                         recyclerView.smoothScrollToPosition(messages.size - 1)
                     }
                 }
-                markMessagesAsRead(sessionId)
+                markMessagesAsRead()
             }
         }
     }
 
     private fun sendMessage() {
-        val sessionId = currentSessionId ?: return
+        if (studentId.isEmpty() || peerId.isEmpty()) {
+            Toast.makeText(requireContext(), "Session not ready", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val message = messageInput.text.toString()
 
         if (message.trim().isEmpty()) {
@@ -414,7 +452,8 @@ class ChatMessageFragment : Fragment() {
         }
 
         chatManager.sendMessage(
-            sessionId = sessionId,
+            studentId = studentId,
+            peerId = peerId,
             senderId = currentUserId,
             senderName = currentUserDisplayName,
             message = message,
@@ -431,15 +470,21 @@ class ChatMessageFragment : Fragment() {
         )
     }
 
-    private fun markMessagesAsRead(sessionId: String) {
-        chatManager.markMessagesAsRead(sessionId, currentUserId)
+    private fun markMessagesAsRead() {
+        if (studentId.isEmpty() || peerId.isEmpty()) return
+        chatManager.markMessagesAsRead(studentId, peerId, currentUserId)
     }
 
     private fun endSession() {
+        if (studentId.isEmpty() || peerId.isEmpty()) {
+            Toast.makeText(requireContext(), "Session not ready", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val sessionId = currentSessionId ?: return
         val pairingManager = com.example.safespace_app.peers.PairingManager()
 
-        pairingManager.endSession(sessionId) {
+        pairingManager.endSession(sessionId, studentId, peerId) {
             if (isAdded) {
                 Log.d("ChatMessage", "Session ended successfully")
             }
@@ -450,8 +495,8 @@ class ChatMessageFragment : Fragment() {
         super.onDestroyView()
 
         messageListener?.let { listener ->
-            currentSessionId?.let { sessionId ->
-                chatManager.removeListener(sessionId, listener)
+            if (studentId.isNotEmpty() && peerId.isNotEmpty()) {
+                chatManager.removeListener(studentId, peerId, listener)
             }
         }
 

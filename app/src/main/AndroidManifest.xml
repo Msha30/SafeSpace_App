@@ -37,10 +37,12 @@
             android:label="@string/title_activity_signup" />
         <activity
             android:name=".MainNavigation2"
+            android:windowSoftInputMode="adjustPan"
             android:exported="false"
             android:label="@string/title_activity_main_navigation2" />
         <activity
             android:name=".MainNavigation"
+            android:windowSoftInputMode="adjustPan"
             android:exported="false"
             android:label="@string/title_activity_main_navigation" />
         <activity

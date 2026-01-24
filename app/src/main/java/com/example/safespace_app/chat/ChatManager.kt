@@ -2,7 +2,6 @@ package com.example.safespace_app.chat
 
 import android.util.Log
 import com.google.firebase.database.*
-import java.util.Date
 
 data class ChatMessage(
     val messageId: String = "",
@@ -10,7 +9,8 @@ data class ChatMessage(
     val senderName: String = "",
     val message: String = "",
     val timestamp: Long = 0L,
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    val sessionNo: Int = 1
 )
 
 class ChatManager {
@@ -19,17 +19,73 @@ class ChatManager {
         "https://safespace-af7ec-default-rtdb.asia-southeast1.firebasedatabase.app/"
     )
 
+    private fun getConversationId(studentId: String, peerId: String): String {
+        return "${studentId}_${peerId}"
+    }
+
     /**
-     * Send a message in a session
-     * @param sessionId the active session ID
-     * @param senderId current user's UID
-     * @param senderName current user's display name
-     * @param message the message text
-     * @param onSuccess callback when message is sent
-     * @param onFailure callback on error
+     * Initialize or create a new session
+     */
+    fun initializeSession(
+        studentId: String,
+        peerId: String,
+        onComplete: (Int) -> Unit
+    ) {
+        val conversationId = getConversationId(studentId, peerId)
+        val ref = rtdb.getReference("messages/$conversationId")
+
+        ref.get().addOnSuccessListener { snapshot ->
+            if (!snapshot.exists()) {
+                // First ever conversation
+                val data = mapOf(
+                    "studentId" to studentId,
+                    "peerId" to peerId,
+                    "inSession" to true,
+                    "currentSessionNo" to 1,
+                    "messages" to mapOf(
+                        "1" to true
+                    )
+                )
+
+                ref.setValue(data).addOnSuccessListener {
+                    Log.d("ChatManager", "Conversation created – Session 1")
+                    onComplete(1)
+                }.addOnFailureListener {
+                    Log.e("ChatManager", "Failed to create conversation", it)
+                    onComplete(1)
+                }
+            } else {
+                val currentSession =
+                    snapshot.child("currentSessionNo").getValue(Int::class.java) ?: 0
+
+                val newSessionNo = currentSession + 1
+
+                val updates = mapOf(
+                    "inSession" to true,
+                    "currentSessionNo" to newSessionNo,
+                    "messages/$newSessionNo" to true
+                )
+
+                ref.updateChildren(updates).addOnSuccessListener {
+                    Log.d("ChatManager", "New session created – Session $newSessionNo")
+                    onComplete(newSessionNo)
+                }.addOnFailureListener {
+                    Log.e("ChatManager", "Failed to create session", it)
+                    onComplete(newSessionNo)
+                }
+            }
+        }.addOnFailureListener {
+            Log.e("ChatManager", "Failed to initialize session", it)
+            onComplete(1)
+        }
+    }
+
+    /**
+     * Send message to the ACTIVE session
      */
     fun sendMessage(
-        sessionId: String,
+        studentId: String,
+        peerId: String,
         senderId: String,
         senderName: String,
         message: String,
@@ -37,238 +93,225 @@ class ChatManager {
         onFailure: (String) -> Unit
     ) {
         if (message.trim().isEmpty()) {
-            onFailure("Cannot send empty message")
+            onFailure("Empty message")
             return
         }
 
-        val messagesRef = rtdb.getReference("messages/$sessionId")
-        val messageId = messagesRef.push().key
+        val conversationId = getConversationId(studentId, peerId)
+        val ref = rtdb.getReference("messages/$conversationId")
 
-        if (messageId == null) {
-            Log.e("ChatManager", "Failed to generate message ID")
-            onFailure("Failed to generate message ID")
-            return
+        ref.get().addOnSuccessListener { snapshot ->
+            val inSession = snapshot.child("inSession")
+                .getValue(Boolean::class.java) ?: false
+
+            if (!inSession) {
+                onFailure("Session not active")
+                return@addOnSuccessListener
+            }
+
+            val currentSessionNo =
+                snapshot.child("currentSessionNo").getValue(Int::class.java)
+                    ?: run {
+                        onFailure("No active session")
+                        return@addOnSuccessListener
+                    }
+
+            val sessionRef = ref.child("messages/$currentSessionNo")
+            val messageId = sessionRef.push().key
+
+            if (messageId == null) {
+                onFailure("Failed to generate message ID")
+                return@addOnSuccessListener
+            }
+
+            val data = mapOf(
+                "messageId" to messageId,
+                "senderId" to senderId,
+                "senderName" to senderName,
+                "message" to message.trim(),
+                "timestamp" to ServerValue.TIMESTAMP,
+                "isRead" to false
+            )
+
+            sessionRef.child(messageId).setValue(data)
+                .addOnSuccessListener {
+                    Log.d("ChatManager", "Message sent to session $currentSessionNo")
+                    onSuccess()
+                }
+                .addOnFailureListener {
+                    Log.e("ChatManager", "Failed to send message", it)
+                    onFailure(it.message ?: "Unknown error")
+                }
+        }.addOnFailureListener {
+            Log.e("ChatManager", "Failed to send message", it)
+            onFailure(it.message ?: "Unknown error")
         }
-
-        val messageData = mapOf(
-            "messageId" to messageId,
-            "senderId" to senderId,
-            "senderName" to senderName,
-            "message" to message.trim(),
-            "timestamp" to ServerValue.TIMESTAMP,
-            "isRead" to false
-        )
-
-        messagesRef.child(messageId).setValue(messageData)
-            .addOnSuccessListener {
-                Log.d("ChatManager", "Message sent successfully: $messageId")
-                onSuccess()
-            }
-            .addOnFailureListener { error ->
-                Log.e("ChatManager", "Failed to send message", error)
-                onFailure(error.message ?: "Unknown error")
-            }
     }
 
     /**
-     * Listen for messages in real-time
-     * @param sessionId the session to listen to
-     * @param onMessagesUpdated callback with list of messages
-     * @return ValueEventListener for cleanup
+     * Listen for messages
+     * Students → current session only
+     * Peers → all sessions
      */
     fun listenForMessages(
-        sessionId: String,
+        studentId: String,
+        peerId: String,
+        currentUserId: String,
+        userType: String,
         onMessagesUpdated: (List<ChatMessage>) -> Unit
     ): ValueEventListener {
-        val messagesRef = rtdb.getReference("messages/$sessionId")
 
-        Log.d("ChatManager", "Listening for messages in session: $sessionId")
+        val conversationId = getConversationId(studentId, peerId)
+        val ref = rtdb.getReference("messages/$conversationId")
 
-        val listener = messagesRef.orderByChild("timestamp")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val messages = mutableListOf<ChatMessage>()
+        val listener = ref.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val messages = mutableListOf<ChatMessage>()
 
-                    for (child in snapshot.children) {
-                        try {
-                            val messageId = child.child("messageId").getValue(String::class.java) ?: ""
-                            val senderId = child.child("senderId").getValue(String::class.java) ?: ""
-                            val senderName = child.child("senderName").getValue(String::class.java) ?: ""
-                            val message = child.child("message").getValue(String::class.java) ?: ""
-                            val timestamp = child.child("timestamp").getValue(Long::class.java) ?: 0L
-                            val isRead = child.child("isRead").getValue(Boolean::class.java) ?: false
+                val currentSessionNo =
+                    snapshot.child("currentSessionNo").getValue(Int::class.java) ?: 1
 
-                            messages.add(
-                                ChatMessage(
-                                    messageId = messageId,
-                                    senderId = senderId,
-                                    senderName = senderName,
-                                    message = message,
-                                    timestamp = timestamp,
-                                    isRead = isRead
-                                )
-                            )
-                        } catch (e: Exception) {
-                            Log.e("ChatManager", "Error parsing message", e)
-                        }
+                val messagesSnapshot = snapshot.child("messages")
+
+                for (sessionChild in messagesSnapshot.children) {
+                    val sessionNo = sessionChild.key?.toIntOrNull() ?: continue
+
+                    if (userType == "student" && sessionNo != currentSessionNo) {
+                        continue
                     }
 
-                    Log.d("ChatManager", "Loaded ${messages.size} messages")
-                    onMessagesUpdated(messages)
+                    for (msgChild in sessionChild.children) {
+                        val senderId =
+                            msgChild.child("senderId").getValue(String::class.java) ?: ""
+                        val senderName =
+                            msgChild.child("senderName").getValue(String::class.java) ?: ""
+                        val message =
+                            msgChild.child("message").getValue(String::class.java) ?: ""
+                        val timestamp =
+                            msgChild.child("timestamp").getValue(Long::class.java) ?: 0L
+                        val isRead =
+                            msgChild.child("isRead").getValue(Boolean::class.java) ?: false
+                        val messageId =
+                            msgChild.child("messageId").getValue(String::class.java) ?: ""
+
+                        messages.add(
+                            ChatMessage(
+                                messageId = messageId,
+                                senderId = senderId,
+                                senderName = senderName,
+                                message = message,
+                                timestamp = timestamp,
+                                isRead = isRead,
+                                sessionNo = sessionNo
+                            )
+                        )
+                    }
                 }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("ChatManager", "Message listener error", error.toException())
-                    onMessagesUpdated(emptyList())
-                }
-            })
+                messages.sortBy { it.timestamp }
+                onMessagesUpdated(messages)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ChatManager", "Listener cancelled", error.toException())
+                onMessagesUpdated(emptyList())
+            }
+        })
 
         return listener
     }
 
     /**
-     * Mark messages as read
-     * @param sessionId the session ID
-     * @param currentUserId the user marking messages as read
+     * Mark all messages as read (across all sessions)
      */
-    fun markMessagesAsRead(sessionId: String, currentUserId: String) {
-        val messagesRef = rtdb.getReference("messages/$sessionId")
+    fun markMessagesAsRead(studentId: String, peerId: String, currentUserId: String) {
+        val conversationId = getConversationId(studentId, peerId)
+        val ref = rtdb.getReference("messages/$conversationId")
 
-        messagesRef.get().addOnSuccessListener { snapshot ->
+        ref.get().addOnSuccessListener { snapshot ->
             val updates = mutableMapOf<String, Any>()
+            val messagesSnapshot = snapshot.child("messages")
 
-            for (child in snapshot.children) {
-                val senderId = child.child("senderId").getValue(String::class.java)
-                val isRead = child.child("isRead").getValue(Boolean::class.java) ?: false
+            for (sessionChild in messagesSnapshot.children) {
+                val sessionNo = sessionChild.key ?: continue
 
-                // Only mark as read if sent by someone else and not already read
-                if (senderId != currentUserId && !isRead) {
-                    updates["${child.key}/isRead"] = true
+                for (msgChild in sessionChild.children) {
+                    val senderId =
+                        msgChild.child("senderId").getValue(String::class.java)
+                    val isRead =
+                        msgChild.child("isRead").getValue(Boolean::class.java) ?: false
+
+                    if (senderId != currentUserId && !isRead) {
+                        updates["messages/$sessionNo/${msgChild.key}/isRead"] = true
+                    }
                 }
             }
 
             if (updates.isNotEmpty()) {
-                messagesRef.updateChildren(updates)
-                    .addOnSuccessListener {
-                        Log.d("ChatManager", "Marked ${updates.size} messages as read")
-                    }
-                    .addOnFailureListener { error ->
-                        Log.e("ChatManager", "Failed to mark messages as read", error)
-                    }
+                ref.updateChildren(updates)
             }
         }
     }
 
     /**
-     * Get unread message count for a session
-     * @param sessionId the session ID
-     * @param currentUserId the user checking for unread messages
-     * @param callback returns the count
+     * End current session
+     */
+    fun endSession(studentId: String, peerId: String, onComplete: () -> Unit) {
+        val conversationId = getConversationId(studentId, peerId)
+        val ref = rtdb.getReference("messages/$conversationId")
+
+        ref.updateChildren(mapOf("inSession" to false))
+            .addOnSuccessListener {
+                Log.d("ChatManager", "Session ended")
+                onComplete()
+            }
+            .addOnFailureListener {
+                Log.e("ChatManager", "Failed to end session", it)
+                onComplete()
+            }
+    }
+
+    /**
+     * Remove listener
+     */
+    fun removeListener(studentId: String, peerId: String, listener: ValueEventListener) {
+        val conversationId = getConversationId(studentId, peerId)
+        rtdb.getReference("messages/$conversationId")
+            .removeEventListener(listener)
+    }
+
+    /**
+     * Get unread message count
      */
     fun getUnreadCount(
-        sessionId: String,
+        studentId: String,
+        peerId: String,
         currentUserId: String,
         callback: (Int) -> Unit
     ) {
-        val messagesRef = rtdb.getReference("messages/$sessionId")
+        val conversationId = getConversationId(studentId, peerId)
+        val ref = rtdb.getReference("messages/$conversationId")
 
-        messagesRef.orderByChild("isRead").equalTo(false)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    var count = 0
+        ref.get().addOnSuccessListener { snapshot ->
+            var count = 0
+            val messagesSnapshot = snapshot.child("messages")
 
-                    for (child in snapshot.children) {
-                        val senderId = child.child("senderId").getValue(String::class.java)
-                        if (senderId != currentUserId) {
-                            count++
-                        }
+            for (sessionChild in messagesSnapshot.children) {
+                for (msgChild in sessionChild.children) {
+                    val senderId =
+                        msgChild.child("senderId").getValue(String::class.java)
+                    val isRead =
+                        msgChild.child("isRead").getValue(Boolean::class.java) ?: false
+
+                    if (senderId != currentUserId && !isRead) {
+                        count++
                     }
-
-                    callback(count)
                 }
-
-                override fun onCancelled(error: DatabaseError) {
-                    callback(0)
-                }
-            })
-    }
-
-    /**
-     * Get the last message for a session (for preview in list)
-     * @param sessionId the session ID
-     * @param callback returns the last message or null
-     */
-    fun getLastMessage(
-        sessionId: String,
-        callback: (ChatMessage?) -> Unit
-    ): ValueEventListener {
-
-        val messagesRef = rtdb.getReference("messages/$sessionId")
-
-        val listener = messagesRef
-            .orderByChild("timestamp")
-            .limitToLast(1)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (child in snapshot.children) {
-                        try {
-                            val messageId = child.child("messageId").getValue(String::class.java) ?: ""
-                            val senderId = child.child("senderId").getValue(String::class.java) ?: ""
-                            val senderName = child.child("senderName").getValue(String::class.java) ?: ""
-                            val message = child.child("message").getValue(String::class.java) ?: ""
-                            val timestamp = child.child("timestamp").getValue(Long::class.java) ?: 0L
-                            val isRead = child.child("isRead").getValue(Boolean::class.java) ?: false
-
-                            callback(
-                                ChatMessage(
-                                    messageId = messageId,
-                                    senderId = senderId,
-                                    senderName = senderName,
-                                    message = message,
-                                    timestamp = timestamp,
-                                    isRead = isRead
-                                )
-                            )
-                            return
-                        } catch (e: Exception) {
-                            Log.e("ChatManager", "Error parsing last message", e)
-                        }
-                    }
-                    callback(null)
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    callback(null)
-                }
-            })
-
-        return listener
-    }
-
-
-    /**
-     * Delete all messages in a session (when session ends)
-     * @param sessionId the session ID
-     */
-    fun deleteSessionMessages(sessionId: String, onComplete: () -> Unit) {
-        val messagesRef = rtdb.getReference("messages/$sessionId")
-
-        messagesRef.removeValue()
-            .addOnSuccessListener {
-                Log.d("ChatManager", "Messages deleted for session: $sessionId")
-                onComplete()
             }
-            .addOnFailureListener { error ->
-                Log.e("ChatManager", "Failed to delete messages", error)
-                onComplete()
-            }
-    }
-
-    /**
-     * Remove event listener
-     */
-    fun removeListener(sessionId: String, listener: ValueEventListener) {
-        rtdb.getReference("messages/$sessionId").removeEventListener(listener)
-        Log.d("ChatManager", "Listener removed for session: $sessionId")
+            callback(count)
+        }.addOnFailureListener {
+            callback(0)
+        }
     }
 }
+

@@ -1,6 +1,7 @@
 package com.example.safespace_app.peers
 
 import com.example.safespace_app.UserCache
+import com.example.safespace_app.chat.ChatManager
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.google.firebase.database.DataSnapshot
@@ -15,26 +16,17 @@ class PairingManager {
     )
     private val sessionsRef = rtdb.getReference("sessions")
     private val requestsRef = rtdb.getReference("pairing_requests")
+    private val chatManager = ChatManager()
 
-    /**
-     * Send a pairing request to a random online peer
-     * @param studentUid current student user ID
-     * @param onRequestSent callback when request is successfully sent with requestId and peerUid
-     * @param onFailure callback when request fails (no peers / network error)
-     */
     fun sendPairingRequest(
         studentUid: String,
         onRequestSent: (requestId: String, peerUid: String) -> Unit,
         onFailure: () -> Unit
     ) {
-        // Get current peers from cache
         val peers = UserCache.peersLiveData.value ?: emptyList()
-
         Log.d("PairingManager", "Total peers in cache: ${peers.size}")
 
-        // Only choose peers who are online and not the student
         val onlinePeers = peers.filter { it.isOnline && it.uid != studentUid }
-
         Log.d("PairingManager", "Online peers available: ${onlinePeers.size}")
 
         if (onlinePeers.isEmpty()) {
@@ -43,13 +35,10 @@ class PairingManager {
             return
         }
 
-        // Random peer selection
         val selectedPeer = onlinePeers.random()
         val peerUid = selectedPeer.uid
-
         Log.d("PairingManager", "Selected peer: ${selectedPeer.name} ($peerUid)")
 
-        // Create unique request ID
         val requestId = requestsRef.push().key
         if (requestId == null) {
             Log.e("PairingManager", "Failed to generate request ID")
@@ -75,15 +64,6 @@ class PairingManager {
             }
     }
 
-    /**
-     * Wait for a pairing request to be accepted or declined
-     * Automatically times out after 30 seconds
-     * @param requestId the request ID to monitor
-     * @param timeoutSeconds how long to wait before timing out (default 30)
-     * @param onAccepted callback when peer accepts with sessionId and peerUid
-     * @param onDeclined callback when peer declines
-     * @param onTimeout callback when request times out
-     */
     fun waitForRequestResponse(
         requestId: String,
         timeoutSeconds: Long = 30,
@@ -99,19 +79,16 @@ class PairingManager {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (hasResponded) return
 
-                    // Check if request still exists
                     if (!snapshot.exists()) {
                         Log.d("PairingManager", "Request $requestId no longer exists")
                         return
                     }
 
-                    // Check for timeout
                     val elapsed = System.currentTimeMillis() - startTime
                     if (elapsed > timeoutSeconds * 1000) {
                         hasResponded = true
                         Log.d("PairingManager", "Request timeout after ${timeoutSeconds}s")
 
-                        // Delete the expired request
                         requestsRef.child(requestId).removeValue()
                             .addOnSuccessListener {
                                 Log.d("PairingManager", "Expired request removed")
@@ -131,13 +108,11 @@ class PairingManager {
                             if (studentUid != null && peerUid != null) {
                                 Log.d("PairingManager", "Request accepted by peer")
 
-                                // Delete the request after acceptance
                                 requestsRef.child(requestId).removeValue()
                                     .addOnSuccessListener {
                                         Log.d("PairingManager", "Accepted request removed")
                                     }
 
-                                // Find the created session
                                 sessionsRef.orderByChild("student").equalTo(studentUid)
                                     .addListenerForSingleValueEvent(object : ValueEventListener {
                                         override fun onDataChange(sessionSnapshot: DataSnapshot) {
@@ -164,7 +139,6 @@ class PairingManager {
                             hasResponded = true
                             Log.d("PairingManager", "Request declined by peer")
 
-                            // Delete the declined request
                             requestsRef.child(requestId).removeValue()
                                 .addOnSuccessListener {
                                     Log.d("PairingManager", "Declined request removed")
@@ -183,19 +157,16 @@ class PairingManager {
                 }
             })
 
-        // Set up automatic timeout
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             if (!hasResponded) {
                 hasResponded = true
                 Log.d("PairingManager", "Request timeout triggered")
 
-                // Delete the expired request
                 requestsRef.child(requestId).removeValue()
                     .addOnSuccessListener {
                         Log.d("PairingManager", "Timed out request removed")
                     }
 
-                // Remove listener
                 requestsRef.child(requestId).removeEventListener(listener)
                 onTimeout()
             }
@@ -204,11 +175,6 @@ class PairingManager {
         return listener
     }
 
-    /**
-     * Listen for incoming pairing requests for a peer
-     * @param peerUid the peer's user ID
-     * @param onRequestReceived callback when a request is received with requestId and studentUid
-     */
     fun listenForRequests(
         peerUid: String,
         onRequestReceived: (requestId: String, studentUid: String) -> Unit
@@ -240,11 +206,6 @@ class PairingManager {
         return listener
     }
 
-    /**
-     * Check for pending requests (one-time check)
-     * @param peerUid the peer's user ID
-     * @param onRequestFound callback when a pending request is found
-     */
     fun checkPendingRequests(
         peerUid: String,
         onRequestFound: (requestId: String, studentUid: String) -> Unit
@@ -274,14 +235,6 @@ class PairingManager {
             })
     }
 
-    /**
-     * Accept a pairing request and create a session
-     * @param requestId the request to accept
-     * @param studentUid the student who sent the request
-     * @param peerUid the peer accepting the request
-     * @param onSuccess callback with sessionId when session is created
-     * @param onFailure callback when acceptance fails
-     */
     fun acceptRequest(
         requestId: String,
         studentUid: String,
@@ -291,10 +244,8 @@ class PairingManager {
     ) {
         Log.d("PairingManager", "Accepting request: $requestId")
 
-        // Update request status first
         requestsRef.child(requestId).child("status").setValue("accepted")
             .addOnSuccessListener {
-                // Create session
                 val sessionId = sessionsRef.push().key
                 if (sessionId == null) {
                     Log.e("PairingManager", "Failed to generate session ID")
@@ -312,15 +263,45 @@ class PairingManager {
                 sessionsRef.child(sessionId).setValue(sessionData)
                     .addOnSuccessListener {
                         Log.d("PairingManager", "Session created successfully: $sessionId")
-                        UserCache.watchSession(peerUid)
 
-                        // Delete request after session creation
-                        requestsRef.child(requestId).removeValue()
-                            .addOnSuccessListener {
-                                Log.d("PairingManager", "Request removed after session creation")
+                        // Check if conversation exists
+                        val conversationId = "${studentUid}_${peerUid}"
+                        val messagesRef = rtdb.getReference("messages/$conversationId")
+
+                        messagesRef.get().addOnSuccessListener { snapshot ->
+                            if (snapshot.exists()) {
+                                // Conversation exists - create new session number
+                                Log.d("PairingManager", "Existing conversation found - creating new session")
+                                chatManager.initializeSession(studentUid, peerUid) { sessionNo ->
+                                    Log.d("PairingManager", "New session created: Session #$sessionNo")
+                                    UserCache.watchSession(peerUid)
+
+                                    requestsRef.child(requestId).removeValue()
+                                        .addOnSuccessListener {
+                                            Log.d("PairingManager", "Request removed after session creation")
+                                        }
+
+                                    onSuccess(sessionId)
+                                }
+                            } else {
+                                // First time pairing - create initial conversation
+                                Log.d("PairingManager", "First time pairing - creating new conversation")
+                                chatManager.initializeSession(studentUid, peerUid) { sessionNo ->
+                                    Log.d("PairingManager", "Initial conversation created: Session #$sessionNo")
+                                    UserCache.watchSession(peerUid)
+
+                                    requestsRef.child(requestId).removeValue()
+                                        .addOnSuccessListener {
+                                            Log.d("PairingManager", "Request removed after session creation")
+                                        }
+
+                                    onSuccess(sessionId)
+                                }
                             }
-
-                        onSuccess(sessionId)
+                        }.addOnFailureListener { error ->
+                            Log.e("PairingManager", "Failed to check conversation", error)
+                            onFailure()
+                        }
                     }
                     .addOnFailureListener { error ->
                         Log.e("PairingManager", "Failed to create session", error)
@@ -333,18 +314,11 @@ class PairingManager {
             }
     }
 
-    /**
-     * Decline a pairing request
-     * @param requestId the request to decline
-     * @param onComplete callback when decline is complete
-     */
     fun declineRequest(requestId: String, onComplete: () -> Unit) {
         Log.d("PairingManager", "Declining request: $requestId")
 
-        // Update status first, then delete
         requestsRef.child(requestId).child("status").setValue("declined")
             .addOnSuccessListener {
-                // Now delete the entire request
                 requestsRef.child(requestId).removeValue()
                     .addOnSuccessListener {
                         Log.d("PairingManager", "Request declined and removed successfully")
@@ -361,18 +335,11 @@ class PairingManager {
             }
     }
 
-    /**
-     * Remove event listener
-     */
     fun removeListener(listener: ValueEventListener) {
         requestsRef.removeEventListener(listener)
         Log.d("PairingManager", "Listener removed")
     }
 
-    /**
-     * Verifies if a peer is actually online by checking RTDB directly
-     * Use this before attempting to pair for extra reliability
-     */
     fun verifyPeerOnline(peerUid: String, callback: (Boolean) -> Unit) {
         rtdb.getReference("status/$peerUid/state")
             .get()
@@ -385,11 +352,7 @@ class PairingManager {
             }
     }
 
-    /**
-     * Gets the active session for a student if one exists
-     */
     fun getActiveSession(studentUid: String, callback: (String?, String?) -> Unit) {
-        // Check cache first
         val cachedSession = UserCache.getActiveSession()
         if (cachedSession != null) {
             Log.d("PairingManager", "Returning cached session")
@@ -397,7 +360,6 @@ class PairingManager {
             return
         }
 
-        // Query database if not in cache
         sessionsRef.orderByChild("student").equalTo(studentUid)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -407,7 +369,6 @@ class PairingManager {
                             val sessionId = child.key
                             val peerUid = child.child("peer").getValue(String::class.java)
 
-                            // Start watching this session
                             if (sessionId != null) {
                                 UserCache.watchSession(studentUid)
                             }
@@ -425,18 +386,24 @@ class PairingManager {
             })
     }
 
-    /**
-     * Ends a session
-     */
-    fun endSession(sessionId: String, onComplete: () -> Unit) {
+    fun endSession(sessionId: String, studentId: String, peerId: String, onComplete: () -> Unit) {
+        // End the Firestore session
         sessionsRef.child(sessionId).child("status").setValue("ended")
             .addOnSuccessListener {
-                Log.d("PairingManager", "Session ended: $sessionId")
-                onComplete()
+                Log.d("PairingManager", "Firestore session ended: $sessionId")
+
+                // End the chat session (sets inSession = false, keeps history)
+                chatManager.endSession(studentId, peerId) {
+                    Log.d("PairingManager", "Chat session ended, history preserved")
+                    onComplete()
+                }
             }
-            .addOnFailureListener {
-                Log.e("PairingManager", "Failed to end session")
-                onComplete()
+            .addOnFailureListener { error ->
+                Log.e("PairingManager", "Failed to end session", error)
+                // Still try to end chat session even if Firestore fails
+                chatManager.endSession(studentId, peerId) {
+                    onComplete()
+                }
             }
     }
 }

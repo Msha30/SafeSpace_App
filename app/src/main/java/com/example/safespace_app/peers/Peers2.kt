@@ -27,6 +27,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -37,6 +38,10 @@ class Peers2 : Fragment() {
     private val pairingManager = PairingManager()
     private val chatManager = ChatManager()
     private val peerUid by lazy { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
+    private val firestore by lazy { FirebaseFirestore.getInstance() }
+
+    // Store studentId and peerId for each session
+    private val sessionRoles = mutableMapOf<String, Pair<String, String>>() // sessionId -> (studentId, peerId)
 
     private var currentDialog: AlertDialog? = null
     private val shownRequests = mutableSetOf<String>()
@@ -52,7 +57,7 @@ class Peers2 : Fragment() {
         val view = inflater.inflate(R.layout.fragment_peers2, container, false)
 
         recyclerView = view.findViewById(R.id.recyclerViewPeers)
-        emptyTextView = view.findViewById(R.id.tvEmpty)  // <- new
+        emptyTextView = view.findViewById(R.id.tvEmpty)
 
         adapter = UnifiedSessionAdapter(sessionsList) { session ->
             openChat(session.sessionId, session.userUid)
@@ -60,10 +65,11 @@ class Peers2 : Fragment() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        updateEmptyView() // check initially
+        updateEmptyView()
 
         return view
     }
+
     private fun updateEmptyView() {
         if (sessionsList.isEmpty()) {
             emptyTextView.visibility = View.VISIBLE
@@ -95,7 +101,6 @@ class Peers2 : Fragment() {
         }
     }
 
-    // NEW: Load cached sessions immediately
     private fun loadCachedSessions() {
         val cached = UserCache.getCachedSessions()
         if (cached.isNotEmpty()) {
@@ -107,7 +112,6 @@ class Peers2 : Fragment() {
         }
     }
 
-    // NEW: Observe cache updates
     private fun observeCachedSessions() {
         UserCache.sessionsLiveData.observe(viewLifecycleOwner) { cachedSessions ->
             Log.d("Peers2", "Cache updated with ${cachedSessions.size} sessions")
@@ -139,6 +143,9 @@ class Peers2 : Fragment() {
 
                             activeSessionIds.add(sessionId)
 
+                            // Store roles for this session
+                            sessionRoles[sessionId] = Pair(studentUid, peerUid)
+
                             // Check cache first
                             val cachedSession = UserCache.getCachedSession(sessionId)
                             if (cachedSession != null) {
@@ -155,10 +162,16 @@ class Peers2 : Fragment() {
                     val removedSessions = sessionsList.filter { it.sessionId !in activeSessionIds }
                     removedSessions.forEach { session ->
                         UserCache.removeSession(session.sessionId)
+
+                        // Get roles for cleanup
+                        val roles = sessionRoles[session.sessionId]
                         lastMessageListeners[session.sessionId]?.let { listener ->
-                            chatManager.removeListener(session.sessionId, listener)
+                            if (roles != null) {
+                                chatManager.removeListener(roles.first, roles.second, listener)
+                            }
                             lastMessageListeners.remove(session.sessionId)
                         }
+                        sessionRoles.remove(session.sessionId)
                     }
 
                     Log.d("Peers2", "Found ${activeSessionIds.size} active sessions")
@@ -181,11 +194,20 @@ class Peers2 : Fragment() {
 
     private fun setupMessageListener(sessionId: String, studentUid: String, name: String, photoUrl: String) {
         // Remove old listener if exists
-        lastMessageListeners[sessionId]?.let {
-            chatManager.removeListener(sessionId, it)
+        val roles = sessionRoles[sessionId]
+        lastMessageListeners[sessionId]?.let { listener ->
+            if (roles != null) {
+                chatManager.removeListener(roles.first, roles.second, listener)
+            }
         }
 
-        val listener = chatManager.listenForMessages(sessionId) { messages ->
+        // Peer always sees all messages from all sessions
+        val listener = chatManager.listenForMessages(
+            studentId = studentUid,
+            peerId = peerUid,
+            currentUserId = peerUid,
+            userType = "peer"
+        ) { messages ->
             if (!isAdded) return@listenForMessages
 
             val lastMessage = messages.lastOrNull()
@@ -407,10 +429,16 @@ class Peers2 : Fragment() {
             )
             rtdb.getReference("sessions").removeEventListener(it)
         }
+
+        // Clean up message listeners with correct parameters
         lastMessageListeners.forEach { (sessionId, listener) ->
-            chatManager.removeListener(sessionId, listener)
+            val roles = sessionRoles[sessionId]
+            if (roles != null) {
+                chatManager.removeListener(roles.first, roles.second, listener)
+            }
         }
         lastMessageListeners.clear()
+        sessionRoles.clear()
 
         Log.d("Peers2", "Fragment destroyed. Callback cleared.")
     }
