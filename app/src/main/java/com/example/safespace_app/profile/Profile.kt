@@ -103,11 +103,13 @@ class Profile : Fragment() {
                 requireContext().getSharedPreferences("user_cache", Context.MODE_PRIVATE).edit().clear().apply()
                 FirebaseAuth.getInstance().signOut()
 
-                startActivity(Intent(requireContext(), Login::class.java))
+                // Navigate to Start instead of Login
+                startActivity(Intent(requireContext(), com.example.safespace_app.Start::class.java))
                 requireActivity().finish()
             }
             dialog.show()
         }
+
     }
 }
 
