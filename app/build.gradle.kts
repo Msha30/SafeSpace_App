@@ -101,7 +101,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.3.2")
-    implementation("io.getstream:stream-webrtc-android:1.3.9")
+    implementation("io.getstream:stream-webrtc-android-ktx:1.3.9")
     //implementation("org.webrtc:google-webrtc:1.0.32006")
     implementation("com.karumi:dexter:6.2.3")
     implementation("com.google.firebase:firebase-storage:20.3.0")

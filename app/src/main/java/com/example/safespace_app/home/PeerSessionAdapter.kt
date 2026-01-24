@@ -9,7 +9,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.safespace_app.CallActivity
 import com.example.safespace_app.PeerSession
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
@@ -177,16 +176,7 @@ class PeerSessionAdapter(
 
             android.util.Log.d("PeerSessionAdapter", "Call role: ${if (isInitiator) "INITIATOR" else "RECEIVER"}")
 
-            // Get other user's name for display
-            UserCache.getUserDetails(session.studentUid) { peerName, _ ->
-                val intent = Intent(context, CallActivity::class.java).apply {
-                    putExtra(CallActivity.EXTRA_SESSION_ID, session.sessionId)
-                    putExtra(CallActivity.EXTRA_PEER_NAME, peerName)
-                    putExtra(CallActivity.EXTRA_IS_VIDEO_CALL, isVideoCall)
-                    putExtra(CallActivity.EXTRA_IS_INITIATOR, isInitiator)
-                }
-                context.startActivity(intent)
-            }
+
         }.addOnFailureListener { e ->
             android.util.Log.e("PeerSessionAdapter", "Transaction failed", e)
             android.widget.Toast.makeText(

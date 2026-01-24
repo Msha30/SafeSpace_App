@@ -13,16 +13,19 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.safespace_app.CallActivity
-import com.example.safespace_app.PeerSession
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
 import com.example.safespace_app.Announcement
+import com.example.safespace_app.CallActivity
+import com.example.safespace_app.CounselingSession
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class Home : Fragment() {
 
@@ -97,24 +100,53 @@ class Home : Fragment() {
             }
     }
 
-    private fun observeUpcomingSessions() {
-        UserCache.activeSessionsLiveData.observe(viewLifecycleOwner) { sessions ->
-            val currentStudentUid = FirebaseAuth.getInstance().currentUser?.uid
-            val upcomingSessions = sessions.filter {
-                it.studentUid == currentStudentUid &&
-                        it.status == "confirmed" &&
-                        !it.sessionComplete
-            }
-            upcomingAdapter.updateSessions(upcomingSessions)
+    // Add a map to store active calls: submissionId -> callId
+    private val activeCallsMap = mutableMapOf<String, String>()
 
-            if (upcomingSessions.isEmpty()) {
-                emptyText.visibility = View.VISIBLE
-                upcomingRecyclerView.visibility = View.GONE
-            } else {
-                emptyText.visibility = View.GONE
-                upcomingRecyclerView.visibility = View.VISIBLE
+    private fun observeUpcomingSessions() {
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val firestore = FirebaseFirestore.getInstance()
+
+        // 1. Listener for Submissions (Your existing code)
+        firestore.collection("CounselingForm_Submissions")
+            .whereEqualTo("createdBy", currentUid)
+            .whereIn("status", listOf("assigned", "in_progress"))
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+
+                val sessions = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(CounselingSession::class.java)?.copy(id = doc.id)
+                }
+
+                // 2. Update adapter with sessions AND the active call map
+                upcomingAdapter.updateSessions(sessions, activeCallsMap)
+
+                emptyText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
+                upcomingRecyclerView.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
             }
-        }
+
+        // 3. NEW: Listener for Calls (Detect incoming calls from Web)
+        firestore.collection("calls")
+            .whereEqualTo("createdBy", currentUid) // Calls intended for this user
+            .whereEqualTo("status", "ringing")    // Only active calls
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    android.util.Log.e("Home", "Error listening to calls", error)
+                    return@addSnapshotListener
+                }
+
+                activeCallsMap.clear()
+                for (doc in snapshot.documents) {
+                    val submissionId = doc.getString("submissionId")
+                    val callId = doc.id
+                    if (submissionId != null) {
+                        activeCallsMap[submissionId] = callId
+                    }
+                }
+
+                // Refresh adapter to show/hide "Join Call" buttons
+                upcomingAdapter.notifyDataSetChanged()
+            }
     }
 
     inner class HalfScreenWidthItemDecoration(private val spacing: Int) :
@@ -129,14 +161,21 @@ class Home : Fragment() {
             outRect.left = if (position == 0) 0 else spacing
         }
     }
+    private fun formatTime(date: java.util.Date): String {
+        val formatter = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
+        return formatter.format(date)
+    }
 
-    inner class UpcomingAdapter(private var sessions: List<PeerSession>) :
-        RecyclerView.Adapter<UpcomingAdapter.CardViewHolder>() {
+
+    inner class UpcomingAdapter(
+        private var sessions: List<CounselingSession>
+    ) : RecyclerView.Adapter<UpcomingAdapter.CardViewHolder>() {
 
         inner class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val dateText: TextView = view.findViewById(R.id.dateText)
             val timeText: TextView = view.findViewById(R.id.timeText)
             val btnCallAction: MaterialButton? = view.findViewById(R.id.btnCallAction)
+            val titleText: TextView? = view.findViewById(R.id.titleText)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
@@ -145,95 +184,88 @@ class Home : Fragment() {
             return CardViewHolder(view)
         }
 
+        // Update function signature to accept calls map
+        fun updateSessions(newSessions: List<CounselingSession>, callsMap: Map<String, String>) {
+            sessions = newSessions
+            activeCallsMap.clear()
+            activeCallsMap.putAll(callsMap)
+            notifyDataSetChanged()
+        }
+
         override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
             val session = sessions[position]
-            holder.dateText.text = session.selectedDate
-            holder.timeText.text = session.selectedTimeSlot
+            holder.titleText?.text = session.title ?: "Counseling Session"
+            holder.dateText.text = tryFormatDateToShort(session.assigned_sched?.date)
 
-            val params = holder.itemView.layoutParams
-            params.width =
-                (holder.itemView.context.resources.displayMetrics.widthPixels * 0.42).toInt()
-            holder.itemView.layoutParams = params
+            val start = session.assigned_sched?.start?.toDate()
+            val end = session.assigned_sched?.end?.toDate()
 
-            if (session.preferredMode == "Video Call" || session.preferredMode == "Call") {
-                holder.btnCallAction?.visibility = View.VISIBLE
+            holder.timeText.text = if (start != null && end != null) {
+                "${formatTime(start)} - ${formatTime(end)}"
+            } else {
+                "—"
+            }
 
-                when (session.callStatus) {
-                    "active" -> {
-                        holder.btnCallAction?.text = "Join Call"
-                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
-                    }
-                    else -> {
-                        holder.btnCallAction?.text = "Start Call"
-                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
-                    }
-                }
+            holder.btnCallAction?.visibility = View.VISIBLE
 
+            // --- LOGIC UPDATE HERE ---
+            // Check if there is an active call for this session
+            val callId = activeCallsMap[session.id]
+
+            if (callId != null) {
+                // 1. Incoming Call detected
+                holder.btnCallAction?.text = "Join Call"
+                holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green) // or whatever green drawable you have
                 holder.btnCallAction?.setOnClickListener {
-                    startOrJoinCall(session)
+                    joinCall(callId, session.id)
                 }
             } else {
-                holder.btnCallAction?.visibility = View.GONE
+                // 2. No incoming call (Normal State)
+                when (session.status) {
+                    "in_progress" -> {
+                        holder.btnCallAction?.text = "Start Call" // Or wait for call
+                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
+                        holder.btnCallAction?.setOnClickListener {
+                            // Maybe trigger "Waiting for counselor" logic here if needed
+                            android.util.Log.i("Home", "Session in progress, waiting for call...")
+                        }
+                    }
+                    "assigned" -> {
+                        holder.btnCallAction?.text = "Assigned"
+                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
+                        holder.btnCallAction?.setOnClickListener { /* Do nothing or show info */ }
+                    }
+                    else -> {
+                        holder.btnCallAction?.text = "Pending"
+                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
+                    }
+                }
             }
         }
 
-        private fun startOrJoinCall(session: PeerSession) {
-            val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-            val isVideoCall = session.preferredMode == "Video Call"
-
-            if (session.callStatus == "active" && session.callInitiatorUid != null) {
-                val isInitiator = false
-
-                UserCache.getUserDetails(session.peerUid) { peerName, _ ->
-                    val intent = Intent(requireContext(), CallActivity::class.java).apply {
-                        putExtra(CallActivity.EXTRA_SESSION_ID, session.sessionId)
-                        putExtra(CallActivity.EXTRA_PEER_NAME, peerName)
-                        putExtra(CallActivity.EXTRA_IS_VIDEO_CALL, isVideoCall)
-                        putExtra(CallActivity.EXTRA_IS_INITIATOR, isInitiator)
-                    }
-                    startActivity(intent)
-                }
-            } else {
-                val isInitiator = true
-
-                val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                firestore.collection("peer_session_requests")
-                    .document(session.sessionId)
-                    .update(mapOf(
-                        "callStatus" to "active",
-                        "callInitiatorUid" to currentUid
-                    ))
-                    .addOnSuccessListener {
-                        session.callStatus = "active"
-                        session.callInitiatorUid = currentUid
-                        notifyDataSetChanged()
-
-                        UserCache.getUserDetails(session.peerUid) { peerName, _ ->
-                            val intent = Intent(requireContext(), CallActivity::class.java).apply {
-                                putExtra(CallActivity.EXTRA_SESSION_ID, session.sessionId)
-                                putExtra(CallActivity.EXTRA_PEER_NAME, peerName)
-                                putExtra(CallActivity.EXTRA_IS_VIDEO_CALL, isVideoCall)
-                                putExtra(CallActivity.EXTRA_IS_INITIATOR, isInitiator)
-                            }
-                            startActivity(intent)
-                        }
-                    }
-                    .addOnFailureListener { e ->
-                        android.util.Log.e("Home", "Failed to update call status", e)
-                        android.widget.Toast.makeText(
-                            requireContext(),
-                            "Failed to start call",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-            }
+        // Navigate to CallActivity
+        private fun joinCall(callId: String, submissionId: String) {
+            val intent = Intent(requireContext(), CallActivity::class.java)
+            intent.putExtra("CALL_ID", callId)
+            intent.putExtra("SUBMISSION_ID", submissionId)
+            startActivity(intent)
         }
 
         override fun getItemCount() = sessions.size
 
-        fun updateSessions(newSessions: List<PeerSession>) {
-            sessions = newSessions
-            notifyDataSetChanged()
+        // ... keep your existing helper functions (tryFormatDateToShort, etc.) ...
+        private fun tryFormatDateToShort(raw: String?): String {
+            if (raw.isNullOrBlank()) return "Date TBD"
+            return try {
+                val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val d = parser.parse(raw)
+                if (d != null) {
+                    val out = SimpleDateFormat("MMM d", Locale.getDefault())
+                    out.format(d)
+                } else raw
+            } catch (e: Exception) {
+                raw
+            }
         }
     }
 

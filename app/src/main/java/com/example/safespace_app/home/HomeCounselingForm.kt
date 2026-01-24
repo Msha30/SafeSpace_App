@@ -177,35 +177,12 @@ class HomeCounselingForm : Fragment() {
                 // ---------- DATETIME ----------
                 "datetime" -> {
                     val input = TextInputEditText(requireContext()).apply {
-                        hint = "Select date & time"
+                        hint = "Enter your desired date"
                         background = resources.getDrawable(R.drawable.f_transparent, null)
                         typeface = resources.getFont(R.font.ps)
                         textSize = resources.getDimension(R.dimen.reg) / resources.displayMetrics.scaledDensity
-                        isFocusable = false
-                        isClickable = true
                         setPadding(dp(8), dp(12), dp(8), dp(12))
                     }
-
-                    input.setOnClickListener {
-                        val now = java.util.Calendar.getInstance()
-                        android.app.DatePickerDialog(requireContext(),
-                            { _, year, month, day ->
-                                android.app.TimePickerDialog(requireContext(),
-                                    { _, hour, minute ->
-                                        // Format to match your existing timestamp preference
-                                        input.setText(String.format("%04d-%02d-%02d %02d:%02d", year, month + 1, day, hour, minute))
-                                    },
-                                    now.get(java.util.Calendar.HOUR_OF_DAY),
-                                    now.get(java.util.Calendar.MINUTE),
-                                    true
-                                ).show()
-                            },
-                            now.get(java.util.Calendar.YEAR),
-                            now.get(java.util.Calendar.MONTH),
-                            now.get(java.util.Calendar.DAY_OF_MONTH)
-                        ).show()
-                    }
-
                     val wrapper = com.google.android.material.textfield.TextInputLayout(requireContext()).apply {
                         background = resources.getDrawable(R.drawable.f_rounded_white, null)
                         elevation = dp(1).toFloat()
@@ -261,9 +238,23 @@ class HomeCounselingForm : Fragment() {
                     rb?.text?.toString()?.trim() ?: ""
                 } ?: ""
 
-                // ✅ Make PrefPlat required
+                val prefSchedView = view?.findViewById<TextInputEditText>(R.id.PrefSched)
+                val preferredSchedule = prefSchedView?.text?.toString()?.trim() ?: ""
+
+                if (preferredSchedule.isEmpty()) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Please enter your preferred schedule.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@addOnSuccessListener
+                }
+
                 if (preferredPlatform.isEmpty()) {
-                    Toast.makeText(requireContext(), "Please select your preferred platform.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Please select your preferred platform.",
+                        Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
@@ -327,6 +318,7 @@ class HomeCounselingForm : Fragment() {
                     "title" to title,
                     "questions" to answeredQuestions,
                     "preferredPlatform" to preferredPlatform,
+                    "preferredSchedule" to preferredSchedule,
                     "createdAt" to Timestamp.now(),
                     "createdBy" to currentUid
                 )

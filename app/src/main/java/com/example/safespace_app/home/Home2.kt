@@ -15,7 +15,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.Announcement
-import com.example.safespace_app.CallActivity
 import com.example.safespace_app.PeerSession
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
@@ -179,15 +178,6 @@ class Home2 : Fragment() {
                 // Call is active, JOIN as receiver
                 val isInitiator = false
 
-                UserCache.getUserDetails(session.peerUid) { peerName, _ ->
-                    val intent = Intent(requireContext(), CallActivity::class.java).apply {
-                        putExtra(CallActivity.EXTRA_SESSION_ID, session.sessionId)
-                        putExtra(CallActivity.EXTRA_PEER_NAME, peerName)
-                        putExtra(CallActivity.EXTRA_IS_VIDEO_CALL, isVideoCall)
-                        putExtra(CallActivity.EXTRA_IS_INITIATOR, isInitiator)
-                    }
-                    startActivity(intent)
-                }
             } else {
                 // Call not active, START as initiator
                 val isInitiator = true
@@ -205,16 +195,6 @@ class Home2 : Fragment() {
                         session.callInitiatorUid = currentUid
                         notifyDataSetChanged()
 
-                        // Now start the call
-                        UserCache.getUserDetails(session.peerUid) { peerName, _ ->
-                            val intent = Intent(requireContext(), CallActivity::class.java).apply {
-                                putExtra(CallActivity.EXTRA_SESSION_ID, session.sessionId)
-                                putExtra(CallActivity.EXTRA_PEER_NAME, peerName)
-                                putExtra(CallActivity.EXTRA_IS_VIDEO_CALL, isVideoCall)
-                                putExtra(CallActivity.EXTRA_IS_INITIATOR, isInitiator)
-                            }
-                            startActivity(intent)
-                        }
                     }
                     .addOnFailureListener { e ->
                         android.util.Log.e("Home2", "Failed to update call status", e)

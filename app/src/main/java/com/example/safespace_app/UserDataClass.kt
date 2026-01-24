@@ -83,3 +83,19 @@ data class ModerationResponse(
     val cached: Boolean = false,
     val error: String? = null
 )
+data class CounselingSession(
+    val id: String = "",
+    val title: String = "",
+    val assigned_sched: AssignedSched? = null,
+    val preferredPlatform: String = "",
+    val status: String = "",
+    val taken_by: String? = null,
+    val started_by: String? = null,
+    val createdBy: String = ""
+)
+
+data class AssignedSched(
+    val date: String = "",
+    val start: Timestamp? = null,
+    val end: Timestamp? = null
+)
