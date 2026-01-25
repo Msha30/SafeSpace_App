@@ -60,15 +60,30 @@ class Profile : Fragment() {
         val lastName = prefs.getString("lname", "") ?: ""
         val preferred = prefs.getString("username", "") ?: ""
 
-        // Observe avatar changes
-        viewModel.avatarUrl.observe(viewLifecycleOwner) { avatarUrl ->
-            Glide.with(this)
-                .load(avatarUrl.takeIf { it.isNotEmpty() })
-                .placeholder(R.drawable.img_placeholder)
-                .error(R.drawable.img_placeholder)
-                .into(profilePhoto)
+        viewModel.avatarUrl.observe(viewLifecycleOwner) { avatarId ->
+            if (avatarId.isNullOrEmpty()) {
+                profilePhoto.setImageResource(R.drawable.img_placeholder)
+            } else {
+                // Check if it's a preset (Student) or a URL (Peer)
+                if (avatarId.startsWith("http")) {
+                    // It's a URL (Peer Side)
+                    Glide.with(this)
+                        .load(avatarId)
+                        .placeholder(R.drawable.img_placeholder)
+                        .into(profilePhoto)
+                } else {
+                    // It's a preset string ID (Student Side)
+                    val drawableRes = when (avatarId) {
+                        "image_1" -> R.drawable.avatar_panda
+                        "image_2" -> R.drawable.avatar_butterfly
+                        "image_3" -> R.drawable.avatar_wolf
+                        "image_4" -> R.drawable.avatar_buffalo
+                        else -> R.drawable.img_placeholder
+                    }
+                    profilePhoto.setImageResource(drawableRes)
+                }
+            }
         }
-
         // Load avatar once (can force refresh if needed)
         viewModel.loadAvatar()
 
@@ -76,7 +91,7 @@ class Profile : Fragment() {
         prefname.text = preferred
 
         pic.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_profile_to_profChangeAvatar)
+            findNavController().navigate(R.id.action_nav_profile_to_profUserAvatar)
         }
 
         info.setOnClickListener { findNavController().navigate(R.id.action_nav_profile_to_profInfo) }

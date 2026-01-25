@@ -42,11 +42,36 @@ class UnifiedSessionAdapter(
 
         holder.time.text = formatTime(session.lastMessageTime)
 
-        Glide.with(holder.itemView.context)
-            .load(if (session.photoUrl.isEmpty()) R.drawable.img_placeholder else session.photoUrl)
-            .placeholder(R.drawable.img_placeholder)
-            .error(R.drawable.img_placeholder)
-            .into(holder.photo)
+        // --- UPDATED AVATAR LOGIC ---
+        val photoUrl = session.photoUrl
+
+        if (photoUrl.isNotEmpty()) {
+            if (photoUrl.startsWith("http")) {
+                // CASE 1: Peer Side (URL)
+                // skipMemoryCache(true) forces the image to reload,
+                // ensuring new avatars appear instantly.
+                Glide.with(holder.itemView.context)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.img_placeholder)
+                    .error(R.drawable.img_placeholder)
+                    .skipMemoryCache(true)
+                    .into(holder.photo)
+            } else {
+                // CASE 2: Student Side (Preset ID)
+                // Map the string ID to the drawable resource directly for maximum speed
+                val drawableRes = when (photoUrl) {
+                    "image_1" -> R.drawable.avatar_panda
+                    "image_2" -> R.drawable.avatar_butterfly
+                    "image_3" -> R.drawable.avatar_wolf
+                    "image_4" -> R.drawable.avatar_buffalo
+                    else -> R.drawable.img_placeholder
+                }
+                // Directly set the resource (no Glide needed for preset icons, it's faster)
+                holder.photo.setImageResource(drawableRes)
+            }
+        } else {
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+        }
 
         // Bold if unread
         if (session.unreadCount > 0) {

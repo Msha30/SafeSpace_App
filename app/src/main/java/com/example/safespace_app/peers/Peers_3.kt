@@ -161,12 +161,29 @@ class Peers_3 : Fragment() {
 
         nameView.text = peer?.name ?: "Paired!"
 
-        if (!peer?.photoUrl.isNullOrEmpty()) {
-            Glide.with(this)
-                .load(peer!!.photoUrl)
-                .placeholder(R.drawable.img_placeholder)
-                .error(R.drawable.img_placeholder)
-                .into(photoView)
+        // --- UPDATED AVATAR LOGIC ---
+        val photoUrl = peer?.photoUrl
+        if (!photoUrl.isNullOrEmpty()) {
+            if (photoUrl.startsWith("http")) {
+                // CASE 1: Peer Side (URL)
+                Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.img_placeholder)
+                    .error(R.drawable.img_placeholder)
+                    .skipMemoryCache(true) // Forces reload to ensure latest image
+                    .into(photoView)
+            } else {
+                // CASE 2: Student Side (Preset ID)
+                // Map string ID to drawable directly (faster than Glide)
+                val drawableRes = when (photoUrl) {
+                    "image_1" -> R.drawable.avatar_panda
+                    "image_2" -> R.drawable.avatar_butterfly
+                    "image_3" -> R.drawable.avatar_wolf
+                    "image_4" -> R.drawable.avatar_buffalo
+                    else -> R.drawable.img_placeholder
+                }
+                photoView.setImageResource(drawableRes)
+            }
         } else {
             photoView.setImageResource(R.drawable.img_placeholder)
         }

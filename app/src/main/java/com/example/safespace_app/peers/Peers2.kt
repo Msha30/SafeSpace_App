@@ -303,11 +303,25 @@ class Peers2 : Fragment() {
             if (isAdded) {
                 nameView.text = name
                 if (photoUrl.isNotEmpty()) {
-                    Glide.with(this)
-                        .load(photoUrl)
-                        .placeholder(R.drawable.img_placeholder)
-                        .error(R.drawable.img_placeholder)
-                        .into(photoView)
+                    if (photoUrl.startsWith("http")) {
+                        // CASE 1: Peer Side (URL) - Usually students use presets, but let's be safe
+                        Glide.with(this)
+                            .load(photoUrl)
+                            .placeholder(R.drawable.img_placeholder)
+                            .error(R.drawable.img_placeholder)
+                            .skipMemoryCache(true) // Force update
+                            .into(photoView)
+                    } else {
+                        // CASE 2: Student Side (Preset ID)
+                        val drawableRes = when (photoUrl) {
+                            "image_1" -> R.drawable.avatar_panda
+                            "image_2" -> R.drawable.avatar_butterfly
+                            "image_3" -> R.drawable.avatar_wolf
+                            "image_4" -> R.drawable.avatar_buffalo
+                            else -> R.drawable.img_placeholder
+                        }
+                        photoView.setImageResource(drawableRes)
+                    }
                 }
             }
         }
@@ -386,7 +400,25 @@ class Peers2 : Fragment() {
             if (isAdded) {
                 nameView.text = name
                 if (photoUrl.isNotEmpty()) {
-                    Glide.with(this).load(photoUrl).into(photoView)
+                    if (photoUrl.startsWith("http")) {
+                        // CASE 1: Peer Side (URL)
+                        Glide.with(this)
+                            .load(photoUrl)
+                            .placeholder(R.drawable.img_placeholder)
+                            .error(R.drawable.img_placeholder)
+                            .skipMemoryCache(true) // Force update
+                            .into(photoView)
+                    } else {
+                        // CASE 2: Student Side (Preset ID)
+                        val drawableRes = when (photoUrl) {
+                            "image_1" -> R.drawable.avatar_panda
+                            "image_2" -> R.drawable.avatar_butterfly
+                            "image_3" -> R.drawable.avatar_wolf
+                            "image_4" -> R.drawable.avatar_buffalo
+                            else -> R.drawable.img_placeholder
+                        }
+                        photoView.setImageResource(drawableRes)
+                    }
                 }
             }
         }

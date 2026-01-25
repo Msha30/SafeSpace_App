@@ -24,17 +24,29 @@ class ProfileViewModel : ViewModel() {
 
         UserCache.getUserDetails(uid, forceRefresh) { _, avatar ->
             if (avatar.isNotEmpty()) {
-                // Append timestamp to bust Glide cache
-                val cacheBusted = "$avatar?v=${System.currentTimeMillis()}"
-                loadedUrl = cacheBusted
-                _avatarUrl.postValue(cacheBusted)
+                // Only append timestamp if it's a URL (Peer side)
+                // If it's a preset ID (Student side), keep it clean
+                val processedUrl = if (avatar.startsWith("http")) {
+                    "$avatar?v=${System.currentTimeMillis()}"
+                } else {
+                    avatar
+                }
+
+                loadedUrl = processedUrl
+                _avatarUrl.postValue(processedUrl)
             }
         }
     }
 
     fun updateAvatar(newAvatarUrl: String) {
-        val cacheBusted = "$newAvatarUrl?v=${System.currentTimeMillis()}"
-        loadedUrl = cacheBusted
-        _avatarUrl.postValue(cacheBusted)
+        // Same logic here: check if it's a URL or a preset ID
+        val processedUrl = if (newAvatarUrl.startsWith("http")) {
+            "$newAvatarUrl?v=${System.currentTimeMillis()}"
+        } else {
+            newAvatarUrl
+        }
+
+        loadedUrl = processedUrl
+        _avatarUrl.postValue(processedUrl)
     }
 }
