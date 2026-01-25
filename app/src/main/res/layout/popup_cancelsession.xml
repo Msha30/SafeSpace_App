@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp"
         android:fontFamily="@font/ps"
-        android:text="@string/cancel"
+        android:text="Are you sure you want to cancel this Session with [otheruser] on Month 0, 2025 for 0:00 AM - 0:00 AM?"
         android:textColor="@color/black"
         android:textSize="@dimen/reg" />
 
