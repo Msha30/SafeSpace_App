@@ -537,7 +537,40 @@ class CallActivity : AppCompatActivity() {
                 .addOnFailureListener { e ->
                     Log.e(TAG, "Failed to update call status", e)
                 }
+            deleteCallDocument(callId!!)
         }
+    }
+    private fun deleteCallDocument(callId: String) {
+        val callRef = db.collection("calls").document(callId)
+
+        // Delete offerCandidates
+        callRef.collection("offerCandidates").get()
+            .addOnSuccessListener { offerSnapshot ->
+                val batch = db.batch()
+                offerSnapshot.documents.forEach { doc ->
+                    batch.delete(doc.reference)
+                }
+                batch.commit()
+            }
+
+        // Delete answerCandidates
+        callRef.collection("answerCandidates").get()
+            .addOnSuccessListener { answerSnapshot ->
+                val batch = db.batch()
+                answerSnapshot.documents.forEach { doc ->
+                    batch.delete(doc.reference)
+                }
+                batch.commit()
+            }
+
+        // Delete the call document itself
+        callRef.delete()
+            .addOnSuccessListener {
+                Log.d(TAG, "Call document deleted successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to delete call document", e)
+            }
     }
 
     override fun onDestroy() {

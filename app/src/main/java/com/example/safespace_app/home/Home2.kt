@@ -3,6 +3,7 @@ package com.example.safespace_app.home
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.safespace_app.Announcement
 import com.example.safespace_app.PeerSession
 import com.example.safespace_app.R
@@ -253,11 +255,19 @@ class Home2 : Fragment() {
             holder.title.text = announcement.title
             holder.content.text = announcement.description
 
-            // Set image based on represented_by
-            when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco)
-                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers)
-                else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            when (announcement.represented_by) {
+                "GCO" -> {
+                    // Static Resource for GCO
+                    holder.photo.setImageResource(R.drawable.pfp_gco)
+                }
+                "PEERS" -> {
+                    // Static Resource for PEERS
+                    holder.photo.setImageResource(R.drawable.pfp_peers)
+                }
+                else -> {
+                    holder.photo.tag = announcement.represented_by
+                    fetchGroupPfp(announcement.represented_by, holder)
+                }
             }
 
             // Handle photo display
@@ -283,6 +293,36 @@ class Home2 : Fragment() {
             } else {
                 holder.photoRow.visibility = View.GONE
             }
+        }
+        private fun fetchGroupPfp(groupId: String, holder: NotificationViewHolder) {
+            val db = FirebaseFirestore.getInstance()
+
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+
+            db.collection("supportgroup").document(groupId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    // ViewHolder reused? Abort.
+                    if (holder.photo.tag != groupId) return@addOnSuccessListener
+
+                    val pfpUrl = snapshot.getString("supportgroup_pfp_URL")
+
+                    if (pfpUrl.isNullOrEmpty()) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    } else {
+                        Glide.with(holder.itemView.context)
+                            .load(pfpUrl)
+                            .placeholder(R.drawable.img_placeholder)
+                            .error(R.drawable.img_placeholder)
+                            .circleCrop()
+                            .into(holder.photo)
+                    }
+                }
+                .addOnFailureListener {
+                    if (holder.photo.tag == groupId) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    }
+                }
         }
 
         override fun getItemCount() = announcements.size
