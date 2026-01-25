@@ -8,6 +8,7 @@
     android:background="@drawable/f_rounded_white">
 
     <LinearLayout
+        android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/f_top_green"
