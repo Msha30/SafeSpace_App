@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="25dp"
+    android:elevation="1.5dp"
+    android:background="@drawable/f_rounded_white">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="Session has been cancelled"
+        android:textColor="@color/black"
+        android:fontFamily="@font/psbold"
+        android:textSize="@dimen/mid"/>
+
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:fontFamily="@font/ps"
+        android:text="By clicking confirm, you understand that [otheruser] has cancelled their session with you due to the following reason :"
+        android:textColor="@color/black"
+        android:textSize="@dimen/reg" />
+
+    <TextView
+        android:id="@+id/reason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:padding="20dp"
+        android:background="@drawable/f_rounded_white"
+        android:backgroundTint="@color/fillout"
+        android:fontFamily="@font/ps"
+        android:hint="Reason"
+        android:inputType="text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/textgrey"
+        android:textSize="@dimen/reg"
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnkeep"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:padding="0dp"
+            android:text="Cancel"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            android:background="@drawable/f_cancel_btn"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btncancel"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="15dp"
+            android:padding="0dp"
+            android:text="Confirm"
+            android:fontFamily="@font/psbold"
+            android:textSize="@dimen/reg"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            android:background="@drawable/f_rounded_red"/>
+
+    </LinearLayout>
+
+</LinearLayout>
