@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:text="Cancel Support Session"
+        android:text="Cancel Session"
         android:textColor="@color/black"
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/mid"/>

@@ -61,17 +61,6 @@
 
             </LinearLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="See Details"
-                android:textAlignment="textEnd"
-                android:textColor="@color/textgrey"
-                android:textSize="@dimen/smaller"
-                android:fontFamily="@font/psbold"
-                android:textStyle="italic"/>
-
         </LinearLayout>
 
         <LinearLayout
@@ -81,21 +70,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/cancel_btn"
-                android:layout_width="0dp"
-                android:layout_height="30dp"
-                android:layout_weight="1"
-                android:padding="0dp"
-                android:text="Cancel"
-                android:fontFamily="@font/psbold"
-                android:textSize="@dimen/smaller"
-                android:textColor="@color/textgrey"
-                app:backgroundTint="#e6e6e6"
-                android:background="@drawable/f_cancel_btn"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/confirm_btn"
-                android:layout_marginLeft="10dp"
+                android:id="@+id/btnCallAction"
                 android:layout_width="0dp"
                 android:layout_height="30dp"
                 android:layout_weight="1"
