@@ -265,11 +265,21 @@ class Home2 : Fragment() {
                 holder.photoRow.visibility = View.VISIBLE
 
                 val photoAdapter = PhotoDisplayAdapter(announcement.photo_urls)
-                holder.photoRow.adapter = photoAdapter
-                holder.photoRow.layoutManager = androidx.recyclerview.widget.GridLayoutManager(
+
+                val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(
                     holder.itemView.context,
                     3
                 )
+
+                gridLayoutManager.spanSizeLookup =
+                    object : androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup() {
+                        override fun getSpanSize(position: Int): Int {
+                            return if (photoAdapter.totalPhotos == 1) 3 else 1
+                        }
+                    }
+
+                holder.photoRow.layoutManager = gridLayoutManager
+                holder.photoRow.adapter = photoAdapter
             } else {
                 holder.photoRow.visibility = View.GONE
             }

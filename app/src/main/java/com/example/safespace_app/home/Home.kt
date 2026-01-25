@@ -308,6 +308,7 @@ class Home : Fragment() {
             val photo: ShapeableImageView = view.findViewById(R.id.photo)
             val title: TextView = view.findViewById(R.id.title)
             val content: TextView = view.findViewById(R.id.content)
+            val photoRow: RecyclerView = view.findViewById(R.id.photorow)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
@@ -327,6 +328,30 @@ class Home : Fragment() {
                 "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco)
                 "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers)
                 else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            }
+            // Handle photo display
+            if (announcement.photo_urls.isNotEmpty()) {
+                holder.photoRow.visibility = View.VISIBLE
+
+                val photoAdapter = PhotoDisplayAdapter(announcement.photo_urls)
+
+                val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(
+                    holder.itemView.context,
+                    3
+                )
+
+                gridLayoutManager.spanSizeLookup =
+                    object : androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup() {
+                        override fun getSpanSize(position: Int): Int {
+                            return if (photoAdapter.totalPhotos == 1) 3 else 1
+                        }
+                    }
+
+                holder.photoRow.layoutManager = gridLayoutManager
+                holder.photoRow.adapter = photoAdapter
+
+            } else {
+                holder.photoRow.visibility = View.GONE
             }
         }
 

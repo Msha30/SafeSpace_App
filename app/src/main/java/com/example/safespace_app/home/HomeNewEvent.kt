@@ -7,22 +7,26 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
-import com.example.safespace_app.R
 import com.bumptech.glide.Glide
+import com.example.safespace_app.R
+import com.example.safespace_app.SupaClient
 import com.example.safespace_app.databinding.FragmentHomeNewEventBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
-import com.google.firebase.storage.FirebaseStorage
-import java.util.UUID
+import io.github.jan.supabase.storage.storage
+import io.github.jan.supabase.storage.upload
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class HomeNewEvent : Fragment() {
 
@@ -94,53 +98,110 @@ class HomeNewEvent : Fragment() {
         binding.btnpost.isEnabled = false
         binding.btnpost.text = "Posting..."
 
-        // If there are photos, upload them first
+        // If there are photos, we must create the doc first to get the ID, then upload
         if (selectedPhotos.isNotEmpty()) {
-            uploadPhotosAndCreateAnnouncement(title, description, currentUserId)
+            createFirestoreDocThenUpload(title, description, currentUserId)
         } else {
             // No photos, create announcement directly
             saveAnnouncementToFirestore(title, description, currentUserId, emptyList())
         }
     }
 
-    private fun uploadPhotosAndCreateAnnouncement(
+    // Step 1: Create the document to get the Announcement ID
+    private fun createFirestoreDocThenUpload(
         title: String,
         description: String,
         userId: String
     ) {
-        val storage = FirebaseStorage.getInstance()
-        val uploadedUrls = mutableListOf<String>()
-        var uploadCount = 0
+        val announcementData = hashMapOf(
+            "title" to title,
+            "description" to description,
+            "represented_by" to "PEERS",
+            "created_by" to userId,
+            "date_created" to Timestamp.now(),
+            "photo_urls" to emptyList<String>() // Start empty
+        )
 
-        selectedPhotos.forEach { uri ->
-            val filename = "announcements/${userId}/${UUID.randomUUID()}.jpg"
-            val storageRef = storage.reference.child(filename)
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("announcements")
+            .add(announcementData)
+            .addOnSuccessListener { documentReference ->
+                // Step 2: Pass the ID to the upload function
+                uploadPhotosAndUpdate(documentReference.id)
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Failed to create announcement: ${e.message}", Toast.LENGTH_SHORT).show()
+                resetButtonState()
+            }
+    }
 
-            storageRef.putFile(uri)
-                .addOnSuccessListener { taskSnapshot ->
-                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                        uploadedUrls.add(downloadUri.toString())
-                        uploadCount++
-
-                        // When all photos are uploaded
-                        if (uploadCount == selectedPhotos.size) {
-                            saveAnnouncementToFirestore(title, description, userId, uploadedUrls)
-                        }
-                    }
+    // Step 2: Upload photos to Supabase using the ID
+    private fun uploadPhotosAndUpdate(announcementId: String) {
+        lifecycleScope.launch {
+            try {
+                // Upload all photos concurrently using IO dispatcher
+                val uploadedUrls = withContext(Dispatchers.IO) {
+                    selectedPhotos.mapIndexed { index, uri ->
+                        async { uploadSingleImageToSupabase(uri, announcementId, index) }
+                    }.awaitAll()
                 }
-                .addOnFailureListener { e ->
-                    android.util.Log.e("HomeNewEvent", "Error uploading photo", e)
-                    Toast.makeText(
-                        requireContext(),
-                        "Failed to upload photos",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    binding.btnpost.isEnabled = true
-                    binding.btnpost.text = "Post"
-                }
+
+                // Step 3: Update Firestore with the new URLs
+                updateFirestoreWithUrls(announcementId, uploadedUrls)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Failed to upload photos: ${e.message}", Toast.LENGTH_SHORT).show()
+                resetButtonState()
+            }
         }
     }
 
+    private suspend fun uploadSingleImageToSupabase(uri: Uri, announcementId: String, index: Int): String {
+        // 1. Convert Uri to temporary File
+        val inputStream = requireContext().contentResolver.openInputStream(uri)
+            ?: throw Exception("Failed to read image")
+
+        val tmpFile = File(requireContext().cacheDir, "tmp_${System.currentTimeMillis()}.jpg")
+        tmpFile.outputStream().use { output -> inputStream.copyTo(output) }
+        inputStream.close()
+
+        // 2. Upload to Supabase
+        // Bucket name: "Event"
+        // Path: announcementId_index.jpg (e.g. "abc123_0.jpg")
+        val bucket = SupaClient.client.storage.from("ProfilePictures")
+        val path = "announcement_pic/$announcementId/$index.jpg"
+
+        bucket.upload(path, tmpFile) { upsert = true }
+
+        // 3. Get Public URL
+        val publicUrl = bucket.publicUrl(path)
+
+        // 4. Cleanup temp file
+        tmpFile.delete()
+
+        return publicUrl
+    }
+
+    // Step 3: Update the document with URLs and finish
+    private fun updateFirestoreWithUrls(announcementId: String, photoUrls: List<String>) {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("announcements")
+            .document(announcementId)
+            .update("photo_urls", photoUrls)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Announcement posted successfully!", Toast.LENGTH_SHORT).show()
+                findNavController().navigateUp()
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Failed to save photo URLs: ${e.message}", Toast.LENGTH_SHORT).show()
+                resetButtonState()
+            }
+    }
+
+    // Standard save for when there are NO photos
     private fun saveAnnouncementToFirestore(
         title: String,
         description: String,
@@ -170,17 +231,19 @@ class HomeNewEvent : Fragment() {
                 findNavController().navigateUp()
             }
             .addOnFailureListener { e ->
-                android.util.Log.e("HomeNewEvent", "Error posting announcement", e)
+                e.printStackTrace()
                 Toast.makeText(
                     requireContext(),
                     "Failed to post announcement",
                     Toast.LENGTH_SHORT
                 ).show()
-
-                // Re-enable post button
-                binding.btnpost.isEnabled = true
-                binding.btnpost.text = "Post"
+                resetButtonState()
             }
+    }
+
+    private fun resetButtonState() {
+        binding.btnpost.isEnabled = true
+        binding.btnpost.text = "Post"
     }
 
     private fun openPhotoManager() {
@@ -204,7 +267,6 @@ class HomeNewEvent : Fragment() {
                 selectedPhotos.addAll(updated)
                 adapter.setPhotos(selectedPhotos)
 
-                // Show/hide RecyclerView based on photos
                 if (selectedPhotos.isEmpty()) {
                     binding.recyclerViewPhotos.visibility = View.GONE
                 } else {
