@@ -14,6 +14,12 @@ import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import android.widget.ImageView
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.safespace_app.Announcement
+import com.example.safespace_app.home.Home2.NotificationAdapter.NotificationViewHolder
+import com.example.safespace_app.home.PhotoDisplayAdapter
 
 class ChatSupportGroupHome : Fragment() {
 
@@ -21,6 +27,8 @@ class ChatSupportGroupHome : Fragment() {
         const val ARG_GROUP_ID = "supportGroupId"
         const val ARG_GROUP_NAME = "supportGroupName"
     }
+    private lateinit var announcementAdapter: AnnouncementAdapter
+    private var announcementListener: ListenerRegistration? = null
 
     private var _binding: FragmentChatSupportGroupHomeBinding? = null
     private val binding get() = _binding!!
@@ -59,8 +67,32 @@ class ChatSupportGroupHome : Fragment() {
             findNavController().navigate(R.id.nav_chat)
         }
 
+        announcementAdapter = AnnouncementAdapter(mutableListOf())
+
+        binding.notifications.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = announcementAdapter
+            setHasFixedSize(true)
+        }
+
         startListeningToGroup(groupId)
+        startListeningToAnnouncements(groupId)
+
     }
+    private fun startListeningToAnnouncements(groupId: String) {
+        announcementListener = db.collection("announcements")
+            .whereEqualTo("represented_by", groupId)
+            .addSnapshotListener { snapshots, error ->
+                if (error != null || snapshots == null) return@addSnapshotListener
+
+                val announcements = snapshots.documents
+                    .mapNotNull { it.toObject(Announcement::class.java) }
+                    .sortedByDescending { it.date_created }
+
+                announcementAdapter.submit(announcements)
+            }
+    }
+
 
     private fun startListeningToGroup(id: String) {
         listener = db.collection("supportgroup")
@@ -152,12 +184,107 @@ class ChatSupportGroupHome : Fragment() {
             )
         }
     }
+    private  class AnnouncementAdapter(
+        private val items: MutableList<Announcement>
+    ) : RecyclerView.Adapter<AnnouncementAdapter.ViewHolder>() {
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val title: TextView = view.findViewById(R.id.title)
+            val content: TextView = view.findViewById(R.id.content)
+            val photo: ShapeableImageView = view.findViewById(R.id.photo)
+            val photoRow: RecyclerView = view.findViewById(R.id.photorow)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val v = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_notif, parent, false)
+            return ViewHolder(v)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val announcement = items[position]
+
+            holder.title.text = announcement.title
+            holder.content.text = announcement.description
+
+            // assign tag for async loading
+            holder.photo.tag = announcement.represented_by
+            fetchGroupPfp(announcement.represented_by, holder)  // <-- pass holder, not 'this'
+
+            // Handle photo display
+            if (announcement.photo_urls.isNotEmpty()) {
+                holder.photoRow.visibility = View.VISIBLE
+
+                val photoAdapter = PhotoDisplayAdapter(announcement.photo_urls)
+
+                val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(
+                    holder.itemView.context,
+                    3
+                )
+
+                gridLayoutManager.spanSizeLookup =
+                    object : androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup() {
+                        override fun getSpanSize(position: Int): Int {
+                            return if (photoAdapter.totalPhotos == 1) 3 else 1
+                        }
+                    }
+
+                holder.photoRow.layoutManager = gridLayoutManager
+                holder.photoRow.adapter = photoAdapter
+            } else {
+                holder.photoRow.visibility = View.GONE
+            }
+        }
+
+        private fun fetchGroupPfp(groupId: String, holder: ViewHolder) {
+            val db = FirebaseFirestore.getInstance()
+
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+
+            db.collection("supportgroup").document(groupId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    // ViewHolder reused? Abort.
+                    if (holder.photo.tag != groupId) return@addOnSuccessListener
+
+                    val pfpUrl = snapshot.getString("supportgroup_pfp_URL")
+
+                    if (pfpUrl.isNullOrEmpty()) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    } else {
+                        Glide.with(holder.itemView.context)
+                            .load(pfpUrl)
+                            .placeholder(R.drawable.img_placeholder)
+                            .error(R.drawable.img_placeholder)
+                            .circleCrop()
+                            .into(holder.photo)
+                    }
+                }
+                .addOnFailureListener {
+                    if (holder.photo.tag == groupId) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    }
+                }
+        }
+
+        override fun getItemCount(): Int = items.size
+
+        fun submit(newItems: List<Announcement>) {
+            items.clear()
+            items.addAll(newItems)
+            notifyDataSetChanged()
+        }
+    }
+
 
 
     override fun onDestroyView() {
         super.onDestroyView()
         listener?.remove()
+        announcementListener?.remove()
         listener = null
+        announcementListener = null
         _binding = null
     }
+
 }

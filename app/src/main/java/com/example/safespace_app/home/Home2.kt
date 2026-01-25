@@ -124,7 +124,7 @@ class Home2 : Fragment() {
 
     inner class UpcomingAdapter(private var sessions: List<PeerSession>) :
         RecyclerView.Adapter<UpcomingAdapter.CardViewHolder>() {
-
+        //THIS SHOULD BE FIXED
         inner class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val dateText: TextView = view.findViewById(R.id.infoText)
             val timeText: TextView = view.findViewById(R.id.timeText)
