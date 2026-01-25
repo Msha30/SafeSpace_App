@@ -12,9 +12,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.safespace_app.ModerationManager
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
@@ -22,6 +24,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -440,34 +443,64 @@ class ChatMessageFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        if (studentId.isEmpty() || peerId.isEmpty()) {
+        val text = messageInput.text.toString().trim()
+        if (text.isEmpty()) return
+
+        if (currentSessionId == null) {
             Toast.makeText(requireContext(), "Session not ready", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val message = messageInput.text.toString()
+        // 1. Disable UI while moderating
+        sendButton.isEnabled = false
+        messageInput.isEnabled = false
+        lifecycleScope.launch {
+            try {
+                // 2. Moderate Message
+                val moderation = ModerationManager.moderateMessage(text)
+                // 3. Prepare Extra Data Map for RTDB
+                val moderationData = mapOf(
+                    "flagged" to moderation.flagged,
+                    "categories" to moderation.categories.mapValues { (_, v) -> v },
+                    "scores" to moderation.categoryScores.mapValues { (_, v) -> v },
+                    "patternBased" to moderation.patternBased,
+                    "mistralUsed" to moderation.mistralUsed,
+                    "reviewed" to false
+                )
 
-        if (message.trim().isEmpty()) {
-            return
-        }
+                val extraData = mapOf("moderation" to moderationData)
 
-        chatManager.sendMessage(
-            studentId = studentId,
-            peerId = peerId,
-            senderId = currentUserId,
-            senderName = currentUserDisplayName,
-            message = message,
-            onSuccess = {
-                if (isAdded) {
-                    messageInput.text?.clear()
-                }
-            },
-            onFailure = { error ->
-                if (isAdded) {
-                    Toast.makeText(requireContext(), "Failed to send: $error", Toast.LENGTH_SHORT).show()
-                }
+                // 4. Send with ChatManager
+                chatManager.sendMessage(
+                    studentId = studentId,
+                    peerId = peerId,
+                    senderId = currentUserId,
+                    senderName = currentUserDisplayName,
+                    message = text,
+                    extraData = extraData, // <--- PASS MODERATION
+                    onSuccess = {
+                        if (isAdded) {
+                            messageInput.text?.clear()
+                        }
+                    },
+                    onFailure = { error ->
+                        if (isAdded) {
+                            Toast.makeText(requireContext(), "Failed to send: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to send message: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                // 6. Re-enable UI
+                sendButton.isEnabled = true
+                messageInput.isEnabled = true
             }
-        )
+        }
     }
 
     private fun markMessagesAsRead() {

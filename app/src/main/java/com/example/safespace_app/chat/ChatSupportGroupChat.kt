@@ -243,15 +243,6 @@ class ChatSupportGroupChat : Fragment() {
                 // Always send the message with moderation data
                 sendMessageWithModeration(coll, text, moderation)
 
-                // Show warning if flagged
-                if (moderation.flagged) {
-                    Toast.makeText(
-                        context,
-                        "Message sent but flagged for review",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-
                 // Clear input on success
                 inputField.setText("")
 

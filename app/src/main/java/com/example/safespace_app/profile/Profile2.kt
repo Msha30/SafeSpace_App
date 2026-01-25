@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.safespace_app.R
 import com.example.safespace_app.login.Login
 import com.google.android.material.button.MaterialButton
@@ -62,6 +63,8 @@ class Profile2 : Fragment() {
                 .load(avatarUrl.takeIf { it.isNotEmpty() })
                 .placeholder(R.drawable.img_placeholder)
                 .error(R.drawable.img_placeholder)
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)
         }
 

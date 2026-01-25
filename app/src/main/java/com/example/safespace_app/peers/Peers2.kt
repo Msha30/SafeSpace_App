@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.safespace_app.MainNavigation2
 import com.example.safespace_app.R
 import com.example.safespace_app.UnifiedSession
@@ -309,7 +310,8 @@ class Peers2 : Fragment() {
                             .load(photoUrl)
                             .placeholder(R.drawable.img_placeholder)
                             .error(R.drawable.img_placeholder)
-                            .skipMemoryCache(true) // Force update
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
                             .into(photoView)
                     } else {
                         // CASE 2: Student Side (Preset ID)

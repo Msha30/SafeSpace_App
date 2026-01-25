@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.safespace_app.R
 import com.example.safespace_app.UnifiedSession
 import com.google.android.material.imageview.ShapeableImageView
@@ -55,6 +56,7 @@ class UnifiedSessionAdapter(
                     .placeholder(R.drawable.img_placeholder)
                     .error(R.drawable.img_placeholder)
                     .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(holder.photo)
             } else {
                 // CASE 2: Student Side (Preset ID)

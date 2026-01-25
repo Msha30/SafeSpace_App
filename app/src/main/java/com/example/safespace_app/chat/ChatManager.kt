@@ -89,6 +89,7 @@ class ChatManager {
         senderId: String,
         senderName: String,
         message: String,
+        extraData: Map<String, Any>? = null, // <--- NEW PARAMETER
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
     ) {
@@ -124,7 +125,8 @@ class ChatManager {
                 return@addOnSuccessListener
             }
 
-            val data = mapOf(
+            // Base Message Data
+            val baseMsg = mapOf(
                 "messageId" to messageId,
                 "senderId" to senderId,
                 "senderName" to senderName,
@@ -133,7 +135,14 @@ class ChatManager {
                 "isRead" to false
             )
 
-            sessionRef.child(messageId).setValue(data)
+            // Merge with extraData (if provided)
+            val finalMsg = if (extraData != null) {
+                baseMsg + extraData // Kotlin map concatenation
+            } else {
+                baseMsg
+            }
+
+            sessionRef.child(messageId).setValue(finalMsg) // <--- Use finalMsg
                 .addOnSuccessListener {
                     Log.d("ChatManager", "Message sent to session $currentSessionNo")
                     onSuccess()

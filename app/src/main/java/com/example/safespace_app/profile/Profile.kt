@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.safespace_app.MainNavigation
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
@@ -70,6 +71,8 @@ class Profile : Fragment() {
                     Glide.with(this)
                         .load(avatarId)
                         .placeholder(R.drawable.img_placeholder)
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
                         .into(profilePhoto)
                 } else {
                     // It's a preset string ID (Student Side)

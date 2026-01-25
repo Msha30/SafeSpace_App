@@ -19,6 +19,7 @@ import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import android.widget.TextView
 import android.util.Log
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.google.firebase.database.ValueEventListener
@@ -170,7 +171,8 @@ class Peers_3 : Fragment() {
                     .load(photoUrl)
                     .placeholder(R.drawable.img_placeholder)
                     .error(R.drawable.img_placeholder)
-                    .skipMemoryCache(true) // Forces reload to ensure latest image
+                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(photoView)
             } else {
                 // CASE 2: Student Side (Preset ID)

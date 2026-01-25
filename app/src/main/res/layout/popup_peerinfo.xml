@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Added ID to root for click-to-close -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/popupRoot"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,7 +17,9 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <!-- Added ID: photo -->
         <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/photo"
             android:layout_width="50dp"
             android:layout_height="50dp"
             app:shapeAppearanceOverlay="@style/CircleImage"
@@ -33,33 +37,39 @@
 
     </LinearLayout>
 
+    <!-- Added ID: status -->
     <TextView
+        android:id="@+id/status"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/f_rounded_green"
-        android:text="ONLINE"
+        android:text="Loading.."
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/reg"
         android:textColor="@color/white"
         android:gravity="center"/>
 
+    <!-- Added ID: year -->
     <TextView
+        android:id="@+id/year"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/f_rounded_inactive"
-        android:text="1st Year Student"
+        android:text="Loading.."
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/reg"
         android:textColor="@color/textgrey"
         android:gravity="center"/>
 
+    <!-- Added ID: program -->
     <TextView
+        android:id="@+id/program"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:background="@drawable/f_rounded_inactive"
-        android:text="B.S. Psychology"
+        android:text="Loading..."
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/reg"
         android:textColor="@color/textgrey"
