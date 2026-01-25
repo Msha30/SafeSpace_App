@@ -23,7 +23,7 @@
     </string>
 
     <string name="cancel">
-        Are you sure you want to cancel Guidance Counseling Session for 0:00 AM - 0:00 AM on Month 0, 2025?
+        Are you sure you want to cancel this Session with [otheruser] on Month 0, 2025 for 0:00 AM - 0:00 AM?
     </string>
 
     <string name="peer">

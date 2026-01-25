@@ -8,6 +8,7 @@
     android:background="@drawable/f_rounded_white">
 
     <LinearLayout
+        android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/f_top_green"
@@ -15,11 +16,6 @@
         android:paddingBottom="8dp"
         android:paddingLeft="12dp"
         android:paddingRight="12dp">
-
-        <ImageView
-            android:layout_width="15dp"
-            android:layout_height="15dp"
-            android:src="@drawable/ic_type_call"/>
 
         <TextView
             android:id="@+id/titleText"
@@ -29,7 +25,7 @@
             android:textColor="@color/white"
             android:textSize="@dimen/smaller"
             android:fontFamily="@font/psbold"
-            android:layout_marginStart="8dp"/>
+            android:layout_marginStart="5dp"/>
 
     </LinearLayout>
 
@@ -40,7 +36,7 @@
         android:gravity="center_vertical">
 
         <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/pfp_pic"
+            android:id="@+id/profileImage"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/img_placeholder"
@@ -54,23 +50,23 @@
             android:layout_marginLeft="15dp">
 
             <TextView
-                android:id="@+id/dateText"
+                android:id="@+id/nameText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/date"
+                android:text="Lorem Ipsum"
                 android:textColor="@color/black"
                 android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"/>
 
             <TextView
-                android:id="@+id/timeText"
+                android:id="@+id/infoText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="NOW"
+                android:text="📅 Month 00\n🕑 0:00 PM - 0:00 PM\n📍 School LRC"
                 android:textColor="@color/black"
                 android:fontFamily="@font/ps"
-                android:textSize="@dimen/small"/>
-
+                android:layout_marginTop="3dp"
+                android:textSize="@dimen/smaller"/>
 
         </LinearLayout>
 
@@ -91,7 +87,6 @@
         android:fontFamily="@font/psbold"
         android:textSize="@dimen/smaller"
         android:textColor="@color/white"
-        app:icon="@drawable/ic_video_call"
         app:backgroundTint="@null"
         android:background="@drawable/f_rounded_green"/>
 
