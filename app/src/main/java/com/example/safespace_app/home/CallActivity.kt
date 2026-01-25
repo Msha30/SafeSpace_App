@@ -4,7 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -18,10 +20,13 @@ class CallActivity : AppCompatActivity() {
     private lateinit var localView: SurfaceViewRenderer
     private lateinit var remoteView: SurfaceViewRenderer
     private lateinit var hangupBtn: Button
+    private lateinit var statusText: TextView
+    private lateinit var callTypeText: TextView
 
     private val db = FirebaseFirestore.getInstance()
     private var callId: String? = null
     private var submissionId: String? = null
+    private var callType: String? = null // "video", "audio", or "face-to-face"
 
     private lateinit var peerConnectionFactory: PeerConnectionFactory
     private var peerConnection: PeerConnection? = null
@@ -32,6 +37,8 @@ class CallActivity : AppCompatActivity() {
 
     private var callListener: ListenerRegistration? = null
     private var offerCandidatesListener: ListenerRegistration? = null
+
+    private var isCallEnded = false // Prevents double cleanup
 
     companion object {
         private const val TAG = "CallActivity"
@@ -50,14 +57,25 @@ class CallActivity : AppCompatActivity() {
         localView = findViewById(R.id.localView)
         remoteView = findViewById(R.id.remoteView)
         hangupBtn = findViewById(R.id.hangupBtn)
+        statusText = findViewById(R.id.statusText)
+        callTypeText = findViewById(R.id.callTypeText)
 
         callId = intent.getStringExtra("CALL_ID")
         submissionId = intent.getStringExtra("SUBMISSION_ID")
 
         Log.d(TAG, "CallActivity started with callId: $callId")
 
-        // Initialize views first
-        initializeViews()
+        // Get call type from Firestore
+        callId?.let { id ->
+            db.collection("calls").document(id).get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        callType = doc.getString("type")
+                        Log.d(TAG, "Call type: $callType")
+                        setupCallUI()
+                    }
+                }
+        }
 
         hangupBtn.setOnClickListener {
             endCall()
@@ -65,10 +83,49 @@ class CallActivity : AppCompatActivity() {
         }
 
         if (checkPermissions()) {
-            initializePeerConnection()
-            listenForCall()
+            // Permissions granted, setup will happen after getting call type
         } else {
             requestPermissions()
+        }
+    }
+
+    private fun setupCallUI() {
+        when (callType) {
+            "face-to-face" -> {
+                // Hide video views, show info
+                localView.visibility = View.GONE
+                remoteView.visibility = View.GONE
+                callTypeText.text = "Face-to-Face Session"
+                statusText.text = "Session in Progress"
+                hangupBtn.text = "End Session"
+            }
+            "audio" -> {
+                // Hide video views, show audio indicator
+                localView.visibility = View.GONE
+                remoteView.visibility = View.GONE
+                callTypeText.text = "Voice Call"
+                statusText.text = "Connecting..."
+
+                // Initialize audio-only connection
+                if (checkPermissions()) {
+                    initializePeerConnection()
+                    listenForCall()
+                }
+            }
+            "video", null -> {
+                // Show video views
+                localView.visibility = View.VISIBLE
+                remoteView.visibility = View.VISIBLE
+                callTypeText.text = "Video Call"
+                statusText.text = "Connecting..."
+
+                // Initialize video connection
+                initializeViews()
+                if (checkPermissions()) {
+                    initializePeerConnection()
+                    listenForCall()
+                }
+            }
         }
     }
 
@@ -76,13 +133,13 @@ class CallActivity : AppCompatActivity() {
         // Remote view (fullscreen background)
         remoteView.init(eglBase.eglBaseContext, null)
         remoteView.setMirror(false)
-        remoteView.setZOrderMediaOverlay(false)  // Bottom layer
+        remoteView.setZOrderMediaOverlay(false)
         remoteView.setEnableHardwareScaler(true)
 
         // Local view (small overlay on top)
         localView.init(eglBase.eglBaseContext, null)
-        localView.setMirror(true)  // Mirror for selfie effect
-        localView.setZOrderMediaOverlay(true)  // CRITICAL: Must be true to show on top!
+        localView.setMirror(true)
+        localView.setZOrderMediaOverlay(true)
         localView.setEnableHardwareScaler(true)
 
         Log.d(TAG, "Views initialized")
@@ -110,8 +167,7 @@ class CallActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-            initializePeerConnection()
-            listenForCall()
+            setupCallUI()
         } else {
             Toast.makeText(this, "Permissions required for call", Toast.LENGTH_LONG).show()
             finish()
@@ -153,7 +209,7 @@ class CallActivity : AppCompatActivity() {
             object : PeerConnection.Observer {
 
                 override fun onIceCandidate(candidate: IceCandidate?) {
-                    if (candidate != null && callId != null) {
+                    if (candidate != null && callId != null && !isCallEnded) {
                         Log.d(TAG, "New ICE candidate: ${candidate.sdp}")
 
                         val candidateData = hashMapOf(
@@ -185,7 +241,7 @@ class CallActivity : AppCompatActivity() {
                 override fun onTrack(transceiver: RtpTransceiver?) {
                     Log.d(TAG, "onTrack called")
                     val track = transceiver?.receiver?.track()
-                    if (track is VideoTrack) {
+                    if (track is VideoTrack && callType == "video") {
                         Log.d(TAG, "Remote video track added")
                         runOnUiThread {
                             track.addSink(remoteView)
@@ -198,13 +254,24 @@ class CallActivity : AppCompatActivity() {
                     runOnUiThread {
                         when (newState) {
                             PeerConnection.IceConnectionState.CONNECTED -> {
+                                statusText.text = "Connected"
                                 Toast.makeText(this@CallActivity, "Connected!", Toast.LENGTH_SHORT).show()
                             }
                             PeerConnection.IceConnectionState.DISCONNECTED -> {
-                                Toast.makeText(this@CallActivity, "Disconnected", Toast.LENGTH_SHORT).show()
+                                statusText.text = "Disconnected"
+                                if (!isCallEnded) {
+                                    Toast.makeText(this@CallActivity, "Disconnected", Toast.LENGTH_SHORT).show()
+                                }
                             }
                             PeerConnection.IceConnectionState.FAILED -> {
-                                Toast.makeText(this@CallActivity, "Connection failed", Toast.LENGTH_SHORT).show()
+                                statusText.text = "Connection Failed"
+                                if (!isCallEnded) {
+                                    Toast.makeText(this@CallActivity, "Connection failed", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            PeerConnection.IceConnectionState.CLOSED -> {
+                                statusText.text = "Call Ended"
+                                showCallEndedUI()
                             }
                             else -> {}
                         }
@@ -231,49 +298,48 @@ class CallActivity : AppCompatActivity() {
             }
         )
 
-        // Setup local media AFTER peer connection is created
+        // Setup local media
         setupLocalMedia()
     }
 
     private fun setupLocalMedia() {
-        // Get Local Audio
+        // Always get audio
         val audioSource = peerConnectionFactory.createAudioSource(MediaConstraints())
         localAudioTrack = peerConnectionFactory.createAudioTrack("AUDIO", audioSource)
 
-        // Get Local Video
-        val videoSource = peerConnectionFactory.createVideoSource(false)
-        val surfaceTextureHelper = SurfaceTextureHelper.create(
-            "CaptureThread",
-            eglBase.eglBaseContext
-        )
+        // Only get video if video call
+        if (callType == "video") {
+            val videoSource = peerConnectionFactory.createVideoSource(false)
+            val surfaceTextureHelper = SurfaceTextureHelper.create(
+                "CaptureThread",
+                eglBase.eglBaseContext
+            )
 
-        val enumerator = Camera2Enumerator(this)
-        val cameraName = enumerator.deviceNames.firstOrNull {
-            enumerator.isFrontFacing(it)
-        } ?: enumerator.deviceNames[0]
+            val enumerator = Camera2Enumerator(this)
+            val cameraName = enumerator.deviceNames.firstOrNull {
+                enumerator.isFrontFacing(it)
+            } ?: enumerator.deviceNames[0]
 
-        videoCapturer = enumerator.createCapturer(cameraName, null)
+            videoCapturer = enumerator.createCapturer(cameraName, null)
 
-        videoCapturer?.initialize(
-            surfaceTextureHelper,
-            this,
-            videoSource.capturerObserver
-        )
+            videoCapturer?.initialize(
+                surfaceTextureHelper,
+                this,
+                videoSource.capturerObserver
+            )
 
-        localVideoTrack = peerConnectionFactory.createVideoTrack("VIDEO", videoSource)
+            localVideoTrack = peerConnectionFactory.createVideoTrack("VIDEO", videoSource)
 
-        // IMPORTANT: Add sink to local view BEFORE starting capture
-        localVideoTrack?.addSink(localView)
-        Log.d(TAG, "Local video sink added to localView")
+            localVideoTrack?.addSink(localView)
+            Log.d(TAG, "Local video sink added to localView")
 
-        // NOW start capture
-        videoCapturer?.startCapture(640, 480, 30)
-        Log.d(TAG, "Video capture started")
+            videoCapturer?.startCapture(640, 480, 30)
+            Log.d(TAG, "Video capture started")
 
-        // Add tracks to peer connection
+            localVideoTrack?.let { peerConnection?.addTrack(it, listOf("LOCAL_STREAM")) }
+        }
+
         localAudioTrack?.let { peerConnection?.addTrack(it, listOf("LOCAL_STREAM")) }
-        localVideoTrack?.let { peerConnection?.addTrack(it, listOf("LOCAL_STREAM")) }
-
         Log.d(TAG, "Local tracks added to peer connection")
     }
 
@@ -292,6 +358,8 @@ class CallActivity : AppCompatActivity() {
                     Log.e(TAG, "Error listening to offer candidates", e)
                     return@addSnapshotListener
                 }
+
+                if (isCallEnded) return@addSnapshotListener
 
                 snapshot?.documentChanges?.forEach { change ->
                     if (change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
@@ -318,15 +386,27 @@ class CallActivity : AppCompatActivity() {
                 }
             }
 
-        // Listen for Offer (SDP)
+        // Listen for Offer (SDP) and status changes
         callListener = callRef.addSnapshotListener { snapshot, e ->
             if (e != null) {
                 Log.e(TAG, "Error listening to call document", e)
                 return@addSnapshotListener
             }
 
+            if (isCallEnded) return@addSnapshotListener
+
             if (snapshot != null && snapshot.exists()) {
                 val data = snapshot.data
+
+                // Check if call ended from web side
+                val status = data?.get("status") as? String
+                if (status == "ended" || status == "completed") {
+                    runOnUiThread {
+                        showCallEndedUI()
+                    }
+                    return@addSnapshotListener
+                }
+
                 val offer = data?.get("offer") as? Map<*, *>
 
                 if (offer != null && peerConnection?.remoteDescription == null) {
@@ -360,17 +440,21 @@ class CallActivity : AppCompatActivity() {
     }
 
     private fun createAnswer(callRef: com.google.firebase.firestore.DocumentReference) {
+        if (isCallEnded) return
+
         val constraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", if (callType == "video") "true" else "false"))
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
         }
 
         peerConnection?.createAnswer(object : SdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
-                if (desc != null) {
+                if (desc != null && !isCallEnded) {
                     peerConnection?.setLocalDescription(object : SdpObserver {
                         override fun onSetSuccess() {
                             Log.d(TAG, "Local description set, updating Firestore with answer")
+
+                            if (isCallEnded) return
 
                             val answerMap = hashMapOf(
                                 "type" to "answer",
@@ -403,31 +487,78 @@ class CallActivity : AppCompatActivity() {
         }, constraints)
     }
 
+    private fun showCallEndedUI() {
+        if (isCallEnded) return
+
+        runOnUiThread {
+            statusText.text = "Call Ended"
+            hangupBtn.text = "Close"
+            Toast.makeText(this, "Call has ended", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun endCall() {
+        if (isCallEnded) return
+        isCallEnded = true
+
+        Log.d(TAG, "Ending call...")
+
+        // Stop video capture
         videoCapturer?.stopCapture()
         videoCapturer?.dispose()
+        videoCapturer = null
 
+        // Remove sinks
         localVideoTrack?.removeSink(localView)
         localVideoTrack?.dispose()
-        localAudioTrack?.dispose()
+        localVideoTrack = null
 
+        localAudioTrack?.dispose()
+        localAudioTrack = null
+
+        // Close peer connection
         peerConnection?.close()
         peerConnection = null
 
+        // Remove listeners
         callListener?.remove()
-        offerCandidatesListener?.remove()
+        callListener = null
 
+        offerCandidatesListener?.remove()
+        offerCandidatesListener = null
+
+        // Update call status in Firestore
         if (callId != null) {
             db.collection("calls").document(callId!!)
                 .update("status", "ended")
+                .addOnSuccessListener {
+                    Log.d(TAG, "Call status updated to ended")
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to update call status", e)
+                }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         endCall()
-        localView.release()
-        remoteView.release()
-        eglBase.release()
+
+        try {
+            if (localView.isInitialized()) localView.release()
+            if (remoteView.isInitialized()) remoteView.release()
+            eglBase.release()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error releasing resources", e)
+        }
+    }
+
+    private fun SurfaceViewRenderer.isInitialized(): Boolean {
+        return try {
+            // Try to access the handler which is set during init
+            this.handler != null
+        } catch (e: Exception) {
+            false
+        }
     }
 }

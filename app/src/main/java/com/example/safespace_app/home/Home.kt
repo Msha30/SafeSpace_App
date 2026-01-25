@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -36,6 +37,9 @@ class Home : Fragment() {
     private lateinit var upcomingAdapter: UpcomingAdapter
     private lateinit var notificationAdapter: NotificationAdapter
     private lateinit var emptyText: TextView
+
+    // RESTORED: Map to track active WebRTC calls (Student side)
+    private val activeCallsMap = mutableMapOf<String, String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -100,16 +104,14 @@ class Home : Fragment() {
             }
     }
 
-    // Add a map to store active calls: submissionId -> callId
-    private val activeCallsMap = mutableMapOf<String, String>()
-
     private fun observeUpcomingSessions() {
         val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val firestore = FirebaseFirestore.getInstance()
 
-        // 1. Listener for Submissions (Your existing code)
+        // 1. Listener for Submissions (Student view of their own sessions)
         firestore.collection("CounselingForm_Submissions")
             .whereEqualTo("createdBy", currentUid)
+            // Listen for active sessions
             .whereIn("status", listOf("assigned", "in_progress"))
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) return@addSnapshotListener
@@ -118,17 +120,26 @@ class Home : Fragment() {
                     doc.toObject(CounselingSession::class.java)?.copy(id = doc.id)
                 }
 
-                // 2. Update adapter with sessions AND the active call map
+                // 2. Update adapter with sessions AND active call map
                 upcomingAdapter.updateSessions(sessions, activeCallsMap)
 
                 emptyText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
                 upcomingRecyclerView.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
             }
 
-        // 3. NEW: Listener for Calls (Detect incoming calls from Web)
+        // 3. RESTORED: Listener for Calls (Detect incoming calls from Web)
+        observeActiveCalls()
+    }
+
+    // RESTORED: Function to listen for calls
+    private fun observeActiveCalls() {
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val firestore = FirebaseFirestore.getInstance()
+
         firestore.collection("calls")
-            .whereEqualTo("createdBy", currentUid) // Calls intended for this user
-            .whereEqualTo("status", "ringing")    // Only active calls
+            // Listen for calls intended for this user (Student is createdBy)
+            .whereEqualTo("createdBy", currentUid)
+            .whereEqualTo("status", "ringing") // Only active calls
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
                     android.util.Log.e("Home", "Error listening to calls", error)
@@ -161,14 +172,14 @@ class Home : Fragment() {
             outRect.left = if (position == 0) 0 else spacing
         }
     }
+
     private fun formatTime(date: java.util.Date): String {
         val formatter = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
         return formatter.format(date)
     }
 
-
     inner class UpcomingAdapter(
-        private var sessions: List<CounselingSession>
+        private var sessions: List<CounselingSession> = listOf()
     ) : RecyclerView.Adapter<UpcomingAdapter.CardViewHolder>() {
 
         inner class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -184,7 +195,7 @@ class Home : Fragment() {
             return CardViewHolder(view)
         }
 
-        // Update function signature to accept calls map
+        // Updated function to accept calls map
         fun updateSessions(newSessions: List<CounselingSession>, callsMap: Map<String, String>) {
             sessions = newSessions
             activeCallsMap.clear()
@@ -208,42 +219,64 @@ class Home : Fragment() {
 
             holder.btnCallAction?.visibility = View.VISIBLE
 
-            // --- LOGIC UPDATE HERE ---
-            // Check if there is an active call for this session
-            val callId = activeCallsMap[session.id]
+            // --- LOGIC FIX HERE ---
 
-            if (callId != null) {
-                // 1. Incoming Call detected
-                holder.btnCallAction?.text = "Join Call"
-                holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green) // or whatever green drawable you have
-                holder.btnCallAction?.setOnClickListener {
-                    joinCall(callId, session.id)
-                }
-            } else {
-                // 2. No incoming call (Normal State)
-                when (session.status) {
-                    "in_progress" -> {
-                        holder.btnCallAction?.text = "Start Call" // Or wait for call
-                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
+            val isFaceToFace = session.preferredPlatform?.trim().equals("face to face", ignoreCase = true) ||
+                    session.preferredPlatform?.trim().equals("in-person", ignoreCase = true)
+
+            when (session.status) {
+                "in_progress" -> {
+                    if (isFaceToFace) {
+                        // 1. Face-to-face in progress: No Start Call button
+                        holder.btnCallAction?.text = "In Session"
+                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
+                        holder.btnCallAction?.isEnabled = false
                         holder.btnCallAction?.setOnClickListener {
-                            // Maybe trigger "Waiting for counselor" logic here if needed
-                            android.util.Log.i("Home", "Session in progress, waiting for call...")
+                            android.util.Log.i("Home", "Face-to-face session is active")
+                        }
+                    } else {
+                        // 2. Video/Audio in progress
+                        // Check active call map for "Join Call" capability
+                        val callId = activeCallsMap[session.id]
+                        if (callId != null) {
+                            // 2a. Call is active: Join Call
+                            holder.btnCallAction?.text = "Join Call"
+                            holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
+                            holder.btnCallAction?.isEnabled = true
+                            holder.btnCallAction?.setOnClickListener {
+                                joinCall(callId, session.id)
+                            }
+                        } else {
+                            // 2b. Call is NOT active (just waiting): In Progress
+                            holder.btnCallAction?.text = "In Progress"
+                            holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_grey)
+                            holder.btnCallAction?.isEnabled = false
+                            holder.btnCallAction?.setOnClickListener {
+                                Toast.makeText(
+                                    holder.itemView.context,
+                                    "Waiting for counselor to start...",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     }
-                    "assigned" -> {
-                        holder.btnCallAction?.text = "Assigned"
-                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
-                        holder.btnCallAction?.setOnClickListener { /* Do nothing or show info */ }
-                    }
-                    else -> {
-                        holder.btnCallAction?.text = "Pending"
-                        holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
-                    }
+                }
+                "assigned" -> {
+                    // 3. Session taken, waiting for counselor to start
+                    holder.btnCallAction?.text = "Scheduled"
+                    holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
+                    holder.btnCallAction?.isEnabled = false
+                    holder.btnCallAction?.setOnClickListener { /* Do nothing or show info */ }
+                }
+                else -> { // "pending" or others
+                    holder.btnCallAction?.text = "Pending"
+                    holder.btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
+                    holder.btnCallAction?.isEnabled = false
                 }
             }
         }
 
-        // Navigate to CallActivity
+        // RESTORED: Navigate to CallActivity (Only for WebRTC calls)
         private fun joinCall(callId: String, submissionId: String) {
             val intent = Intent(requireContext(), CallActivity::class.java)
             intent.putExtra("CALL_ID", callId)
@@ -253,7 +286,6 @@ class Home : Fragment() {
 
         override fun getItemCount() = sessions.size
 
-        // ... keep your existing helper functions (tryFormatDateToShort, etc.) ...
         private fun tryFormatDateToShort(raw: String?): String {
             if (raw.isNullOrBlank()) return "Date TBD"
             return try {
@@ -292,8 +324,8 @@ class Home : Fragment() {
 
             // Set image based on represented_by
             when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco) // Replace with your actual drawable
-                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers) // Replace with your actual drawable
+                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco)
+                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers)
                 else -> holder.photo.setImageResource(R.drawable.img_placeholder)
             }
         }
