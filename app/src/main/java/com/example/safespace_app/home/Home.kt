@@ -186,9 +186,8 @@ class Home : Fragment() {
     ) : RecyclerView.Adapter<UpcomingAdapter.CardViewHolder>() {
 
         inner class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val pfp_pic: ShapeableImageView = view.findViewById(R.id.pfp_pic)
-            val dateText: TextView = view.findViewById(R.id.dateText)
-            val timeText: TextView = view.findViewById(R.id.timeText)
+            val pfp_pic: ShapeableImageView = view.findViewById(R.id.profileImage)
+            val infoText: TextView = view.findViewById(R.id.infoText)
             val btnCallAction: MaterialButton? = view.findViewById(R.id.btnCallAction)
             val titleText: TextView? = view.findViewById(R.id.titleText)
         }
@@ -211,16 +210,18 @@ class Home : Fragment() {
             val session = sessions[position]
             holder.titleText?.text = session.title ?: "Counseling Session"
             holder.pfp_pic.setImageResource(R.drawable.pfp_gco)
-            holder.dateText.text = tryFormatDateToShort(session.assigned_sched?.date)
+            val dateText = tryFormatDateToShort(session.assigned_sched?.date)
 
             val start = session.assigned_sched?.start?.toDate()
             val end = session.assigned_sched?.end?.toDate()
 
-            holder.timeText.text = if (start != null && end != null) {
+            val timeText = if (start != null && end != null) {
                 "${formatTime(start)} - ${formatTime(end)}"
             } else {
                 "—"
             }
+
+            holder.infoText.text = "📅 $dateText\n🕑 $timeText"
 
             holder.btnCallAction?.visibility = View.VISIBLE
 

@@ -126,7 +126,7 @@ class Home2 : Fragment() {
         RecyclerView.Adapter<UpcomingAdapter.CardViewHolder>() {
 
         inner class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val dateText: TextView = view.findViewById(R.id.dateText)
+            val dateText: TextView = view.findViewById(R.id.infoText)
             val timeText: TextView = view.findViewById(R.id.timeText)
             val btnCallAction: MaterialButton? = view.findViewById(R.id.btnCallAction)
         }
