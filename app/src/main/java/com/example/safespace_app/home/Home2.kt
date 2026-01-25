@@ -313,7 +313,7 @@ class Home2 : Fragment() {
         }
 
         btnschedule.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_home2_to_homeSchedule)
+            findNavController().navigate(R.id.action_nav_home2_to_homeSessionManagement)
         }
     }
 }
