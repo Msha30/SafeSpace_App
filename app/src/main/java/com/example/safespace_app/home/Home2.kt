@@ -23,9 +23,11 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class Home2 : Fragment() {
@@ -36,6 +38,9 @@ class Home2 : Fragment() {
     private lateinit var upcomingAdapter: UpcomingAdapter
     private lateinit var notificationAdapter: NotificationAdapter
     private lateinit var emptyText: TextView
+
+    private var sessionsListener: ListenerRegistration? = null
+    private val TAG = "Home2"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -77,13 +82,20 @@ class Home2 : Fragment() {
         return view
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clean up Firestore listeners to avoid leaks
+        sessionsListener?.remove()
+        sessionsListener = null
+    }
+
     private fun loadAnnouncements() {
         val firestore = FirebaseFirestore.getInstance()
         firestore.collection("announcements")
             .orderBy("date_created", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    android.util.Log.e("Home2", "Error loading announcements", error)
+                    Log.e(TAG, "Error loading announcements", error)
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
@@ -93,29 +105,76 @@ class Home2 : Fragment() {
             }
     }
 
+    /**
+     * Observe sessions for the current peer. Important:
+     * - Map boolean fields directly from the snapshot (doc.getBoolean) to avoid relying
+     *   on toObject() defaults when a field is missing or has different type/casing.
+     * - Keep sessions where cancellationConfirmed == false (so peer can confirm a cancellation).
+     */
     private fun observeUpcomingSessions(peerUid: String) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("peertopeer_session")
+        sessionsListener?.remove()
+
+        sessionsListener = firestore.collection("peertopeer_session")
             .whereEqualTo("peerUid", peerUid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
-                    android.util.Log.e("Home2", "Error loading sessions", error)
+                    Log.e(TAG, "Error loading sessions", error)
                     return@addSnapshotListener
                 }
 
+                // DEBUG: raw snapshot for quick inspection if something looks off
+                snapshot.documents.forEach { doc ->
+                    Log.d(TAG, "RAW Firestore: ${doc.id} -> ${doc.data}")
+                }
+
                 val now = System.currentTimeMillis()
+
                 val sessions = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(PeerToPeerSession::class.java)?.copy(sessionId = doc.id)
-                }.filter { session ->
-                    // Filter out confirmed cancellations
-                    val isCancelConfirmed = session.cancellationConfirmed
+                    try {
+                        // Read fields defensively using typed getters
+                        val sessionId = doc.id
+                        val studentUid = doc.getString("studentUid") ?: ""
+                        val peerUidField = doc.getString("peerUid") ?: ""
+                        val startTs = doc.get("start_time") as? com.google.firebase.Timestamp
+                        val endTs = doc.get("end_time") as? com.google.firebase.Timestamp
+                        val location = doc.getString("location") ?: ""
+                        val dateSubmitted = doc.get("date_submitted") as? com.google.firebase.Timestamp
 
-                    // Filter out past sessions (end_time has passed)
-                    val endTime = session.end_time?.toDate()?.time ?: 0
-                    val isNotPast = endTime > now
+                        // IMPORTANT: read booleans directly from snapshot to avoid defaulting errors
+                        val isCancelled = doc.getBoolean("isCancelled") ?: false
+                        val cancellationReason = doc.getString("cancellationReason") ?: ""
+                        val cancellationConfirmed = doc.getBoolean("cancellationConfirmed") ?: false
+                        val cancelledBy = doc.getString("cancelledBy") ?: ""
 
-                    !isCancelConfirmed && isNotPast
-                }.sortedByDescending { it.start_time?.toDate()?.time ?: 0 }
+                        // Build model using copy to ensure data class fields have the right values
+                        PeerToPeerSession(
+                            sessionId = sessionId,
+                            studentUid = studentUid,
+                            peerUid = peerUidField,
+                            start_time = startTs,
+                            end_time = endTs,
+                            location = location,
+                            date_submitted = dateSubmitted,
+                            isCancelled = isCancelled,
+                            cancellationReason = cancellationReason,
+                            cancellationConfirmed = cancellationConfirmed,
+                            cancelledBy = cancelledBy
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to map session ${doc.id}", e)
+                        null
+                    }
+                }
+                    // Filter out confirmed cancellations only (we want to keep isCancelled==true
+                    // when cancellationConfirmed==false so the peer can confirm).
+                    .filter { session ->
+                        val endTime = session.end_time?.toDate()?.time ?: 0L
+                        val isNotPast = endTime > now
+                        // keep only not-confirmed cancellations, and not past sessions
+                        !session.cancellationConfirmed && isNotPast
+                    }
+                    .sortedByDescending { it.start_time?.toDate()?.time ?: 0L }
 
                 upcomingAdapter.updateSessions(sessions)
                 emptyText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
@@ -166,7 +225,7 @@ class Home2 : Fragment() {
                 (holder.itemView.context.resources.displayMetrics.widthPixels * 0.42).toInt()
             holder.itemView.layoutParams = params
 
-            // Load Student Name and Avatar
+            // Load Student Name and Avatar (defensive: check tag to avoid recycled view issues)
             loadUserDetails(session.studentUid, holder.profileImage, holder.nameText)
 
             // Determine button state FIRST
@@ -174,7 +233,8 @@ class Home2 : Fragment() {
 
             // Format info text based on cancellation status
             if (session.isCancelled) {
-                holder.infoText.text = session.cancellationReason
+                val reason = session.cancellationReason.ifEmpty { "No reason provided." }
+                holder.infoText.text = "Cancellation reason:\n$reason"
             } else {
                 holder.infoText.text = formatSessionInfo(session)
             }
@@ -188,12 +248,20 @@ class Home2 : Fragment() {
             nameView: TextView
         ) {
             val firestore = FirebaseFirestore.getInstance()
+            // Attach uid as tag so recycled view won't display wrong data
+            nameView.tag = uid
+            imageView.tag = uid
+
             firestore.collection("account_details")
                 .document(uid)
                 .get()
                 .addOnSuccessListener { doc ->
+                    // Ensure view hasn't been recycled for another uid
+                    if (nameView.tag != uid || imageView.tag != uid) return@addOnSuccessListener
+
                     val displayName = doc.getString("displayName")
-                        ?: "${doc.getString("lname") ?: ""} ${doc.getString("fname") ?: ""}".trim().ifEmpty { "Student" }
+                        ?: "${doc.getString("lname") ?: ""} ${doc.getString("fname") ?: ""}"
+                            .trim().ifEmpty { "Student" }
                     val avatarUrl = doc.getString("avatarUrl") ?: ""
 
                     nameView.text = displayName
@@ -217,7 +285,15 @@ class Home2 : Fragment() {
                             }
                             imageView.setImageResource(drawableRes)
                         }
+                    } else {
+                        imageView.setImageResource(R.drawable.img_placeholder)
                     }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed loading account_details for $uid", e)
+                    // Ensure placeholder if view still the same uid
+                    if (nameView.tag == uid) nameView.text = "Student"
+                    if (imageView.tag == uid) imageView.setImageResource(R.drawable.img_placeholder)
                 }
         }
 
@@ -239,18 +315,21 @@ class Home2 : Fragment() {
         private fun determineButtonState(session: PeerToPeerSession): ButtonState {
             val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-            // Check if session is cancelled
-            if (session.isCancelled == true) {
-                Log.d("Home2", "Session is cancelled: ${session.sessionId}")
+            // Check if session is cancelled (student clicked cancel). If so, peer must confirm.
+            if (session.isCancelled) {
+                Log.d(TAG, "Session is cancelled (student requested): ${session.sessionId}")
                 return if (session.cancelledBy == currentUid) {
                     ButtonState.CANCELLED_BY_ME
                 } else {
                     ButtonState.CONFIRM_CANCEL
                 }
-            } else{
+            } else {
                 val now = Calendar.getInstance()
-                val start = session.start_time?.toDate() ?: return ButtonState.CANCEL
-                val end = session.end_time?.toDate() ?: return ButtonState.CANCEL
+                val start = session.start_time?.toDate()
+                val end = session.end_time?.toDate()
+
+                // If no start/end available, show Cancel (safe fallback)
+                if (start == null || end == null) return ButtonState.CANCEL
 
                 val startCal = Calendar.getInstance().apply { time = start }
                 val endCal = Calendar.getInstance().apply { time = end }
@@ -259,10 +338,7 @@ class Home2 : Fragment() {
                     // If current time is within the session time range
                     now.timeInMillis in startCal.timeInMillis..endCal.timeInMillis -> ButtonState.NOW
                     // If same day but time hasn't started yet
-                    isSameDay(
-                        now,
-                        startCal
-                    ) && now.timeInMillis < startCal.timeInMillis -> ButtonState.TODAY
+                    isSameDay(now, startCal) && now.timeInMillis < startCal.timeInMillis -> ButtonState.TODAY
                     // Otherwise, can cancel (future sessions)
                     else -> ButtonState.CANCEL
                 }
@@ -388,6 +464,14 @@ class Home2 : Fragment() {
                                 android.widget.Toast.LENGTH_SHORT
                             ).show()
                         }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Failed to cancel session ${session.sessionId}", e)
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "Failed to cancel session",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
                 } else {
                     android.widget.Toast.makeText(
                         requireContext(),
@@ -422,7 +506,8 @@ class Home2 : Fragment() {
                         "By clicking confirm, you understand that $studentName has cancelled their session with you due to the following reason :"
                 }
 
-            reasonText.text = session.cancellationReason
+            val reason = session.cancellationReason.ifEmpty { "No reason provided." }
+            reasonText.text = "Cancellation reason:\n$reason"
 
             btnConfirm.setOnClickListener {
                 firestore.collection("peertopeer_session")
@@ -433,6 +518,14 @@ class Home2 : Fragment() {
                         android.widget.Toast.makeText(
                             requireContext(),
                             "Cancellation confirmed",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to confirm cancellation ${session.sessionId}", e)
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Failed to confirm cancellation",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -464,6 +557,13 @@ class Home2 : Fragment() {
                         android.widget.Toast.makeText(
                             requireContext(),
                             "Session Cancelled",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }.addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to cancel session on cancel button ${session.sessionId}", e)
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Failed to cancel session",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }

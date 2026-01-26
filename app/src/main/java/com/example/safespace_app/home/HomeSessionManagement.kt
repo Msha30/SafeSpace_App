@@ -16,8 +16,10 @@ import com.example.safespace_app.PeerToPeerSession
 import com.example.safespace_app.R
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -26,6 +28,9 @@ class HomeSessionManagement : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: SessionAdapter
+
+    private var sessionsListener: ListenerRegistration? = null
+    private val TAG = "HomeSessionManagement"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,29 +55,79 @@ class HomeSessionManagement : Fragment() {
         return rootView
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        sessionsListener?.remove()
+        sessionsListener = null
+    }
+
+    /**
+     * Observe peer sessions for this peerUid using defensive mapping.
+     * Reads boolean fields directly from snapshot to avoid toObject() defaulting problems.
+     */
     private fun observeSessions(peerUid: String) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("peertopeer_session")
+        sessionsListener?.remove()
+
+        sessionsListener = firestore.collection("peertopeer_session")
             .whereEqualTo("peerUid", peerUid)
             .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    android.util.Log.e("SessionManagement", "Error loading sessions", error)
+                if (error != null) {
+                    Log.e(TAG, "Error loading sessions", error)
                     return@addSnapshotListener
+                }
+                if (snapshot == null) {
+                    Log.w(TAG, "Snapshot was null")
+                    adapter.updateSessions(emptyList())
+                    return@addSnapshotListener
+                }
+
+                // Debug raw documents (helps spot mismatched field names/types)
+                snapshot.documents.forEach { doc ->
+                    Log.d(TAG, "RAW peer doc: ${doc.id} -> ${doc.data}")
                 }
 
                 val now = System.currentTimeMillis()
                 val sessions = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(PeerToPeerSession::class.java)?.copy(sessionId = doc.id)
+                    try {
+                        val sessionId = doc.id
+                        val studentUid = doc.getString("studentUid") ?: ""
+                        val peerUidField = doc.getString("peerUid") ?: ""
+
+                        val startTs = doc.get("start_time") as? Timestamp
+                        val endTs = doc.get("end_time") as? Timestamp
+                        val location = doc.getString("location") ?: ""
+                        val dateSubmitted = doc.get("date_submitted") as? Timestamp
+
+                        // Read cancellation-related fields defensively
+                        val isCancelled = doc.getBoolean("isCancelled") ?: false
+                        val cancellationReason = doc.getString("cancellationReason") ?: ""
+                        val cancellationConfirmed = doc.getBoolean("cancellationConfirmed") ?: false
+                        val cancelledBy = doc.getString("cancelledBy") ?: ""
+
+                        PeerToPeerSession(
+                            sessionId = sessionId,
+                            studentUid = studentUid,
+                            peerUid = peerUidField,
+                            start_time = startTs,
+                            end_time = endTs,
+                            location = location,
+                            date_submitted = dateSubmitted,
+                            isCancelled = isCancelled,
+                            cancellationReason = cancellationReason,
+                            cancellationConfirmed = cancellationConfirmed,
+                            cancelledBy = cancelledBy
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to map session ${doc.id}", e)
+                        null
+                    }
                 }.filter { session ->
-                    // Filter out confirmed cancellations
-                    val isCancelConfirmed = session.cancellationConfirmed
-
-                    // Filter out past sessions (end_time has passed)
-                    val endTime = session.end_time?.toDate()?.time ?: 0
+                    // Filter out confirmed cancellations and past sessions
+                    val endTime = session.end_time?.toDate()?.time ?: 0L
                     val isNotPast = endTime > now
-
-                    !isCancelConfirmed && isNotPast
-                }.sortedByDescending { it.start_time?.toDate()?.time ?: 0 }
+                    !session.cancellationConfirmed && isNotPast
+                }.sortedByDescending { it.start_time?.toDate()?.time ?: 0L }
 
                 adapter.updateSessions(sessions)
             }
@@ -99,7 +154,8 @@ class HomeSessionManagement : Fragment() {
         override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
             val session = sessions[position]
 
-            // Load Student Name and Avatar
+            // defensive: set width or other item params if needed (keeps same look)
+            // Load Student Name and Avatar (use tags to avoid recycled-view flicker)
             loadUserDetails(session.studentUid, holder.profileImage, holder.nameText)
 
             // Determine button state FIRST
@@ -107,7 +163,8 @@ class HomeSessionManagement : Fragment() {
 
             // Format info text based on cancellation status
             if (session.isCancelled) {
-                holder.infoText.text = session.cancellationReason
+                val reason = session.cancellationReason.ifEmpty { "No reason provided." }
+                holder.infoText.text = "Cancellation reason:\n$reason"
             } else {
                 holder.infoText.text = formatSessionInfo(session)
             }
@@ -117,12 +174,27 @@ class HomeSessionManagement : Fragment() {
 
         private fun loadUserDetails(uid: String, imageView: ShapeableImageView, nameView: TextView) {
             val firestore = FirebaseFirestore.getInstance()
+
+            // defensive tags to avoid showing wrong data on recycled views
+            nameView.tag = uid
+            imageView.tag = uid
+
+            if (uid.isBlank()) {
+                nameView.text = "Student"
+                imageView.setImageResource(R.drawable.img_placeholder)
+                return
+            }
+
             firestore.collection("account_details")
                 .document(uid)
                 .get()
                 .addOnSuccessListener { doc ->
+                    // ensure view hasn't been recycled for another uid
+                    if (nameView.tag != uid || imageView.tag != uid) return@addOnSuccessListener
+
                     val displayName = doc.getString("displayName")
-                        ?: "${doc.getString("lname") ?: ""} ${doc.getString("fname") ?: ""}".trim().ifEmpty { "Student" }
+                        ?: "${doc.getString("lname") ?: ""} ${doc.getString("fname") ?: ""}"
+                            .trim().ifEmpty { "Student" }
                     val avatarUrl = doc.getString("avatarUrl") ?: ""
 
                     nameView.text = displayName
@@ -146,7 +218,14 @@ class HomeSessionManagement : Fragment() {
                             }
                             imageView.setImageResource(drawableRes)
                         }
+                    } else {
+                        imageView.setImageResource(R.drawable.img_placeholder)
                     }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed loading account_details for $uid", e)
+                    if (nameView.tag == uid) nameView.text = "Student"
+                    if (imageView.tag == uid) imageView.setImageResource(R.drawable.img_placeholder)
                 }
         }
 
@@ -168,10 +247,10 @@ class HomeSessionManagement : Fragment() {
         private fun determineButtonState(session: PeerToPeerSession): ButtonState {
             val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
             val cancelled = session.isCancelled
-            // Check if session is cancelled
-            Log.d("HomeSessionManagement", "Checking session: ${cancelled}")
-            if (cancelled == true) {
-                Log.d("HomeSessionManagement", "Session is cancelled: ${session.sessionId}")
+            Log.d(TAG, "Checking session ${session.sessionId} cancelled=$cancelled")
+
+            if (cancelled) {
+                Log.d(TAG, "Session is cancelled: ${session.sessionId}")
                 return if (session.cancelledBy == currentUid) {
                     ButtonState.CANCELLED_BY_ME
                 } else {
@@ -276,6 +355,9 @@ class HomeSessionManagement : Fragment() {
 
                     contentText.text = "Are you sure you want to cancel this Session with $studentName on $dateStr for $startTimeStr - $endTimeStr?"
                 }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to fetch student details for dialog", e)
+                }
 
             btnConfirm.setOnClickListener {
                 val reason = reasonInput.text.toString().trim()
@@ -294,6 +376,14 @@ class HomeSessionManagement : Fragment() {
                             android.widget.Toast.makeText(
                                 requireContext(),
                                 "Session cancelled",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Failed to cancel session ${session.sessionId}", e)
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "Failed to cancel session",
                                 android.widget.Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -329,8 +419,12 @@ class HomeSessionManagement : Fragment() {
                     val studentName = doc.getString("displayName") ?: "the student"
                     contentText.text = "By clicking confirm, you understand that $studentName has cancelled their session with you due to the following reason :"
                 }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to fetch student details for confirm dialog", e)
+                }
 
-            reasonText.text = session.cancellationReason
+            val reason = session.cancellationReason.ifEmpty { "No reason provided." }
+            reasonText.text = "Cancellation reason:\n$reason"
 
             btnConfirm.setOnClickListener {
                 firestore.collection("peertopeer_session")
@@ -341,6 +435,14 @@ class HomeSessionManagement : Fragment() {
                         android.widget.Toast.makeText(
                             requireContext(),
                             "Cancellation confirmed",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to confirm cancellation ${session.sessionId}", e)
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Failed to confirm cancellation",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -372,6 +474,13 @@ class HomeSessionManagement : Fragment() {
                         android.widget.Toast.makeText(
                             requireContext(),
                             "Session Cancelled",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }.addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to cancel session ${session.sessionId}", e)
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Failed to cancel session",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }
