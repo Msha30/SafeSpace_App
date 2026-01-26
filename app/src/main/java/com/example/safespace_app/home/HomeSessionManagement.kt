@@ -1,23 +1,30 @@
 package com.example.safespace_app.home
 
-import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.safespace_app.PeerSession
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.safespace_app.PeerToPeerSession
 import com.example.safespace_app.R
-import com.example.safespace_app.UserCache
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class HomeSessionManagement : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: PeerSessionAdapter
+    private lateinit var adapter: SessionAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,207 +38,374 @@ class HomeSessionManagement : Fragment() {
         recyclerView = rootView.findViewById(R.id.peerSupportSessionRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = PeerSessionAdapter(
-            requireContext(),
-            mutableListOf(),
-            onCancelClick = { session ->
-                showCancelReasonDialog(session)
-            },
-            onConfirmClick = { session ->
-                // For Face to Face mode, require location before confirming
-                if (session.preferredMode.trim() == "Face to Face" && session.location.isNullOrEmpty()) {
-                    showLocationDialog(session)
-                } else {
-                    confirmSession(session)
-                }
-            }
-        )
-
+        adapter = SessionAdapter(mutableListOf())
         recyclerView.adapter = adapter
 
-        // Get current peer UID (the logged-in peer)
         val currentPeerUid = FirebaseAuth.getInstance().currentUser?.uid
         if (currentPeerUid != null) {
-            // Observe Firestore peer_session_requests for this peer
-            UserCache.activeSessionsLiveData.observe(viewLifecycleOwner) { sessions ->
-                // Show only pending and confirmed sessions (not cancelled or completed)
-                val activeSessions = sessions.filter {
-                    it.status == "pending" || it.status == "confirmed"
-                }
-                adapter.updateSessions(activeSessions)
-            }
-
-            // Start listening for this peer's session requests
-            UserCache.loadActiveSessionsForUser(peerUid = currentPeerUid)
+            observeSessions(currentPeerUid)
         }
 
         return rootView
     }
 
-    private fun showLocationDialog(session: PeerSession) {
-        val dialogView = LayoutInflater.from(context)
-            .inflate(R.layout.popup_sessionconfirm, null)
-        val dialog = android.app.AlertDialog.Builder(context)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
+    private fun observeSessions(peerUid: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("peertopeer_session")
+            .whereEqualTo("peerUid", peerUid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    android.util.Log.e("SessionManagement", "Error loading sessions", error)
+                    return@addSnapshotListener
+                }
 
-        val locationInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.location)
-        val btnConfirm = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnconfirm)
-        val btnCancel = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btncancel)
-        val nameText = dialogView.findViewById<TextView>(R.id.name)
-        val infoText = dialogView.findViewById<TextView>(R.id.info)
-        val concernText = dialogView.findViewById<TextView>(R.id.concern)
+                val now = System.currentTimeMillis()
+                val sessions = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(PeerToPeerSession::class.java)?.copy(sessionId = doc.id)
+                }.filter { session ->
+                    // Show if cancellationConfirmed is NOT true AND end time hasn't passed
+                    (session.cancellationConfirmed != true) &&
+                            (session.end_time?.toDate()?.time ?: 0) > now
+                }.sortedByDescending { it.start_time?.toDate()?.time ?: 0 }.reversed()
 
-        UserCache.getUserDetails(session.studentUid) { displayName, _photoUrl ->
-            nameText.text = displayName
+                adapter.updateSessions(sessions)
+            }
+    }
+
+    inner class SessionAdapter(
+        private var sessions: List<PeerToPeerSession>
+    ) : RecyclerView.Adapter<SessionAdapter.SessionViewHolder>() {
+
+        inner class SessionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val sideBar: View = view.findViewById(R.id.side)
+            val profileImage: ShapeableImageView = view.findViewById(R.id.profileImage)
+            val nameText: TextView = view.findViewById(R.id.nameText)
+            val infoText: TextView = view.findViewById(R.id.infoText)
+            val btnCallAction: MaterialButton = view.findViewById(R.id.btnCallAction)
         }
 
-        // Set session info
-        val modeDisplay = if (session.preferredMode == "Face to Face" && session.location.isNullOrEmpty()) {
-            "Unconfirmed"
-        } else if (session.preferredMode == "Face to Face") {
-            session.location ?: "Unconfirmed"
-        } else {
-            session.preferredMode
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_session, parent, false)
+            return SessionViewHolder(view)
         }
 
-        infoText.text = "📅 ${session.selectedDate}\n" +
-                "🕒 ${session.selectedTimeSlot}\n" +
-                "📍 $modeDisplay"
+        override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
+            val session = sessions[position]
 
-        concernText.text = session.topicOfConcern ?: ""
+            // Set item width to show 2 items at a time
+            val params = holder.itemView.layoutParams
+            params.width = (holder.itemView.context.resources.displayMetrics.widthPixels * 0.42).toInt()
+            holder.itemView.layoutParams = params
 
-        // Pre-fill location input if exists
-        locationInput.setText(session.location ?: "")
+            // Load Peer Name and Avatar
+            loadUserDetails(session.peerUid, holder.profileImage, holder.nameText)
 
-        btnConfirm.setOnClickListener {
-            val newLocation = locationInput.text.toString().trim()
-            if (newLocation.isNotEmpty()) {
-                val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                firestore.collection("peer_session_requests")
-                    .document(session.sessionId)
-                    .update(mapOf(
-                        "location" to newLocation,
-                        "status" to "confirmed"
-                    ))
-                    .addOnSuccessListener {
-                        session.location = newLocation
-                        session.status = "confirmed"
-                        adapter.notifyDataSetChanged()
-                        dialog.dismiss()
-                        android.widget.Toast.makeText(
-                            context,
-                            "Session confirmed with location",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    .addOnFailureListener { e ->
-                        android.util.Log.e("HomeSessionManagement", "Failed to update session", e)
-                        android.widget.Toast.makeText(
-                            context,
-                            "Failed to confirm session",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
+            // Determine button state FIRST
+            val buttonState = determineButtonState(session)
+
+            // Format info text based on cancellation status
+            // EXPLICIT CHECK: isCancelled == true
+            if (session.isCancelled == true) {
+                holder.infoText.text = session.cancellationReason
             } else {
-                android.widget.Toast.makeText(
-                    context,
-                    "Please enter a location",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
+                holder.infoText.text = formatSessionInfo(session)
+            }
+
+            configureButton(holder, session, buttonState)
+        }
+
+        private fun loadUserDetails(uid: String, imageView: ShapeableImageView, nameView: TextView) {
+            val firestore = FirebaseFirestore.getInstance()
+            firestore.collection("account_details")
+                .document(uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    val displayName = doc.getString("displayName") ?: "Student"
+                    val avatarUrl = doc.getString("avatarUrl") ?: ""
+
+                    nameView.text = displayName
+
+                    if (avatarUrl.isNotEmpty()) {
+                        if (avatarUrl.startsWith("http")) {
+                            Glide.with(imageView.context)
+                                .load(avatarUrl)
+                                .placeholder(R.drawable.img_placeholder)
+                                .error(R.drawable.img_placeholder)
+                                .skipMemoryCache(true)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .into(imageView)
+                        } else {
+                            val drawableRes = when (avatarUrl) {
+                                "image_1" -> R.drawable.avatar_panda
+                                "image_2" -> R.drawable.avatar_butterfly
+                                "image_3" -> R.drawable.avatar_wolf
+                                "image_4" -> R.drawable.avatar_buffalo
+                                else -> R.drawable.img_placeholder
+                            }
+                            imageView.setImageResource(drawableRes)
+                        }
+                    }
+                }
+        }
+
+        private fun formatSessionInfo(session: PeerToPeerSession): String {
+            val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+            val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+
+            val startDate = session.start_time?.toDate()
+            val endTime = session.end_time?.toDate()
+
+            val dateStr = startDate?.let { dateFormat.format(it) } ?: "Date TBD"
+            val startTimeStr = startDate?.let { timeFormat.format(it) } ?: "0:00"
+            val endTimeStr = endTime?.let { timeFormat.format(it) } ?: "0:00"
+            val location = session.location.ifEmpty { "Location TBD" }
+
+            return "$dateStr\n$startTimeStr - $endTimeStr\n$location"
+        }
+
+        private fun determineButtonState(session: PeerToPeerSession): ButtonState {
+            val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+            android.util.Log.d("ButtonState", "=== Determining Button State ===")
+            android.util.Log.d("ButtonState", "Session ID: ${session.sessionId}")
+            android.util.Log.d("ButtonState", "isCancelled: ${session.isCancelled}")
+            android.util.Log.d("ButtonState", "cancelledBy: '${session.cancelledBy}'")
+
+            // EXPLICIT CHECK: isCancelled == true (not just isCancelled)
+            if (session.isCancelled == true) {
+                val state = if (session.cancelledBy == currentUid) {
+                    android.util.Log.d("ButtonState", "Result: CANCELLED_BY_ME")
+                    ButtonState.CANCELLED_BY_ME
+                } else {
+                    android.util.Log.d("ButtonState", "Result: CONFIRM_CANCEL")
+                    ButtonState.CONFIRM_CANCEL
+                }
+                return state
+            }
+
+            android.util.Log.d("ButtonState", "Not cancelled, checking time...")
+
+            val now = Calendar.getInstance()
+            val start = session.start_time?.toDate() ?: return ButtonState.CANCEL
+            val end = session.end_time?.toDate() ?: return ButtonState.CANCEL
+
+            val startCal = Calendar.getInstance().apply { time = start }
+            val endCal = Calendar.getInstance().apply { time = end }
+
+            return when {
+                now.timeInMillis in startCal.timeInMillis..endCal.timeInMillis -> {
+                    android.util.Log.d("ButtonState", "Result: NOW")
+                    ButtonState.NOW
+                }
+                isSameDay(now, startCal) && now.timeInMillis < startCal.timeInMillis -> {
+                    android.util.Log.d("ButtonState", "Result: TODAY")
+                    ButtonState.TODAY
+                }
+                else -> {
+                    android.util.Log.d("ButtonState", "Result: CANCEL")
+                    ButtonState.CANCEL
+                }
             }
         }
 
-        btnCancel.setOnClickListener { dialog.dismiss() }
-        dialog.show()
-    }
+        private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
+            return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                    cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+        }
 
-    private fun showCancelReasonDialog(session: PeerSession) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.popup_cancelsession, null)
-        val dialog = android.app.AlertDialog.Builder(context)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
+        private fun configureButton(holder: SessionViewHolder, session: PeerToPeerSession, state: ButtonState) {
+            holder.btnCallAction.setOnClickListener(null)
 
-        val contentText = dialogView.findViewById<TextView>(R.id.content)
-        val reasonInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.reason)
-        val btnConfirm = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btncancel)
-        val btnKeep = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnkeep)
+            when (state) {
+                ButtonState.NOW -> {
+                    holder.btnCallAction.text = "Now"
+                    holder.btnCallAction.background = resources.getDrawable(R.drawable.f_rounded_green, null)
+                    holder.sideBar.backgroundTintList = resources.getColorStateList(R.color.green, null)
+                    holder.btnCallAction.isEnabled = false
+                }
 
-        // Build dynamic confirmation text
-        val timeSlot = session.selectedTimeSlot.ifEmpty { "0:00 - 0:00" }
-        val displayDate = session.selectedDate.ifEmpty { "Month 0" }
+                ButtonState.TODAY -> {
+                    holder.btnCallAction.text = "Today"
+                    holder.btnCallAction.background = resources.getDrawable(R.drawable.f_rounded_blue, null)
+                    holder.sideBar.backgroundTintList = resources.getColorStateList(R.color.blue, null)
+                    holder.btnCallAction.isEnabled = false
+                }
 
-        contentText.text = "Are you sure you want to cancel Peer Support Session for $timeSlot on $displayDate?"
+                ButtonState.CANCEL -> {
+                    holder.btnCallAction.text = "Cancel"
+                    holder.btnCallAction.background = resources.getDrawable(R.drawable.f_rounded_grey, null)
+                    holder.sideBar.backgroundTintList = resources.getColorStateList(R.color.textgrey, null)
+                    holder.btnCallAction.isEnabled = true
+                    holder.btnCallAction.setOnClickListener {
+                        showCancelDialog(session)
+                    }
+                }
 
-        btnConfirm.setOnClickListener {
-            val reason = reasonInput.text.toString().trim()
-            if (reason.isNotEmpty()) {
-                val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                firestore.collection("peer_session_requests")
+                ButtonState.CONFIRM_CANCEL -> {
+                    holder.btnCallAction.text = "Confirm"
+                    holder.btnCallAction.background = resources.getDrawable(R.drawable.f_rounded_red, null)
+                    holder.sideBar.backgroundTintList = resources.getColorStateList(R.color.red, null)
+                    holder.btnCallAction.isEnabled = true
+                    holder.btnCallAction.setOnClickListener {
+                        showConfirmCancelDialog(session)
+                    }
+                }
+
+                ButtonState.CANCELLED_BY_ME -> {
+                    holder.btnCallAction.text = "Cancelled"
+                    holder.btnCallAction.background = resources.getDrawable(R.drawable.f_rounded_grey, null)
+                    holder.sideBar.backgroundTintList = resources.getColorStateList(R.color.textgrey, null)
+                    holder.btnCallAction.isEnabled = false
+                }
+            }
+        }
+
+        private fun showCancelDialog(session: PeerToPeerSession) {
+            val dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.popup_cancelsession, null)
+            val dialog = android.app.AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create()
+
+            val contentText = dialogView.findViewById<TextView>(R.id.content)
+            val reasonInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.reason)
+            val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btncancel)
+            val btnKeep = dialogView.findViewById<MaterialButton>(R.id.btnkeep)
+
+            val firestore = FirebaseFirestore.getInstance()
+            firestore.collection("account_details").document(session.studentUid).get()
+                .addOnSuccessListener { doc ->
+                    val studentName = doc.getString("displayName") ?: "the student"
+                    val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
+                    val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+                    val startDate = session.start_time?.toDate()
+                    val endTime = session.end_time?.toDate()
+
+                    val dateStr = startDate?.let { dateFormat.format(it) } ?: "Unknown"
+                    val startTimeStr = startDate?.let { timeFormat.format(it) } ?: "0:00 AM"
+                    val endTimeStr = endTime?.let { timeFormat.format(it) } ?: "0:00 AM"
+
+                    contentText.text = "Are you sure you want to cancel this Session with $studentName on $dateStr for $startTimeStr - $endTimeStr?"
+                }
+
+            btnConfirm.setOnClickListener {
+                val reason = reasonInput.text.toString().trim()
+                if (reason.isNotEmpty()) {
+                    val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                    firestore.collection("peertopeer_session")
+                        .document(session.sessionId)
+                        .update(mapOf(
+                            "isCancelled" to true,
+                            "cancellationReason" to reason,
+                            "cancellationConfirmed" to false,
+                            "cancelledBy" to currentUid
+                        ))
+                        .addOnSuccessListener {
+                            dialog.dismiss()
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "Session cancelled",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                } else {
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Please enter a reason",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            btnKeep.setOnClickListener { dialog.dismiss() }
+            dialog.show()
+        }
+
+        private fun showConfirmCancelDialog(session: PeerToPeerSession) {
+            val dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.popup_confirmcancel, null)
+            val dialog = android.app.AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create()
+
+            val contentText = dialogView.findViewById<TextView>(R.id.content)
+            val reasonText = dialogView.findViewById<TextView>(R.id.reason)
+            val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btncancel)
+            val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnkeep)
+
+            val firestore = FirebaseFirestore.getInstance()
+            firestore.collection("account_details").document(session.studentUid).get()
+                .addOnSuccessListener { doc ->
+                    val studentName = doc.getString("displayName") ?: "the student"
+                    contentText.text = "By clicking confirm, you understand that $studentName has cancelled their session with you due to the following reason :"
+                }
+
+            reasonText.text = session.cancellationReason
+
+            btnConfirm.setOnClickListener {
+                firestore.collection("peertopeer_session")
+                    .document(session.sessionId)
+                    .update("cancellationConfirmed", true)
+                    .addOnSuccessListener {
+                        dialog.dismiss()
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Cancellation confirmed",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+            }
+
+            btnCancel.setOnClickListener {
+                val reason = reasonText.text.toString().trim()
+                if (reason.isEmpty()) {
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Cannot cancel without a reason",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+
+                val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                firestore.collection("peertopeer_session")
                     .document(session.sessionId)
                     .update(
                         mapOf(
-                            "status" to "cancelled",
-                            "cancellationReason" to reason
+                            "isCancelled" to true,
+                            "cancellationReason" to reason,
+                            "cancellationConfirmed" to false,
+                            "cancelledBy" to currentUid
                         )
-                    )
-                    .addOnSuccessListener {
-                        session.status = "cancelled"
-                        adapter.notifyDataSetChanged()
+                    ).addOnSuccessListener {
                         dialog.dismiss()
                         android.widget.Toast.makeText(
-                            context,
-                            "Session cancelled",
+                            requireContext(),
+                            "Session Cancelled",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }
-                    .addOnFailureListener { e ->
-                        android.util.Log.e("HomeSessionManagement", "Failed to cancel session", e)
-                        android.widget.Toast.makeText(
-                            context,
-                            "Failed to cancel session",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-            } else {
-                android.widget.Toast.makeText(
-                    context,
-                    "Please enter a reason",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
             }
+
+            dialog.show()
         }
 
-        btnKeep.setOnClickListener {
-            dialog.dismiss()
-        }
+        override fun getItemCount() = sessions.size
 
-        dialog.show()
+        fun updateSessions(newSessions: List<PeerToPeerSession>) {
+            sessions = newSessions
+            notifyDataSetChanged()
+        }
     }
 
-    private fun confirmSession(session: PeerSession) {
-        val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-        firestore.collection("peer_session_requests")
-            .document(session.sessionId)
-            .update("status", "confirmed")
-            .addOnSuccessListener {
-                session.status = "confirmed"
-                adapter.notifyDataSetChanged()
-                android.widget.Toast.makeText(
-                    context,
-                    "Session confirmed",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
-            .addOnFailureListener { e ->
-                android.util.Log.e("HomeSessionManagement", "Failed to confirm session", e)
-                android.widget.Toast.makeText(
-                    context,
-                    "Failed to confirm session",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
+    enum class ButtonState {
+        NOW,
+        TODAY,
+        CANCEL,
+        CONFIRM_CANCEL,
+        CANCELLED_BY_ME
     }
 }

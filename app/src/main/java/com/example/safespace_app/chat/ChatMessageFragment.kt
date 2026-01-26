@@ -296,7 +296,11 @@ class ChatMessageFragment : Fragment() {
             "peerUid" to currentUserId,
             "start_time" to com.google.firebase.Timestamp(startCalendar.time),
             "end_time" to com.google.firebase.Timestamp(endCalendar.time),
-            "location" to location
+            "location" to location,
+            "isCancelled" to false,
+            "cancellationReason" to "",
+            "cancellationConfirmed" to false,
+            "cancelledBy" to ""
         )
 
         firestore.collection("peertopeer_session")

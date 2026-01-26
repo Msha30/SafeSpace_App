@@ -55,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:lineHeight="20dp"
-                    android:text="📅 Month 00\n🕑 0:00 PM - 0:00 PM\n📍 School LRC"
+                    android:text="Month 00\n0:00 PM - 0:00 PM\nSchool LRC"
                     android:textSize="@dimen/small"
                     android:textColor="@color/black"
                     android:fontFamily="@font/ps"/>

@@ -99,3 +99,17 @@ data class AssignedSched(
     val start: Timestamp? = null,
     val end: Timestamp? = null
 )
+
+data class PeerToPeerSession(
+    var sessionId: String = "",
+    val studentUid: String = "",
+    val peerUid: String = "",
+    val start_time: Timestamp? = null,
+    val end_time: Timestamp? = null,
+    val location: String = "",
+    val date_submitted: Timestamp? = null,
+    var isCancelled: Boolean? = null,  // Changed to var
+    val cancellationReason: String = "",
+    var cancellationConfirmed: Boolean? = null,  // Changed to var
+    val cancelledBy: String = ""
+)

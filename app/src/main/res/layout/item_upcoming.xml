@@ -62,7 +62,7 @@
                 android:id="@+id/infoText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📅 Month 00\n🕑 0:00 PM - 0:00 PM\n📍 School LRC"
+                android:text="Month 00\n0:00 PM - 0:00 PM\nSchool LRC"
                 android:textColor="@color/black"
                 android:fontFamily="@font/ps"
                 android:layout_marginTop="3dp"
