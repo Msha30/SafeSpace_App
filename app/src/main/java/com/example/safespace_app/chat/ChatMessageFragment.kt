@@ -200,6 +200,22 @@ class ChatMessageFragment : Fragment() {
         val cancelBtn = dialogView.findViewById<MaterialButton>(R.id.btnkeep)
         val confirmBtn = dialogView.findViewById<MaterialButton>(R.id.btncancel)
 
+        dateInput.apply {
+            isFocusable = false
+            isFocusableInTouchMode = false
+            isClickable = true
+        }
+        timeFromInput.apply {
+            isFocusable = false
+            isFocusableInTouchMode = false
+            isClickable = true
+        }
+        timeToInput.apply {
+            isFocusable = false
+            isFocusableInTouchMode = false
+            isClickable = true
+        }
+
         val calendar = Calendar.getInstance()
         var selectedDate: Date? = null
         var selectedStartTime: Pair<Int, Int>? = null

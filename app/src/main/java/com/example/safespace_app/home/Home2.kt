@@ -2,6 +2,7 @@ package com.example.safespace_app.home
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -106,10 +107,15 @@ class Home2 : Fragment() {
                 val sessions = snapshot.documents.mapNotNull { doc ->
                     doc.toObject(PeerToPeerSession::class.java)?.copy(sessionId = doc.id)
                 }.filter { session ->
-                    // Show if cancellationConfirmed is NOT true AND end time hasn't passed
-                    (session.cancellationConfirmed != true) &&
-                            (session.end_time?.toDate()?.time ?: 0) > now
-                }.sortedByDescending { it.start_time?.toDate()?.time ?: 0 }.reversed()
+                    // Filter out confirmed cancellations
+                    val isCancelConfirmed = session.cancellationConfirmed
+
+                    // Filter out past sessions (end_time has passed)
+                    val endTime = session.end_time?.toDate()?.time ?: 0
+                    val isNotPast = endTime > now
+
+                    !isCancelConfirmed && isNotPast
+                }.sortedByDescending { it.start_time?.toDate()?.time ?: 0 }
 
                 upcomingAdapter.updateSessions(sessions)
                 emptyText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
@@ -167,7 +173,7 @@ class Home2 : Fragment() {
             val buttonState = determineButtonState(session)
 
             // Format info text based on cancellation status
-            if (session.isCancelled == true) {
+            if (session.isCancelled) {
                 holder.infoText.text = session.cancellationReason
             } else {
                 holder.infoText.text = formatSessionInfo(session)
@@ -186,7 +192,8 @@ class Home2 : Fragment() {
                 .document(uid)
                 .get()
                 .addOnSuccessListener { doc ->
-                    val displayName = doc.getString("displayName") ?: "Student"
+                    val displayName = doc.getString("displayName")
+                        ?: "${doc.getString("lname") ?: ""} ${doc.getString("fname") ?: ""}".trim().ifEmpty { "Student" }
                     val avatarUrl = doc.getString("avatarUrl") ?: ""
 
                     nameView.text = displayName
@@ -232,44 +239,32 @@ class Home2 : Fragment() {
         private fun determineButtonState(session: PeerToPeerSession): ButtonState {
             val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-            android.util.Log.d("ButtonState", "=== Determining Button State ===")
-            android.util.Log.d("ButtonState", "Session ID: ${session.sessionId}")
-            android.util.Log.d("ButtonState", "isCancelled: ${session.isCancelled}")
-            android.util.Log.d("ButtonState", "cancelledBy: '${session.cancelledBy}'")
-
-            // EXPLICIT CHECK: isCancelled == true (not just isCancelled)
+            // Check if session is cancelled
             if (session.isCancelled == true) {
-                val state = if (session.cancelledBy == currentUid) {
-                    android.util.Log.d("ButtonState", "Result: CANCELLED_BY_ME")
+                Log.d("Home2", "Session is cancelled: ${session.sessionId}")
+                return if (session.cancelledBy == currentUid) {
                     ButtonState.CANCELLED_BY_ME
                 } else {
-                    android.util.Log.d("ButtonState", "Result: CONFIRM_CANCEL")
                     ButtonState.CONFIRM_CANCEL
                 }
-                return state
-            }
+            } else{
+                val now = Calendar.getInstance()
+                val start = session.start_time?.toDate() ?: return ButtonState.CANCEL
+                val end = session.end_time?.toDate() ?: return ButtonState.CANCEL
 
-            android.util.Log.d("ButtonState", "Not cancelled, checking time...")
+                val startCal = Calendar.getInstance().apply { time = start }
+                val endCal = Calendar.getInstance().apply { time = end }
 
-            val now = Calendar.getInstance()
-            val start = session.start_time?.toDate() ?: return ButtonState.CANCEL
-            val end = session.end_time?.toDate() ?: return ButtonState.CANCEL
-
-            val startCal = Calendar.getInstance().apply { time = start }
-            val endCal = Calendar.getInstance().apply { time = end }
-
-            return when {
-                now.timeInMillis in startCal.timeInMillis..endCal.timeInMillis -> {
-                    android.util.Log.d("ButtonState", "Result: NOW")
-                    ButtonState.NOW
-                }
-                isSameDay(now, startCal) && now.timeInMillis < startCal.timeInMillis -> {
-                    android.util.Log.d("ButtonState", "Result: TODAY")
-                    ButtonState.TODAY
-                }
-                else -> {
-                    android.util.Log.d("ButtonState", "Result: CANCEL")
-                    ButtonState.CANCEL
+                return when {
+                    // If current time is within the session time range
+                    now.timeInMillis in startCal.timeInMillis..endCal.timeInMillis -> ButtonState.NOW
+                    // If same day but time hasn't started yet
+                    isSameDay(
+                        now,
+                        startCal
+                    ) && now.timeInMillis < startCal.timeInMillis -> ButtonState.TODAY
+                    // Otherwise, can cancel (future sessions)
+                    else -> ButtonState.CANCEL
                 }
             }
         }
@@ -509,10 +504,29 @@ class Home2 : Fragment() {
             holder.title.text = announcement.title
             holder.content.text = announcement.description
 
-            when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco)
-                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers)
-                else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            // Set default/placeholder first
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+
+            // Handle GCO / PEERS static icons
+            val repr = announcement.represented_by?.trim()
+            if (!repr.isNullOrEmpty()) {
+                val reprUpper = repr.uppercase(Locale.getDefault())
+                when (reprUpper) {
+                    "GCO" -> {
+                        holder.photo.setImageResource(R.drawable.pfp_gco)
+                    }
+                    "PEERS" -> {
+                        holder.photo.setImageResource(R.drawable.pfp_peers)
+                    }
+                    else -> {
+                        // Asynchronous fetch from Firestore using the represented_by value as document id.
+                        // Use tag on the ImageView to avoid incorrect images when ViewHolder is recycled.
+                        holder.photo.tag = repr
+                        fetchGroupPfpAndLoad(repr, holder)
+                    }
+                }
+            } else {
+                holder.photo.setImageResource(R.drawable.img_placeholder)
             }
 
             if (announcement.photo_urls.isNotEmpty()) {
@@ -532,6 +546,37 @@ class Home2 : Fragment() {
             } else {
                 holder.photoRow.visibility = View.GONE
             }
+        }
+
+        private fun fetchGroupPfpAndLoad(groupId: String, holder: NotificationViewHolder) {
+            val db = FirebaseFirestore.getInstance()
+            // set placeholder while loading
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+
+            db.collection("supportgroup").document(groupId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    // ViewHolder may have been recycled: ensure tag still matches this groupId
+                    if (holder.photo.tag != groupId) return@addOnSuccessListener
+
+                    val pfpUrl = snapshot.getString("supportgroup_pfp_URL")
+                    if (pfpUrl.isNullOrBlank()) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    } else {
+                        Glide.with(holder.itemView.context)
+                            .load(pfpUrl)
+                            .placeholder(R.drawable.img_placeholder)
+                            .error(R.drawable.img_placeholder)
+                            .circleCrop()
+                            .into(holder.photo)
+                    }
+                }
+                .addOnFailureListener {
+                    // Only set placeholder if still the same item
+                    if (holder.photo.tag == groupId) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    }
+                }
         }
 
         override fun getItemCount() = announcements.size

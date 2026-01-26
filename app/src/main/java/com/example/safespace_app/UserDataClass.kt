@@ -108,8 +108,8 @@ data class PeerToPeerSession(
     val end_time: Timestamp? = null,
     val location: String = "",
     val date_submitted: Timestamp? = null,
-    var isCancelled: Boolean? = null,  // Changed to var
+    val isCancelled: Boolean = false,
     val cancellationReason: String = "",
-    var cancellationConfirmed: Boolean? = null,  // Changed to var
+    val cancellationConfirmed: Boolean = false,
     val cancelledBy: String = ""
 )
