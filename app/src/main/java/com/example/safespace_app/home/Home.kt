@@ -329,6 +329,7 @@ class Home : Fragment() {
             }
 
             private fun formatPeerSessionInfo(session: PeerToPeerSession): String {
+                // Otherwise show normal date/time/location
                 val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
                 val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
                 val startDate = session.start_time?.toDate()
