@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.ModerationManager
+import com.example.safespace_app.NotificationSettingsManager
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
@@ -51,9 +52,13 @@ class ChatMessageFragment : Fragment() {
     private var otherUserName: String = "Chat"
     private var currentUserDisplayName: String = "You"
     private var otherUserId: String = ""
+    private var otherUserPhotoUrl: String = ""
     private var userType: String = ""
     private var studentId: String = ""
     private var peerId: String = ""
+
+    // Track which messages we've already shown notifications for
+    private val notifiedMessageIds = mutableSetOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,6 +69,8 @@ class ChatMessageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        Log.d("ChatMessage", "🎬 Fragment created - CurrentUserId: $currentUserId")
 
         recyclerView = view.findViewById(R.id.recyclerViewChat)
         messageInput = view.findViewById(R.id.messageInput)
@@ -117,7 +124,7 @@ class ChatMessageFragment : Fragment() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     userType = document.getString("userType") ?: ""
-                    Log.d("ChatMessage", "User type loaded: $userType")
+                    Log.d("ChatMessage", "✅ User type loaded: $userType")
 
                     if (userType == "peer") {
                         referButton.visibility = View.VISIBLE
@@ -129,7 +136,7 @@ class ChatMessageFragment : Fragment() {
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("ChatMessage", "Error loading user type", e)
+                Log.e("ChatMessage", "❌ Error loading user type", e)
                 referButton.visibility = View.GONE
                 schedButton.visibility = View.GONE
             }
@@ -368,7 +375,10 @@ class ChatMessageFragment : Fragment() {
                 val (sessionId, userId) = session
 
                 if (currentSessionId != sessionId) {
-                    // ... cleanup code ...
+                    Log.d("ChatMessage", "🔄 Session changed - New SessionId: $sessionId, OtherUserId: $userId")
+
+                    // Clear notification tracking when session changes
+                    notifiedMessageIds.clear()
 
                     currentSessionId = sessionId
                     otherUserId = userId
@@ -377,9 +387,6 @@ class ChatMessageFragment : Fragment() {
                     determineRoles(userId)
 
                     loadOtherUserInfo(userId)
-
-                    // DON'T call startListeningForMessages() here
-                    // It's called inside determineRoles() after roles are set
                     markMessagesAsRead()
                 }
             }
@@ -387,14 +394,14 @@ class ChatMessageFragment : Fragment() {
     }
 
     private fun determineRoles(otherUserId: String) {
-        Log.d("ChatMessage", "Determining roles - currentUserId: $currentUserId, otherUserId: $otherUserId")
+        Log.d("ChatMessage", "🔍 Determining roles - currentUserId: $currentUserId, otherUserId: $otherUserId")
 
         firestore.collection("account_details").document(currentUserId)
             .get()
             .addOnSuccessListener { currentDoc ->
                 val currentUserType = currentDoc.getString("userType") ?: ""
 
-                Log.d("ChatMessage", "Current user type: $currentUserType")
+                Log.d("ChatMessage", "📋 Current user type: $currentUserType")
 
                 if (currentUserType == "student") {
                     studentId = currentUserId
@@ -409,14 +416,20 @@ class ChatMessageFragment : Fragment() {
                 // Start listening AFTER roles are determined
                 startListeningForMessages()
             }
+            .addOnFailureListener { e ->
+                Log.e("ChatMessage", "❌ Failed to determine roles", e)
+            }
     }
 
     private fun loadOtherUserInfo(userId: String) {
+        Log.d("ChatMessage", "👤 Loading other user info for: $userId")
+
         UserCache.getUserDetails(userId) { name, photoUrl ->
             if (isAdded) {
                 otherUserName = name
+                otherUserPhotoUrl = photoUrl
                 nameText.text = name
-                Log.d("ChatMessage", "Loaded other user info: $name")
+                Log.d("ChatMessage", "✅ Loaded other user: Name='$name', Photo='$photoUrl'")
             }
         }
     }
@@ -425,38 +438,74 @@ class ChatMessageFragment : Fragment() {
         UserCache.getUserDetails(currentUserId) { name, photoUrl ->
             if (isAdded) {
                 currentUserDisplayName = name
-                Log.d("ChatMessage", "Loaded current user name: $name")
+                Log.d("ChatMessage", "✅ Loaded current user name: $name")
             }
         }
     }
 
     private fun startListeningForMessages() {
         if (studentId.isEmpty() || peerId.isEmpty()) {
-            Log.e("ChatMessage", "Cannot listen - student or peer ID is empty")
-            Log.e("ChatMessage", "studentId: $studentId, peerId: $peerId")
+            Log.e("ChatMessage", "❌ Cannot listen - student or peer ID is empty")
+            Log.e("ChatMessage", "   studentId: '$studentId', peerId: '$peerId'")
             return
         }
 
-        Log.d("ChatMessage", "Starting to listen for messages")
-        Log.d("ChatMessage", "Student: $studentId, Peer: $peerId, UserType: $userType")
+        Log.d("ChatMessage", "🎧 Starting to listen for messages")
+        Log.d("ChatMessage", "   Student: $studentId")
+        Log.d("ChatMessage", "   Peer: $peerId")
+        Log.d("ChatMessage", "   UserType: $userType")
 
         messageListener = chatManager.listenForMessages(studentId, peerId, currentUserId, userType) { messages ->
-            Log.d("ChatMessage", "Received ${messages.size} messages")
-
-            if (messages.isEmpty()) {
-                Log.w("ChatMessage", "No messages received - check database path")
-            } else {
-                messages.forEach { msg ->
-                    Log.d("ChatMessage", "Message: ${msg.message} (session: ${msg.sessionNo})")
-                }
-            }
+            Log.d("ChatMessage", "📩 Received ${messages.size} messages")
 
             if (isAdded) {
+                // First, check for new unread messages BEFORE updating the list
+                messages.forEach { message ->
+                    Log.d("ChatMessage", "   Message: id=${message.messageId}, from=${message.senderId}, read=${message.isRead}, text='${message.message}'")
+
+                    // Only notify if:
+                    // 1. Message is from other user
+                    // 2. Message is unread
+                    // 3. We haven't notified about this message yet
+                    if (message.senderId != currentUserId &&
+                        !message.isRead &&
+                        !notifiedMessageIds.contains(message.messageId)) {
+
+                        Log.d("ChatMessage", "🔔 NEW UNREAD MESSAGE DETECTED!")
+                        Log.d("ChatMessage", "   MessageId: ${message.messageId}")
+                        Log.d("ChatMessage", "   From: ${message.senderId}")
+                        Log.d("ChatMessage", "   Text: '${message.message}'")
+                        Log.d("ChatMessage", "   Will show notification for: $otherUserName")
+
+                        // Mark as notified IMMEDIATELY
+                        notifiedMessageIds.add(message.messageId)
+
+                        // Show notification
+                        lifecycleScope.launch {
+                            try {
+                                Log.d("ChatMessage", "🚀 Calling showMessageNotification...")
+                                NotificationSettingsManager.showMessageNotification(
+                                    requireContext(),
+                                    otherUserId,
+                                    otherUserName,
+                                    otherUserPhotoUrl
+                                )
+                                Log.d("ChatMessage", "✅ Notification call completed")
+                            } catch (e: Exception) {
+                                Log.e("ChatMessage", "❌ Exception showing notification", e)
+                            }
+                        }
+                    }
+                }
+
+                // Update the adapter
                 adapter.submitList(messages) {
                     if (messages.isNotEmpty()) {
                         recyclerView.smoothScrollToPosition(messages.size - 1)
                     }
                 }
+
+                // Mark messages as read AFTER checking for notifications
                 markMessagesAsRead()
             }
         }
@@ -471,14 +520,18 @@ class ChatMessageFragment : Fragment() {
             return
         }
 
-        // 1. Disable UI while moderating
+        // Disable UI while moderating
         sendButton.isEnabled = false
         messageInput.isEnabled = false
+
         lifecycleScope.launch {
             try {
-                // 2. Moderate Message
+                Log.d("ChatMessage", "📤 Sending message: '$text'")
+
+                // Moderate Message
                 val moderation = ModerationManager.moderateMessage(text)
-                // 3. Prepare Extra Data Map for RTDB
+
+                // Prepare moderation data
                 val moderationData = mapOf(
                     "flagged" to moderation.flagged,
                     "categories" to moderation.categories.mapValues { (_, v) -> v },
@@ -490,22 +543,24 @@ class ChatMessageFragment : Fragment() {
 
                 val extraData = mapOf("moderation" to moderationData)
 
-                // 4. Send with ChatManager
+                // Send with ChatManager
                 chatManager.sendMessage(
                     studentId = studentId,
                     peerId = peerId,
                     senderId = currentUserId,
                     senderName = currentUserDisplayName,
                     message = text,
-                    extraData = extraData, // <--- PASS MODERATION
+                    extraData = extraData,
                     onSuccess = {
                         if (isAdded) {
                             messageInput.text?.clear()
+                            Log.d("ChatMessage", "✅ Message sent successfully")
                         }
                     },
                     onFailure = { error ->
                         if (isAdded) {
                             Toast.makeText(requireContext(), "Failed to send: $error", Toast.LENGTH_SHORT).show()
+                            Log.e("ChatMessage", "❌ Failed to send message: $error")
                         }
                     }
                 )
@@ -515,8 +570,9 @@ class ChatMessageFragment : Fragment() {
                     "Failed to send message: ${e.message}",
                     Toast.LENGTH_SHORT
                 ).show()
+                Log.e("ChatMessage", "❌ Exception sending message", e)
             } finally {
-                // 6. Re-enable UI
+                // Re-enable UI
                 sendButton.isEnabled = true
                 messageInput.isEnabled = true
             }
@@ -526,6 +582,7 @@ class ChatMessageFragment : Fragment() {
     private fun markMessagesAsRead() {
         if (studentId.isEmpty() || peerId.isEmpty()) return
         chatManager.markMessagesAsRead(studentId, peerId, currentUserId)
+        Log.d("ChatMessage", "✅ Marked messages as read")
     }
 
     private fun endSession() {
@@ -547,13 +604,17 @@ class ChatMessageFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
 
+        Log.d("ChatMessage", "🛑 Fragment destroying")
+
         messageListener?.let { listener ->
             if (studentId.isNotEmpty() && peerId.isNotEmpty()) {
                 chatManager.removeListener(studentId, peerId, listener)
+                Log.d("ChatMessage", "✅ Removed message listener")
             }
         }
 
         messageListener = null
         currentSessionId = null
+        notifiedMessageIds.clear()
     }
 }
