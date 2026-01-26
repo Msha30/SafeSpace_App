@@ -145,8 +145,6 @@ class Home : Fragment() {
                     return@addSnapshotListener
                 }
 
-                android.util.Log.d("Home", "Counseling snapshot size: ${snapshot?.documents?.size}")
-
                 val sessions = snapshot?.documents?.mapNotNull { doc ->
                     val session = doc.toObject(CounselingSession::class.java)
                     session?.copy(id = doc.id)
@@ -178,6 +176,7 @@ class Home : Fragment() {
                         activeCallsMap[submissionId] = callId
                     }
                 }
+                // Notify adapter to refresh the "Join Call" buttons
                 mixedAdapter.notifyDataSetChanged()
             }
     }
@@ -373,7 +372,7 @@ class Home : Fragment() {
 
                 titleText?.text = session.title ?: "Counseling Session"
 
-                // --- FIX: Fetch Counselor Name & PFP ---
+                // Fetch Counselor Name & PFP
                 val counselorId = session.taken_by
                 nameText?.text = "Counselor" // Default
                 pfp_pic.setImageResource(R.drawable.pfp_gco) // Default
@@ -407,25 +406,14 @@ class Home : Fragment() {
                         }
                 }
 
-                // --- FIX: Format Time with Debug Logging ---
+                // Format Time
                 val dateText = tryFormatDateToShort(session.assigned_sched?.date)
                 val start = session.assigned_sched?.start?.toDate()
                 val end = session.assigned_sched?.end?.toDate()
 
-                // Debug logging
-                android.util.Log.d("CounselingVH", "Session ID: ${session.id}")
-                android.util.Log.d("CounselingVH", "Date: ${session.assigned_sched?.date}")
-                android.util.Log.d("CounselingVH", "Start Timestamp: ${session.assigned_sched?.start}")
-                android.util.Log.d("CounselingVH", "End Timestamp: ${session.assigned_sched?.end}")
-                android.util.Log.d("CounselingVH", "Start Date: $start")
-                android.util.Log.d("CounselingVH", "End Date: $end")
-
                 val timeText = if (start != null && end != null) {
-                    val formatted = "${formatTime(start)} - ${formatTime(end)}"
-                    android.util.Log.d("CounselingVH", "Formatted time: $formatted")
-                    formatted
+                    "${formatTime(start)} - ${formatTime(end)}"
                 } else {
-                    android.util.Log.d("CounselingVH", "Start or end is null!")
                     "—"
                 }
 
@@ -438,24 +426,36 @@ class Home : Fragment() {
                 when (session.status) {
                     "in_progress" -> {
                         if (isFaceToFace) {
+                            // Face-to-face in progress: No call button
                             btnCallAction?.text = "In Session"
                             btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
                             btnCallAction?.isEnabled = false
                         } else {
+                            // Video/Audio in progress - check for active call
                             val callId = activeCallsMap[session.id]
                             if (callId != null) {
+                                // Call is active: Join Call
                                 btnCallAction?.text = "Join Call"
                                 btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
                                 btnCallAction?.isEnabled = true
                                 btnCallAction?.setOnClickListener { joinCall(callId, session.id) }
                             } else {
+                                // Call not started yet
                                 btnCallAction?.text = "In Progress"
                                 btnCallAction?.setBackgroundResource(R.drawable.f_rounded_grey)
                                 btnCallAction?.isEnabled = false
+                                btnCallAction?.setOnClickListener {
+                                    Toast.makeText(
+                                        itemView.context,
+                                        "Waiting for counselor to start call...",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }
                     }
                     "assigned", "taken" -> {
+                        // Session scheduled, waiting for counselor to start
                         btnCallAction?.text = "Scheduled"
                         btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
                         btnCallAction?.isEnabled = false
@@ -613,8 +613,8 @@ class Home : Fragment() {
     }
 
     private fun formatTime(date: java.util.Date): String {
+        // Use device's default timezone (which should be Asia/Manila in Philippines)
         val formatter = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
-        // Force Philippines timezone for display
         formatter.timeZone = java.util.TimeZone.getTimeZone("Asia/Manila")
         return formatter.format(date)
     }
