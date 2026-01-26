@@ -487,6 +487,7 @@ class Home2 : Fragment() {
         CANCELLED_BY_ME
     }
 
+    // ------ NotificationAdapter: now loads group pfp from Firestore when needed ------
     inner class NotificationAdapter(private var announcements: List<Announcement>) :
         RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
@@ -509,12 +510,32 @@ class Home2 : Fragment() {
             holder.title.text = announcement.title
             holder.content.text = announcement.description
 
-            when (announcement.represented_by.uppercase()) {
-                "GCO" -> holder.photo.setImageResource(R.drawable.pfp_gco)
-                "PEERS" -> holder.photo.setImageResource(R.drawable.pfp_peers)
-                else -> holder.photo.setImageResource(R.drawable.img_placeholder)
+            // Set default/placeholder first
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+
+            // Handle GCO / PEERS static icons
+            val repr = announcement.represented_by?.trim()
+            if (!repr.isNullOrEmpty()) {
+                val reprUpper = repr.uppercase(Locale.getDefault())
+                when (reprUpper) {
+                    "GCO" -> {
+                        holder.photo.setImageResource(R.drawable.pfp_gco)
+                    }
+                    "PEERS" -> {
+                        holder.photo.setImageResource(R.drawable.pfp_peers)
+                    }
+                    else -> {
+                        // Asynchronous fetch from Firestore using the represented_by value as document id.
+                        // Use tag on the ImageView to avoid incorrect images when ViewHolder is recycled.
+                        holder.photo.tag = repr
+                        fetchGroupPfpAndLoad(repr, holder)
+                    }
+                }
+            } else {
+                holder.photo.setImageResource(R.drawable.img_placeholder)
             }
 
+            // Photo grid logic unchanged
             if (announcement.photo_urls.isNotEmpty()) {
                 holder.photoRow.visibility = View.VISIBLE
                 val photoAdapter = PhotoDisplayAdapter(announcement.photo_urls)
@@ -532,6 +553,37 @@ class Home2 : Fragment() {
             } else {
                 holder.photoRow.visibility = View.GONE
             }
+        }
+
+        private fun fetchGroupPfpAndLoad(groupId: String, holder: NotificationViewHolder) {
+            val db = FirebaseFirestore.getInstance()
+            // set placeholder while loading
+            holder.photo.setImageResource(R.drawable.img_placeholder)
+
+            db.collection("supportgroup").document(groupId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    // ViewHolder may have been recycled: ensure tag still matches this groupId
+                    if (holder.photo.tag != groupId) return@addOnSuccessListener
+
+                    val pfpUrl = snapshot.getString("supportgroup_pfp_URL")
+                    if (pfpUrl.isNullOrBlank()) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    } else {
+                        Glide.with(holder.itemView.context)
+                            .load(pfpUrl)
+                            .placeholder(R.drawable.img_placeholder)
+                            .error(R.drawable.img_placeholder)
+                            .circleCrop()
+                            .into(holder.photo)
+                    }
+                }
+                .addOnFailureListener {
+                    // Only set placeholder if still the same item
+                    if (holder.photo.tag == groupId) {
+                        holder.photo.setImageResource(R.drawable.img_placeholder)
+                    }
+                }
         }
 
         override fun getItemCount() = announcements.size
