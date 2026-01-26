@@ -56,12 +56,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Notification &amp; Sounds"
+                    android:text="All Notifications"
                     android:textColor="@color/black"
                     android:fontFamily="@font/psmedium"
                     android:textSize="@dimen/reg"/>
 
                 <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchAllNotifications"
                     android:layout_width="wrap_content"
                     android:layout_height="25dp"
                     android:thumb="@drawable/thumb_selector"
@@ -105,6 +106,7 @@
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchNewGroupMessages"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
@@ -135,6 +137,7 @@
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchEvents"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
@@ -181,6 +184,7 @@
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchNewMessages"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
@@ -205,42 +209,13 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="New Group Session"
+                        android:text="Announcements"
                         android:textColor="@color/black"
                         android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:thumb="@drawable/thumb_selector"
-                        android:checked="true"
-                        app:track="@drawable/track_selector"
-                        app:thumbTint="@null"
-                        app:trackTint="@null">
-                    </androidx.appcompat.widget.SwitchCompat>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="20dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="GCO Events"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psmedium"
-                        android:textSize="@dimen/reg"/>
-
-                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchAnnouncements"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
@@ -271,6 +246,7 @@
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchCounseling"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
@@ -301,6 +277,7 @@
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchPeerSupport"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
@@ -331,6 +308,7 @@
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchReminder"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"

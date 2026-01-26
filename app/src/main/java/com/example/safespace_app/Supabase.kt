@@ -7,6 +7,7 @@ class SupabaseClass : Application() {
     override fun onCreate() {
         super.onCreate()
         // Initialize Supabase globally
+        NotificationSettingsManager.createNotificationChannel(this)
         SupaClient.init()
         FirebaseDatabase.getInstance().setPersistenceEnabled(true)
     }
