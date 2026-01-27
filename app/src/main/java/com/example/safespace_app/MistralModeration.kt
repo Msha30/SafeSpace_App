@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 object MistralModeration {
 
     private const val BACKEND_URL =
-        "https://safe-space-backend.vercel.app/api/moderate"
+        "https://safe-space-backend.vercel.app/api/moderate.js"
 
     private val client = OkHttpClient.Builder()
         .callTimeout(15, TimeUnit.SECONDS)

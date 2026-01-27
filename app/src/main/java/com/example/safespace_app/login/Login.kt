@@ -169,7 +169,7 @@ class Login : AppCompatActivity() {
                         Log.d("Login", "Got Firebase ID token")
 
                         // Call backend
-                        val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role"
+                        val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role.js"
                         val success = assignRoleOnBackend(backendUrl, idToken)
                         if (!success) {
                             Toast.makeText(this@Login, "Failed to assign role — try again", Toast.LENGTH_LONG).show()

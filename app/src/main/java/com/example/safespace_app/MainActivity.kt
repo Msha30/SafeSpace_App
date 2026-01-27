@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("FirebaseToken", "ID Token: $idToken")
 
                 // Call backend to assign role
-                val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role"
+                val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role.js"
                 val success = assignRoleOnBackend(backendUrl, idToken)
 
                 if (!success) {
