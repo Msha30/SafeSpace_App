@@ -97,6 +97,7 @@ dependencies {
     implementation("com.github.agrawalsuneet:DotLoadersPack-Android:1.4.2")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.6"))
+    implementation("com.google.firebase:firebase-messaging:25.0.1")
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")

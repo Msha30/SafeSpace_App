@@ -12,8 +12,6 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.safespace_app.NotificationPermissionHelper
-import com.example.safespace_app.NotificationSettingsManager
 import com.example.safespace_app.R
 import kotlinx.coroutines.launch
 

@@ -1,4 +1,4 @@
-package com.example.safespace_app
+package com.example.safespace_app.profile
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.safespace_app.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -17,6 +18,11 @@ object NotificationSettingsManager {
     private const val CHANNEL_ID = "safespace_messages"
     private const val CHANNEL_NAME = "Messages"
     private const val TAG = "NotificationSettings"
+
+    // Notification IDs
+    private const val NOTIFICATION_ID_CHAT = 1001
+    private const val NOTIFICATION_ID_GROUP = 1002
+    private const val NOTIFICATION_ID_PAIRING = 1003
 
     data class NotificationSettings(
         val allNotifications: Boolean = true,
@@ -33,7 +39,7 @@ object NotificationSettingsManager {
     private val currentUserId: String?
         get() = FirebaseAuth.getInstance().currentUser?.uid
 
-    // Create notification channel (call this in Application onCreate)
+    // Create notification channel (call this in Application onCreate or MainActivity)
     fun createNotificationChannel(context: Context) {
         Log.d(TAG, "📢 Creating notification channel...")
 
@@ -153,6 +159,7 @@ object NotificationSettingsManager {
             NotificationType.COUNSELING_CONFIRMATION -> settings.counselingSessionConfirmation
             NotificationType.PEER_SUPPORT_CONFIRMATION -> settings.peerSupportSessionConfirmation
             NotificationType.SESSION_REMINDER -> settings.scheduledSessionReminder
+            NotificationType.PAIRING_REQUEST -> settings.newMessages // Use newMessages setting for pairing
         }
 
         Log.d(TAG, "   Type '$type' enabled: $typeEnabled")
@@ -161,28 +168,132 @@ object NotificationSettingsManager {
         return typeEnabled
     }
 
-    // Show message notification
-    suspend fun showMessageNotification(
+    /**
+     * Show notification for 1:1 chat message
+     * Works in both foreground and background
+     */
+    suspend fun showChatNotification(
         context: Context,
         otherUserId: String,
         otherUserName: String,
+        messagePreview: String? = null
     ) {
         Log.d(TAG, "=================================================")
-        Log.d(TAG, "🔔 showMessageNotification() called")
-        Log.d(TAG, "   Context: ${context.javaClass.simpleName}")
+        Log.d(TAG, "💬 showChatNotification() called")
         Log.d(TAG, "   OtherUserId: $otherUserId")
         Log.d(TAG, "   OtherUserName: $otherUserName")
+        Log.d(TAG, "   Preview: $messagePreview")
         Log.d(TAG, "=================================================")
 
         // Check if notifications are enabled
         val enabled = areNotificationsEnabled(context, NotificationType.NEW_MESSAGE)
         if (!enabled) {
-            Log.w(TAG, "⚠️ Notifications disabled - skipping notification")
+            Log.w(TAG, "⚠️ Chat notifications disabled - skipping")
             return
         }
 
-        Log.d(TAG, "✅ Notifications enabled - proceeding to show notification")
+        showNotificationInternal(
+            context = context,
+            notificationId = otherUserId.hashCode(),
+            title = otherUserName,
+            content = messagePreview ?: "New Message",
+            channelId = CHANNEL_ID
+        )
+    }
 
+    /**
+     * Show notification for group chat message
+     * Works in both foreground and background
+     */
+    suspend fun showGroupChatNotification(
+        context: Context,
+        groupId: String,
+        groupName: String,
+        messagePreview: String? = null
+    ) {
+        Log.d(TAG, "=================================================")
+        Log.d(TAG, "👥 showGroupChatNotification() called")
+        Log.d(TAG, "   GroupId: $groupId")
+        Log.d(TAG, "   GroupName: $groupName")
+        Log.d(TAG, "   Preview: $messagePreview")
+        Log.d(TAG, "=================================================")
+
+        // Check if notifications are enabled
+        val enabled = areNotificationsEnabled(context, NotificationType.NEW_GROUP_MESSAGE)
+        if (!enabled) {
+            Log.w(TAG, "⚠️ Group chat notifications disabled - skipping")
+            return
+        }
+
+        showNotificationInternal(
+            context = context,
+            notificationId = groupId.hashCode(),
+            title = groupName,
+            content = messagePreview ?: "New Message",
+            channelId = CHANNEL_ID
+        )
+    }
+
+    /**
+     * Show notification for pairing request (peer side)
+     * Works in both foreground and background
+     */
+    suspend fun showPairingRequestNotification(
+        context: Context,
+        studentName: String,
+        requestId: String
+    ) {
+        Log.d(TAG, "=================================================")
+        Log.d(TAG, "🔔 showPairingRequestNotification() called")
+        Log.d(TAG, "   StudentName: $studentName")
+        Log.d(TAG, "   RequestId: $requestId")
+        Log.d(TAG, "=================================================")
+
+        // Check if notifications are enabled (using NEW_MESSAGE setting)
+        val enabled = areNotificationsEnabled(context, NotificationType.PAIRING_REQUEST)
+        if (!enabled) {
+            Log.w(TAG, "⚠️ Pairing notifications disabled - skipping")
+            return
+        }
+
+        showNotificationInternal(
+            context = context,
+            notificationId = NOTIFICATION_ID_PAIRING,
+            title = "New Pairing Request",
+            content = "$studentName wants to connect with you",
+            channelId = CHANNEL_ID
+        )
+    }
+
+    /**
+     * Generic method to show any notification (DEPRECATED - use specific methods above)
+     */
+    @Deprecated("Use showChatNotification or showGroupChatNotification instead")
+    suspend fun showMessageNotification(
+        context: Context,
+        otherUserId: String,
+        otherUserName: String,
+        type: NotificationType = NotificationType.NEW_MESSAGE
+    ) {
+        when (type) {
+            NotificationType.NEW_MESSAGE -> showChatNotification(context, otherUserId, otherUserName)
+            NotificationType.NEW_GROUP_MESSAGE -> showGroupChatNotification(context, otherUserId, otherUserName)
+            else -> {
+                Log.w(TAG, "⚠️ Unsupported notification type: $type")
+            }
+        }
+    }
+
+    /**
+     * Internal method to actually show the notification
+     */
+    private fun showNotificationInternal(
+        context: Context,
+        notificationId: Int,
+        title: String,
+        content: String,
+        channelId: String
+    ) {
         try {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
 
@@ -193,25 +304,25 @@ object NotificationSettingsManager {
 
             Log.d(TAG, "✅ Got NotificationManager")
 
-            // Create intent (open chat when tapped)
+            // Create intent (open app when tapped)
             val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
-                otherUserId.hashCode(),
+                notificationId,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
             Log.d(TAG, "✅ Created PendingIntent")
 
-            // Build notification (without large icon)
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            // Build notification
+            val notification = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.logo_notif)
-                .setContentTitle(otherUserName)
-                .setContentText("New Message")
+                .setContentTitle(title)
+                .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setAutoCancel(true)
@@ -220,8 +331,6 @@ object NotificationSettingsManager {
                 .build()
 
             Log.d(TAG, "✅ Built notification")
-
-            val notificationId = otherUserId.hashCode()
             Log.d(TAG, "🚀 Showing notification with ID: $notificationId")
 
             notificationManager.notify(notificationId, notification)
@@ -243,6 +352,7 @@ object NotificationSettingsManager {
         ANNOUNCEMENT,
         COUNSELING_CONFIRMATION,
         PEER_SUPPORT_CONFIRMATION,
-        SESSION_REMINDER
+        SESSION_REMINDER,
+        PAIRING_REQUEST
     }
 }

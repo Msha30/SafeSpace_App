@@ -3,7 +3,6 @@ package com.example.safespace_app
 import android.os.Bundle
 import android.view.View
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import android.view.WindowManager
@@ -18,11 +17,19 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GetTokenResult
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
+import com.example.safespace_app.profile.NotificationSettingsManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class MainNavigation : AppCompatActivity() {
     lateinit var presenceManager: PresenceManager
     private lateinit var binding: ActivityMainNavigationBinding
     private lateinit var prefs: SharedPreferences
+    private val activityScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Prevent screenshots and screen recording
@@ -37,6 +44,14 @@ class MainNavigation : AppCompatActivity() {
         setContentView(binding.root)
 
         prefs = getSharedPreferences("user_cache", Context.MODE_PRIVATE)
+
+        // Ensure notification channel exists for message notifications
+        NotificationSettingsManager.createNotificationChannel(this)
+
+        // ============================================
+        // CRITICAL: Refresh FCM token on app start
+        // ============================================
+        refreshFCMToken()
 
         // Refresh token, then init Supabase client
         refreshTokenAndInitSupabase()
@@ -69,6 +84,7 @@ class MainNavigation : AppCompatActivity() {
         // Load user data into cache
         loadUserData()
     }
+
     fun hideBottomNav() {
         binding.navView.visibility = View.GONE
     }
@@ -77,10 +93,55 @@ class MainNavigation : AppCompatActivity() {
         binding.navView.visibility = View.VISIBLE
     }
 
+    /**
+     * Refresh and save FCM token
+     * This ensures the token is always up-to-date in Firestore
+     */
+    private fun refreshFCMToken() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            Log.e("MainNavigation", "Cannot refresh FCM token - no user logged in")
+            return
+        }
+
+        activityScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("FCM", "🔄 Refreshing FCM token...")
+
+                // Get the token
+                val token = FirebaseMessaging.getInstance().token.await()
+
+                Log.d("FCM", "✅ Token received: ${token.take(20)}...")
+
+                // Save to Firestore
+                val db = FirebaseFirestore.getInstance()
+                db.collection("account_details")
+                    .document(uid)
+                    .update("fcmToken", token)
+                    .await()
+
+                Log.d("FCM", "✅✅✅ FCM TOKEN SAVED SUCCESSFULLY! ✅✅✅")
+
+                // Verify
+                val doc = db.collection("account_details").document(uid).get().await()
+                val savedToken = doc.getString("fcmToken")
+
+                if (savedToken == token) {
+                    Log.d("FCM", "✅ VERIFIED: Token matches in Firestore")
+                } else {
+                    Log.e("FCM", "❌ Token mismatch! Saved: ${savedToken?.take(20)}")
+                }
+
+            } catch (e: Exception) {
+                Log.e("FCM", "❌ Failed to refresh FCM token", e)
+            }
+        }
+    }
+
     private fun refreshTokenAndInitSupabase() {
         val currentUser = Firebase.auth.currentUser
         if (currentUser == null) {
-            Log.w("MainNavigation", "No Firebase user signed in — cannot init Supabase")
+            Log.w("MainNavigation", "No Firebase user signed in – cannot init Supabase")
             return
         }
 
@@ -92,10 +153,10 @@ class MainNavigation : AppCompatActivity() {
                 Log.d("MainNavigation", "Firebase ID token claims: $claims")
 
                 if (role == "authenticated") {
-                    // Good — initialize Supabase
+                    // Good – initialize Supabase
                     SupaClient.init()
                 } else {
-                    Log.w("MainNavigation", "User missing 'authenticated' role claim — you may need to assign it on backend")
+                    Log.w("MainNavigation", "User missing 'authenticated' role claim – you may need to assign it on backend")
                     // Optionally handle this case: e.g. show message or redirect
                 }
             }

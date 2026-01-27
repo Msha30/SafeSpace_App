@@ -1,5 +1,6 @@
 package com.example.safespace_app.peers
 
+import com.example.safespace_app.NotificationHelper
 import com.example.safespace_app.UserCache
 import com.example.safespace_app.chat.ChatManager
 import com.google.firebase.database.FirebaseDatabase
@@ -7,7 +8,13 @@ import com.google.firebase.database.ServerValue
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class PairingManager {
 
@@ -17,6 +24,10 @@ class PairingManager {
     private val sessionsRef = rtdb.getReference("sessions")
     private val requestsRef = rtdb.getReference("pairing_requests")
     private val chatManager = ChatManager()
+    private val firestore = FirebaseFirestore.getInstance()
+
+    // Coroutine scope for async operations
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun sendPairingRequest(
         studentUid: String,
@@ -56,6 +67,32 @@ class PairingManager {
         requestsRef.child(requestId).setValue(requestData)
             .addOnSuccessListener {
                 Log.d("PairingManager", "Request sent successfully: $requestId to $peerUid")
+
+                // Send notification to peer via backend
+                scope.launch {
+                    try {
+                        // Get student name from Firestore
+                        val studentDoc = firestore.collection("account_details")
+                            .document(studentUid)
+                            .get()
+                            .await()
+
+                        val studentName = studentDoc.getString("username") ?: "A student"
+
+                        // Send notification
+                        NotificationHelper.sendPairingRequestNotification(
+                            peerUid = peerUid,
+                            studentName = studentName,
+                            requestId = requestId
+                        )
+
+                        Log.d("PairingManager", "✅ Pairing notification sent to peer")
+                    } catch (e: Exception) {
+                        Log.e("PairingManager", "❌ Failed to send pairing notification", e)
+                        // Don't fail the pairing request if notification fails
+                    }
+                }
+
                 onRequestSent(requestId, peerUid)
             }
             .addOnFailureListener { error ->

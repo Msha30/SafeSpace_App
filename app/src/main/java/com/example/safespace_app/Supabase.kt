@@ -1,6 +1,7 @@
 package com.example.safespace_app
 
 import android.app.Application
+import com.example.safespace_app.profile.NotificationSettingsManager
 import com.google.firebase.database.FirebaseDatabase
 
 class SupabaseClass : Application() {

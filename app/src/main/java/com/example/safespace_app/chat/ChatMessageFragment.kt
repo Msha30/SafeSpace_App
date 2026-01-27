@@ -17,7 +17,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safespace_app.ModerationManager
-import com.example.safespace_app.NotificationSettingsManager
 import com.example.safespace_app.R
 import com.example.safespace_app.UserCache
 import com.google.android.material.button.MaterialButton
@@ -25,7 +24,13 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -57,7 +62,8 @@ class ChatMessageFragment : Fragment() {
     private var studentId: String = ""
     private var peerId: String = ""
 
-    // Track which messages we've already shown notifications for
+    // Track which messages we've already shown notifications for (FOREGROUND ONLY)
+    // Background notifications are handled by MyFirebaseMessagingService
     private val notifiedMessageIds = mutableSetOf<String>()
 
     override fun onCreateView(
@@ -459,43 +465,9 @@ class ChatMessageFragment : Fragment() {
             Log.d("ChatMessage", "📩 Received ${messages.size} messages")
 
             if (isAdded) {
-                // First, check for new unread messages BEFORE updating the list
-                messages.forEach { message ->
-                    Log.d("ChatMessage", "   Message: id=${message.messageId}, from=${message.senderId}, read=${message.isRead}, text='${message.message}'")
-
-                    // Only notify if:
-                    // 1. Message is from other user
-                    // 2. Message is unread
-                    // 3. We haven't notified about this message yet
-                    if (message.senderId != currentUserId &&
-                        !message.isRead &&
-                        !notifiedMessageIds.contains(message.messageId)) {
-
-                        Log.d("ChatMessage", "🔔 NEW UNREAD MESSAGE DETECTED!")
-                        Log.d("ChatMessage", "   MessageId: ${message.messageId}")
-                        Log.d("ChatMessage", "   From: ${message.senderId}")
-                        Log.d("ChatMessage", "   Text: '${message.message}'")
-                        Log.d("ChatMessage", "   Will show notification for: $otherUserName")
-
-                        // Mark as notified IMMEDIATELY
-                        notifiedMessageIds.add(message.messageId)
-
-                        // Show notification
-                        lifecycleScope.launch {
-                            try {
-                                Log.d("ChatMessage", "🚀 Calling showMessageNotification...")
-                                NotificationSettingsManager.showMessageNotification(
-                                    requireContext(),
-                                    otherUserId,
-                                    otherUserName,
-                                )
-                                Log.d("ChatMessage", "✅ Notification call completed")
-                            } catch (e: Exception) {
-                                Log.e("ChatMessage", "❌ Exception showing notification", e)
-                            }
-                        }
-                    }
-                }
+                // NOTE: In-app foreground notifications are ONLY shown when chat is OPEN
+                // This is intentional - we don't want to spam notifications while user is actively chatting
+                // Background notifications are handled by MyFirebaseMessagingService
 
                 // Update the adapter
                 adapter.submitList(messages) {
@@ -504,7 +476,7 @@ class ChatMessageFragment : Fragment() {
                     }
                 }
 
-                // Mark messages as read AFTER checking for notifications
+                // Mark messages as read immediately
                 markMessagesAsRead()
             }
         }
@@ -554,6 +526,9 @@ class ChatMessageFragment : Fragment() {
                         if (isAdded) {
                             messageInput.text?.clear()
                             Log.d("ChatMessage", "✅ Message sent successfully")
+
+                            // Send notification to other user via backend
+                            sendNotificationToRecipient(text)
                         }
                     },
                     onFailure = { error ->
@@ -574,6 +549,53 @@ class ChatMessageFragment : Fragment() {
                 // Re-enable UI
                 sendButton.isEnabled = true
                 messageInput.isEnabled = true
+            }
+        }
+    }
+
+    /**
+     * Send notification to recipient via backend (Vercel function)
+     * This triggers FCM notification on the recipient's device
+     */
+    private fun sendNotificationToRecipient(messageText: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val url = "https://safe-space-backend.vercel.app/api/sendChatNotification.js"
+
+                val payload = JSONObject().apply {
+                    put("type", "chat_message")
+                    put("recipientUid", otherUserId)
+                    put("senderUid", currentUserId)
+                    put("senderName", currentUserDisplayName)
+                    put("preview", messageText.take(100))
+                }
+
+                Log.d("ChatMessage", "📤 Sending notification to backend: $payload")
+
+                val client = OkHttpClient()
+                val body = RequestBody.create(
+                    "application/json; charset=utf-8".toMediaType(),
+                    payload.toString()
+                )
+
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    Log.d("ChatMessage", "✅ Notification sent successfully: $responseBody")
+                } else {
+                    Log.e("ChatMessage", "❌ Failed to send notification: ${response.code} ${response.message}")
+                    val errorBody = response.body?.string()
+                    Log.e("ChatMessage", "Error body: $errorBody")
+                }
+
+            } catch (e: Exception) {
+                Log.e("ChatMessage", "❌ Exception sending notification", e)
             }
         }
     }

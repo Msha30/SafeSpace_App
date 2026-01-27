@@ -10,6 +10,8 @@ import android.Manifest
 import android.os.Build
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import com.example.safespace_app.profile.NotificationPermissionHelper
+import com.example.safespace_app.profile.NotificationSettingsManager
 import com.google.android.material.snackbar.Snackbar
 
 class Start : AppCompatActivity() {

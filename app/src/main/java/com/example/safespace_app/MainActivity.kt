@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                 val success = assignRoleOnBackend(backendUrl, idToken)
 
                 if (!success) {
-                    Toast.makeText(this@MainActivity, "Failed to assign role — try again", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, "Failed to assign role – try again", Toast.LENGTH_LONG).show()
                     startActivity(Intent(this@MainActivity, Start::class.java))
                     finish()
                     return@launch
@@ -69,6 +70,11 @@ class MainActivity : AppCompatActivity() {
 
                 // Force refresh token so claims are updated
                 currentUser.getIdToken(true).await()
+
+                // ============================================
+                // CRITICAL: Request and save FCM token
+                // ============================================
+                requestAndSaveFCMToken(uid)
 
                 // Load user data from Firestore
                 val db = FirebaseFirestore.getInstance()
@@ -87,6 +93,48 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Navigation failed: ${e.message}", Toast.LENGTH_LONG).show()
                 startActivity(Intent(this@MainActivity, Start::class.java))
                 finish()
+            }
+        }
+    }
+
+    /**
+     * Request FCM token and save it to Firestore
+     * This is CRITICAL for notifications to work
+     */
+    private fun requestAndSaveFCMToken(uid: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                Log.d("FCM", "🔄 Requesting FCM token for user: $uid")
+
+                // Request the token
+                val token = FirebaseMessaging.getInstance().token.await()
+
+                Log.d("FCM", "✅ FCM Token received: ${token.take(20)}...")
+
+                // Save to Firestore
+                val db = FirebaseFirestore.getInstance()
+                db.collection("account_details")
+                    .document(uid)
+                    .update("fcmToken", token)
+                    .await()
+
+                Log.d("FCM", "✅✅✅ FCM token SAVED to Firestore! ✅✅✅")
+
+                // Verify it was saved
+                val doc = db.collection("account_details").document(uid).get().await()
+                val savedToken = doc.getString("fcmToken")
+
+                if (savedToken == token) {
+                    Log.d("FCM", "✅ VERIFIED: Token is saved correctly in Firestore")
+                } else {
+                    Log.e("FCM", "❌ WARNING: Token in Firestore doesn't match!")
+                }
+
+            } catch (e: Exception) {
+                Log.e("FCM", "❌ Failed to save FCM token", e)
+
+                // Don't fail the login - just log the error
+                // Notifications won't work but user can still use the app
             }
         }
     }

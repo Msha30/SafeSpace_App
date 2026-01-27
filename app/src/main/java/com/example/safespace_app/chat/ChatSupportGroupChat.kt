@@ -20,7 +20,14 @@ import com.example.safespace_app.R
 import com.example.safespace_app.ModerationManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONObject
 
 class ChatSupportGroupChat : Fragment() {
 
@@ -43,12 +50,16 @@ class ChatSupportGroupChat : Fragment() {
 
     private var groupchatId: String? = null
     private var groupId: String? = null
+    private var groupName: String = "Group Chat"
 
     private val viewModel: ChatViewModel by viewModels()
 
     // For pagination
     private var firstVisibleMessage: GroupChatMessage? = null
     private var isLoadingOlderMessages = false
+
+    // Track notifications (foreground only - background handled by FCM service)
+    private val notifiedMessageIds = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +88,6 @@ class ChatSupportGroupChat : Fragment() {
         }
         recyclerView.adapter = adapter
 
-        // NO MORE typing warnings - only moderate on send
         sendBtn.setOnClickListener { sendMessage() }
         backBtn.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -122,7 +132,8 @@ class ChatSupportGroupChat : Fragment() {
             .addOnSuccessListener { doc ->
                 val groupchats = doc.get("groupchats") as? List<Map<String, Any>> ?: emptyList()
                 val chat = groupchats.firstOrNull { it["groupchatId"] == groupchatId }
-                headerName.text = chat?.get("name") as? String ?: "Group Chat"
+                groupName = chat?.get("name") as? String ?: "Group Chat"
+                headerName.text = groupName
             }
     }
 
@@ -181,6 +192,10 @@ class ChatSupportGroupChat : Fragment() {
                 .map { toMessage(it.document) }
 
             viewModel.addMessages(newMessages)
+
+            // NOTE: Foreground notifications in group chat are DISABLED while chat is open
+            // This is intentional - users don't need notifications while actively viewing the chat
+            // Background notifications are handled by MyFirebaseMessagingService
         }
     }
 
@@ -243,6 +258,9 @@ class ChatSupportGroupChat : Fragment() {
                 // Always send the message with moderation data
                 sendMessageWithModeration(coll, text, moderation)
 
+                // Send notification to group members via backend
+                sendGroupNotification(text)
+
                 // Clear input on success
                 inputField.setText("")
 
@@ -293,9 +311,69 @@ class ChatSupportGroupChat : Fragment() {
             }
     }
 
+    /**
+     * Send notification to all group members via backend (Vercel function)
+     * This triggers FCM notifications on all members' devices (except sender)
+     */
+    private fun sendGroupNotification(messageText: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val userDoc = db.collection("account_details").document(currentUserId).get().await()
+                val senderName = when (userDoc.getString("userType")) {
+                    "student" -> userDoc.getString("username") ?: "Someone"
+                    "peer" -> {
+                        val fname = userDoc.getString("fname") ?: ""
+                        val lname = userDoc.getString("lname") ?: ""
+                        "$fname $lname".trim().ifEmpty { "Someone" }
+                    }
+                    else -> "Someone"
+                }
+
+                val url = "https://safe-space-backend.vercel.app/api/sendChatNotification.js"
+
+                val payload = JSONObject().apply {
+                    put("type", "group_message")
+                    put("groupId", groupId ?: "")
+                    put("groupName", groupName)
+                    put("senderUid", currentUserId)
+                    put("senderName", senderName)
+                    put("preview", "$senderName: ${messageText.take(50)}")
+                }
+
+                android.util.Log.d("GroupChat", "📤 Sending group notification to backend: $payload")
+
+                val client = OkHttpClient()
+                val body = RequestBody.create(
+                    "application/json; charset=utf-8".toMediaType(),
+                    payload.toString()
+                )
+
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    android.util.Log.d("GroupChat", "✅ Group notification sent: $responseBody")
+                } else {
+                    android.util.Log.e("GroupChat", "❌ Failed: ${response.code} ${response.message}")
+                    val errorBody = response.body?.string()
+                    android.util.Log.e("GroupChat", "Error body: $errorBody")
+                }
+
+            } catch (e: Exception) {
+                android.util.Log.e("GroupChat", "❌ Failed to send group notification", e)
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         listener?.remove()
         listener = null
+        notifiedMessageIds.clear()
     }
 }
