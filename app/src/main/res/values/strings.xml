@@ -15,11 +15,9 @@
     <string name="timerange2">0:00 AM to 0:00 AM</string>
 
     <string name="forgotverify">
-        Please check your inbox and enter the\n
-        verification code below to verify your\n
-        student email address.\n
-        \n
-        The code will expire in 5 minutes
+        Please check your inbox and click the\n
+        verification link to verify your\n
+        student email address.
     </string>
 
     <string name="cancel">

@@ -2,104 +2,61 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/main_background"
     android:scaleType="centerCrop">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/titleVerify"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/emailverify"
-        android:textColor="@color/white"
-        android:fontFamily="@font/psbold"
-        android:textSize="@dimen/giant"
-        android:textAlignment="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="50dp"
-        app:layout_constraintBottom_toTopOf="@+id/box"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- Container Card -->
-    <LinearLayout
-        android:id="@+id/box"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:gravity="center"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
         android:padding="30dp"
-        android:background="@drawable/f_rounded_start"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="1"
-        app:layout_constraintDimensionRatio="1:1.4">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginBottom="150dp">
 
-        <!-- Instruction -->
-        <TextView
-            android:id="@+id/instructionText"
+        <com.agrawalsuneet.dotsloader.loaders.AllianceLoader
+            android:id="@+id/allianceLoader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="A verification link has been sent to "
-            android:textColor="@color/black"
-            android:fontFamily="@font/ps"
-            android:textSize="@dimen/mid"
-            android:gravity="center"
-            android:layout_marginBottom="8dp"/>
+            app:alliance_distanceMultiplier="3"
+            app:alliance_dotsRadius="25dp"
+            app:alliance_drawOnlyStroke="true"
+            app:alliance_firstDotsColor="@color/white"
+            app:alliance_secondDotsColor="#7EB1EB"
+            app:alliance_strokeWidth="13dp"
+            app:alliance_thirdDotsColor="#3f8ed3" />
 
-        <!-- User Email -->
+        <TextView
+            android:id="@+id/titleVerify"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:fontFamily="@font/psbold"
+            android:text="Verifying your email..."
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="@dimen/big"/>
+
         <TextView
             android:id="@+id/email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/email"
-            android:textColor="@color/black"
-            android:fontFamily="@font/psbold"
-            android:textSize="@dimen/mid"
-            android:gravity="center"
+            android:layout_marginTop="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:linksClickable="true"
-            android:layout_marginBottom="15dp"/>
-
-        <!-- Extra instruction / info -->
-        <TextView
-            android:id="@+id/Terms"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/forgotverify"
-            android:textColor="@color/black"
             android:fontFamily="@font/ps"
-            android:textSize="@dimen/mid"
             android:gravity="center"
-            android:layout_marginBottom="35dp"/>
-
-        <!-- Verify Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:text="Verify"
+            android:linksClickable="true"
+            android:text="@string/email"
             android:textColor="@color/white"
-            android:textSize="@dimen/reg"
-            android:fontFamily="@font/psbold"
-            app:backgroundTint="@null"
-            android:background="@drawable/f_rounded_blue"
-            android:layout_marginBottom="10dp"/>
+            android:textSize="@dimen/mid"/>
 
-        <!-- Resend Link Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/resendcode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Resend Code"
-            android:textColor="@color/midblue"
-            android:textSize="@dimen/small"
-            android:fontFamily="@font/psbold"
-            android:background="@drawable/f_transparent"/>
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
