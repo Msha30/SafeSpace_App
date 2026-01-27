@@ -488,7 +488,6 @@ class ChatMessageFragment : Fragment() {
                                     requireContext(),
                                     otherUserId,
                                     otherUserName,
-                                    otherUserPhotoUrl
                                 )
                                 Log.d("ChatMessage", "✅ Notification call completed")
                             } catch (e: Exception) {
