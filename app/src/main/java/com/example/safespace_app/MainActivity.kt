@@ -70,23 +70,41 @@ class MainActivity : AppCompatActivity() {
 
                 // Force refresh token so claims are updated
                 currentUser.getIdToken(true).await()
-
+                val db = FirebaseFirestore.getInstance()
                 // ============================================
                 // CRITICAL: Request and save FCM token
                 // ============================================
                 requestAndSaveFCMToken(uid)
 
                 // Load user data from Firestore
-                val db = FirebaseFirestore.getInstance()
                 val doc = db.collection("account_details").document(uid).get().await()
-                if (doc.exists()) {
-                    val userType = doc.getString("userType") ?: "student"
-                    navigateUserFromType(userType)
-                } else {
-                    // No account details, fallback to Start
+                if (!doc.exists()) {
                     startActivity(Intent(this@MainActivity, Start::class.java))
                     finish()
+                    return@launch
                 }
+
+                val userType = doc.getString("userType") ?: "student"
+
+                // 🔐 PEER VERIFICATION GATE
+                if (userType == "peer") {
+                    val isVerified = doc.getString("isVerified") ?: "pending"
+
+                    if (isVerified.lowercase() != "verified") {
+                        FirebaseAuth.getInstance().signOut()
+
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Your GCO account is still pending verification.",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        startActivity(Intent(this@MainActivity, Start::class.java))
+                        finish()
+                        return@launch
+                    }
+                }
+                navigateUserFromType(userType)
 
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -47,8 +47,11 @@ class Login : AppCompatActivity() {
                 .get()
                 .addOnSuccessListener { doc ->
                     if (doc.exists()) {
-                        val userType = doc.getString("userType") ?: "student"
-                        navigateUserFromType(userType)
+                        handlePostLogin(doc)
+                    } else {
+                        sendCachedUserDataIfExists { cachedUserType ->
+                            navigateUserFromType(cachedUserType)
+                        }
                     }
                 }
                 .addOnFailureListener {
@@ -57,6 +60,26 @@ class Login : AppCompatActivity() {
         } else {
             FirebaseAuth.getInstance().signOut()
         }
+    }
+    private fun handlePostLogin(doc: com.google.firebase.firestore.DocumentSnapshot) {
+        val userType = doc.getString("userType") ?: return
+
+        if (userType.lowercase() == "peer") {
+            val isVerified = doc.getString("isVerified") ?: "pending"
+
+            if (isVerified.lowercase() != "verified") {
+                FirebaseAuth.getInstance().signOut()
+                Toast.makeText(
+                    this,
+                    "Pending GCO verification. Please wait for approval.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+        }
+
+        // Passed checks → proceed
+        navigateUserFromType(userType)
     }
 
     private fun sendCachedUserDataIfExists(onSuccess: (String) -> Unit) {
