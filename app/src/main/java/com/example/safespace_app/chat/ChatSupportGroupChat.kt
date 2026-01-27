@@ -337,7 +337,6 @@ class ChatSupportGroupChat : Fragment() {
                     put("groupName", groupName)
                     put("senderUid", currentUserId)
                     put("senderName", senderName)
-                    put("preview", "$senderName: ${messageText.take(50)}")
                 }
 
                 android.util.Log.d("GroupChat", "📤 Sending group notification to backend: $payload")

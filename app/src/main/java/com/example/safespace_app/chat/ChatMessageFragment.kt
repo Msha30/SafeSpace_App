@@ -567,7 +567,6 @@ class ChatMessageFragment : Fragment() {
                     put("recipientUid", otherUserId)
                     put("senderUid", currentUserId)
                     put("senderName", currentUserDisplayName)
-                    put("preview", messageText.take(100))
                 }
 
                 Log.d("ChatMessage", "📤 Sending notification to backend: $payload")
