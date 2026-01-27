@@ -166,14 +166,12 @@ object NotificationSettingsManager {
         context: Context,
         otherUserId: String,
         otherUserName: String,
-        otherUserPhotoUrl: String
     ) {
         Log.d(TAG, "=================================================")
         Log.d(TAG, "🔔 showMessageNotification() called")
         Log.d(TAG, "   Context: ${context.javaClass.simpleName}")
         Log.d(TAG, "   OtherUserId: $otherUserId")
         Log.d(TAG, "   OtherUserName: $otherUserName")
-        Log.d(TAG, "   OtherUserPhotoUrl: $otherUserPhotoUrl")
         Log.d(TAG, "=================================================")
 
         // Check if notifications are enabled
