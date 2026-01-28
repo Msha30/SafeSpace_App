@@ -418,6 +418,7 @@ class Home : Fragment() {
             private val btnCallAction: MaterialButton? = view.findViewById(R.id.btnCallAction)
             private val titleText: TextView? = view.findViewById(R.id.titleText)
             private val nameText: TextView? = view.findViewById(R.id.nameText)
+            private val topBar: View = view.findViewById(R.id.top)
 
             fun bind(session: CounselingSession) {
                 val params = itemView.layoutParams
@@ -481,8 +482,9 @@ class Home : Fragment() {
                     "in_progress" -> {
                         if (isFaceToFace) {
                             // Face-to-face in progress: No call button
-                            btnCallAction?.text = "In Session"
+                            btnCallAction?.text = "Now"
                             btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
+                            topBar.backgroundTintList = resources.getColorStateList(R.color.green, null)
                             btnCallAction?.isEnabled = false
                         } else {
                             // Video/Audio in progress - check for active call
@@ -491,12 +493,14 @@ class Home : Fragment() {
                                 // Call is active: Join Call
                                 btnCallAction?.text = "Join Call"
                                 btnCallAction?.setBackgroundResource(R.drawable.f_rounded_green)
+                                topBar.backgroundTintList = resources.getColorStateList(R.color.green, null)
                                 btnCallAction?.isEnabled = true
                                 btnCallAction?.setOnClickListener { joinCall(callId, session.id) }
                             } else {
                                 // Call not started yet
                                 btnCallAction?.text = "In Progress"
                                 btnCallAction?.setBackgroundResource(R.drawable.f_rounded_grey)
+                                topBar.backgroundTintList = resources.getColorStateList(R.color.textgrey, null)
                                 btnCallAction?.isEnabled = false
                                 btnCallAction?.setOnClickListener {
                                     Toast.makeText(
@@ -512,11 +516,13 @@ class Home : Fragment() {
                         // Session scheduled, waiting for counselor to start
                         btnCallAction?.text = "Scheduled"
                         btnCallAction?.setBackgroundResource(R.drawable.f_rounded_blue)
+                        topBar.backgroundTintList = resources.getColorStateList(R.color.midblue, null)
                         btnCallAction?.isEnabled = false
                     }
                     else -> {
                         btnCallAction?.text = "Pending"
                         btnCallAction?.setBackgroundResource(R.drawable.f_rounded_grey)
+                        topBar.backgroundTintList = resources.getColorStateList(R.color.textgrey, null)
                         btnCallAction?.isEnabled = false
                     }
                 }
