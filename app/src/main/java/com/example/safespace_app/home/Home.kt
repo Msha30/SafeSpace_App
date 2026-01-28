@@ -428,7 +428,7 @@ class Home : Fragment() {
 
                 // Fetch Counselor Name & PFP
                 val counselorId = session.taken_by
-                nameText?.text = "Counselor" // Default
+                nameText?.text = "NUFV Guidance and Counseling Office" // Default
                 pfp_pic.setImageResource(R.drawable.pfp_gco) // Default
 
                 if (!counselorId.isNullOrBlank()) {

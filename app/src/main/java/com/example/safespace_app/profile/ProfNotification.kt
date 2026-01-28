@@ -35,15 +35,6 @@ class ProfNotification : Fragment() {
         isLoadingSettings = true
         allNotificationsSwitch.isChecked = isGranted
         isLoadingSettings = false
-
-        if (isGranted) {
-            setAllSwitchesEnabled(true)
-            saveSettings()
-        } else {
-            setAllSwitchesEnabled(false)
-            updateAllSwitches(false)
-            saveSettings()
-        }
     }
 
     override fun onCreateView(
@@ -71,14 +62,11 @@ class ProfNotification : Fragment() {
         isLoadingSettings = true
         val systemPermissionGranted = NotificationPermissionHelper.isNotificationPermissionGranted(requireContext())
         allNotificationsSwitch.isChecked = systemPermissionGranted
-        setAllSwitchesEnabled(systemPermissionGranted)
         isLoadingSettings = false
     }
 
     private fun initializeSwitches(view: View) {
         allNotificationsSwitch = view.findViewById(R.id.switchAllNotifications)
-        newMessagesSwitch = view.findViewById(R.id.switchNewMessages)
-        newGroupMessagesSwitch = view.findViewById(R.id.switchNewGroupMessages)
     }
 
     private fun setupSwitchListeners() {
@@ -102,15 +90,10 @@ class ProfNotification : Fragment() {
                     }
                 }
 
-                // Permission granted, enable switches
-                setAllSwitchesEnabled(true)
             } else {
                 // User wants to disable - open system settings
                 NotificationPermissionHelper.openAppSettings(requireContext())
 
-                // Disable all switches in our app
-                setAllSwitchesEnabled(false)
-                updateAllSwitches(false)
             }
 
             saveSettings()
@@ -138,14 +121,9 @@ class ProfNotification : Fragment() {
             // If system permission denied, override all settings
             if (!systemPermissionGranted) {
                 allNotificationsSwitch.isChecked = false
-                updateAllSwitches(false)
-                setAllSwitchesEnabled(false)
             } else {
                 allNotificationsSwitch.isChecked = settings.allNotifications
-                newMessagesSwitch.isChecked = settings.newMessages
-                newGroupMessagesSwitch.isChecked = settings.newGroupMessages
 
-                setAllSwitchesEnabled(settings.allNotifications)
             }
 
             isLoadingSettings = false
@@ -156,21 +134,9 @@ class ProfNotification : Fragment() {
         lifecycleScope.launch {
             val settings = NotificationSettingsManager.NotificationSettings(
                 allNotifications = allNotificationsSwitch.isChecked,
-                newMessages = newMessagesSwitch.isChecked,
-                newGroupMessages = newGroupMessagesSwitch.isChecked,
             )
 
             NotificationSettingsManager.saveSettings(settings)
         }
-    }
-
-    private fun setAllSwitchesEnabled(enabled: Boolean) {
-        newMessagesSwitch.isEnabled = enabled
-        newGroupMessagesSwitch.isEnabled = enabled
-    }
-
-    private fun updateAllSwitches(checked: Boolean) {
-        newMessagesSwitch.isChecked = checked
-        newGroupMessagesSwitch.isChecked = checked
     }
 }
