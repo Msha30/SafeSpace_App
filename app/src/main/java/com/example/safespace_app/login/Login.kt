@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import okhttp3.MediaType.Companion.toMediaType
@@ -120,9 +121,11 @@ class Login : AppCompatActivity() {
             "peer" -> {
                 data["fname"] = prefs.getString("fname", "") ?: ""
                 data["lname"] = prefs.getString("lname", "") ?: ""
-                data["username"] = prefs.getString("username", "") ?: ""
+                data["program"] = prefs.getString("program", "") ?: ""
+                data["year_lvl"] = prefs.getString("year_lvl", "") ?: ""
+                data["studentId"] = prefs.getString("studentId", "") ?: ""
 
-                Log.d("Login", "Uploading PEER cached data: fname=${data["fname"]}, lname=${data["lname"]}, username=${data["username"]}")
+                Log.d("Login", "Uploading PEER cached data: fname=${data["fname"]}, lname=${data["lname"]}")
             }
         }
 
@@ -187,21 +190,43 @@ class Login : AppCompatActivity() {
                 // Call backend to assign role & refresh token
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        val idTokenResult = user.getIdToken(false).await()
-                        val idToken = idTokenResult.token ?: throw Exception("Failed to get ID token")
-                        Log.d("Login", "Got Firebase ID token")
+                        // **Check if user already has claims**
+                        val initialToken = user.getIdToken(false).await()
+                        val hasClaims = initialToken.claims.containsKey("authenticated") ||
+                                initialToken.claims.containsKey("role")
 
-                        // Call backend
-                        val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role.js"
-                        val success = assignRoleOnBackend(backendUrl, idToken)
-                        if (!success) {
-                            Toast.makeText(this@Login, "Failed to assign role — try again", Toast.LENGTH_LONG).show()
-                            return@launch
+                        Log.d("Login", "Initial claims check: hasClaims=$hasClaims")
+
+                        if (!hasClaims) {
+                            Log.d("Login", "No claims found, calling backend to assign role...")
+
+                            val idToken = initialToken.token ?: throw Exception("Failed to get ID token")
+
+                            // Call backend
+                            val backendUrl = "https://safe-space-backend.vercel.app/api/assign-role.js"
+                            val success = assignRoleOnBackend(backendUrl, idToken)
+
+                            if (!success) {
+                                Log.e("Login", "❌ Backend call failed")
+                                Toast.makeText(this@Login, "Failed to assign role — try again", Toast.LENGTH_LONG).show()
+                                return@launch
+                            }
+
+                            Log.d("Login", "✅ Backend call successful, waiting for claims to propagate...")
+
+                            // **Wait for claims to actually be available in the token**
+                            val hasValidClaims = waitForValidClaims(user, maxRetries = 8)
+
+                            if (!hasValidClaims) {
+                                Log.e("Login", "❌ Claims not available after retries")
+                                Toast.makeText(this@Login, "Login taking longer than expected. Please try again.", Toast.LENGTH_LONG).show()
+                                return@launch
+                            }
+
+                            Log.d("Login", "✅ Valid claims confirmed, proceeding to navigate")
+                        } else {
+                            Log.d("Login", "✅ User already has valid claims, proceeding...")
                         }
-
-                        // Force refresh so claims are updated
-                        user.getIdToken(true).await()
-                        Log.d("Login", "Token refreshed with new claims")
 
                         // Load user data and navigate
                         val uid = user.uid
@@ -223,6 +248,7 @@ class Login : AppCompatActivity() {
                             }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        Log.e("Login", "❌ Login flow exception: ${e.message}")
                         Toast.makeText(this@Login, "Login flow failed: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
@@ -232,9 +258,45 @@ class Login : AppCompatActivity() {
             }
     }
 
+    // **NEW: Wait for claims to actually appear in the token**
+    private suspend fun waitForValidClaims(
+        user: com.google.firebase.auth.FirebaseUser,
+        maxRetries: Int = 8
+    ): Boolean {
+        repeat(maxRetries) { attempt ->
+            try {
+                Log.d("Login", "Checking for claims (attempt ${attempt + 1}/$maxRetries)...")
+
+                // Wait before checking (give backend time to process)
+                delay(1500) // 1.5 seconds between checks
+
+                // Force refresh the token
+                val tokenResult = user.getIdToken(true).await()
+                val claims = tokenResult.claims
+
+                Log.d("Login", "Current claims: ${claims.keys}")
+
+                // Check if claims exist
+                if (claims.containsKey("authenticated") || claims.containsKey("role")) {
+                    Log.d("Login", "✅ Claims found! authenticated=${claims["authenticated"]}, role=${claims["role"]}")
+                    return true
+                }
+
+                Log.d("Login", "Claims not yet available, will retry...")
+
+            } catch (e: Exception) {
+                Log.e("Login", "Error checking claims on attempt ${attempt + 1}: ${e.message}")
+            }
+        }
+
+        Log.e("Login", "❌ Claims not available after $maxRetries attempts (${maxRetries * 1.5}s)")
+        return false
+    }
+
     private suspend fun assignRoleOnBackend(backendUrl: String, idToken: String): Boolean {
         return kotlinx.coroutines.withContext(Dispatchers.IO) {
             try {
+                Log.d("Login", "Calling backend: $backendUrl")
                 val client = OkHttpClient()
                 val json = """{"idToken":"$idToken"}"""
                 val body = json.toRequestBody("application/json; charset=utf-8".toMediaType())
@@ -244,8 +306,12 @@ class Login : AppCompatActivity() {
                     .header("Authorization", "Bearer $idToken")
                     .build()
                 val res = client.newCall(req).execute()
+                val responseBody = res.body?.string()
+                Log.d("Login", "Backend response code: ${res.code}")
+                Log.d("Login", "Backend response body: $responseBody")
                 res.isSuccessful
             } catch (e: Exception) {
+                Log.e("Login", "Backend call exception: ${e.message}")
                 e.printStackTrace()
                 false
             }
