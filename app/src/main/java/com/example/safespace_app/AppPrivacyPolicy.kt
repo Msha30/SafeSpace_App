@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.ProgressBar
+import androidx.core.text.HtmlCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -77,7 +78,15 @@ class AppPrivacyPolicy : Fragment() {
                 if (snapshot != null && snapshot.exists()) {
                     // Get content from Firestore
                     val content = snapshot.getString("content")
-                    contentTextView.text = content ?: "No content available."
+                    if (content != null) {
+                        // Parse HTML content to preserve formatting
+                        contentTextView.text = HtmlCompat.fromHtml(
+                            content,
+                            HtmlCompat.FROM_HTML_MODE_COMPACT
+                        )
+                    } else {
+                        contentTextView.text = "No content available."
+                    }
                 } else {
                     contentTextView.text = "Privacy policy not found."
                 }

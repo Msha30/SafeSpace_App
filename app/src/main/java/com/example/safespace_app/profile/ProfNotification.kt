@@ -79,11 +79,6 @@ class ProfNotification : Fragment() {
         allNotificationsSwitch = view.findViewById(R.id.switchAllNotifications)
         newMessagesSwitch = view.findViewById(R.id.switchNewMessages)
         newGroupMessagesSwitch = view.findViewById(R.id.switchNewGroupMessages)
-        eventsSwitch = view.findViewById(R.id.switchEvents)
-        announcementsSwitch = view.findViewById(R.id.switchAnnouncements)
-        counselingSwitch = view.findViewById(R.id.switchCounseling)
-        peerSupportSwitch = view.findViewById(R.id.switchPeerSupport)
-        reminderSwitch = view.findViewById(R.id.switchReminder)
     }
 
     private fun setupSwitchListeners() {
@@ -129,26 +124,6 @@ class ProfNotification : Fragment() {
         newGroupMessagesSwitch.setOnCheckedChangeListener { _, _ ->
             if (!isLoadingSettings) saveSettings()
         }
-
-        eventsSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
-        }
-
-        announcementsSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
-        }
-
-        counselingSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
-        }
-
-        peerSupportSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
-        }
-
-        reminderSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
-        }
     }
 
     private fun loadSettings() {
@@ -169,11 +144,6 @@ class ProfNotification : Fragment() {
                 allNotificationsSwitch.isChecked = settings.allNotifications
                 newMessagesSwitch.isChecked = settings.newMessages
                 newGroupMessagesSwitch.isChecked = settings.newGroupMessages
-                eventsSwitch.isChecked = settings.events
-                announcementsSwitch.isChecked = settings.announcements
-                counselingSwitch.isChecked = settings.counselingSessionConfirmation
-                peerSupportSwitch.isChecked = settings.peerSupportSessionConfirmation
-                reminderSwitch.isChecked = settings.scheduledSessionReminder
 
                 setAllSwitchesEnabled(settings.allNotifications)
             }
@@ -188,11 +158,6 @@ class ProfNotification : Fragment() {
                 allNotifications = allNotificationsSwitch.isChecked,
                 newMessages = newMessagesSwitch.isChecked,
                 newGroupMessages = newGroupMessagesSwitch.isChecked,
-                events = eventsSwitch.isChecked,
-                announcements = announcementsSwitch.isChecked,
-                counselingSessionConfirmation = counselingSwitch.isChecked,
-                peerSupportSessionConfirmation = peerSupportSwitch.isChecked,
-                scheduledSessionReminder = reminderSwitch.isChecked
             )
 
             NotificationSettingsManager.saveSettings(settings)
@@ -202,20 +167,10 @@ class ProfNotification : Fragment() {
     private fun setAllSwitchesEnabled(enabled: Boolean) {
         newMessagesSwitch.isEnabled = enabled
         newGroupMessagesSwitch.isEnabled = enabled
-        eventsSwitch.isEnabled = enabled
-        announcementsSwitch.isEnabled = enabled
-        counselingSwitch.isEnabled = enabled
-        peerSupportSwitch.isEnabled = enabled
-        reminderSwitch.isEnabled = enabled
     }
 
     private fun updateAllSwitches(checked: Boolean) {
         newMessagesSwitch.isChecked = checked
         newGroupMessagesSwitch.isChecked = checked
-        eventsSwitch.isChecked = checked
-        announcementsSwitch.isChecked = checked
-        counselingSwitch.isChecked = checked
-        peerSupportSwitch.isChecked = checked
-        reminderSwitch.isChecked = checked
     }
 }

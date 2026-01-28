@@ -77,84 +77,6 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Support Group"
-                android:fontFamily="@font/psbold"
-                android:textSize="@dimen/small"
-                android:textColor="@color/textgrey"
-                android:layout_marginTop="25dp"
-                android:layout_marginBottom="10dp"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/f_rounded_white"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_margin="20dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="New Group Messages"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psmedium"
-                        android:textSize="@dimen/reg"/>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchNewGroupMessages"
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:thumb="@drawable/thumb_selector"
-                        android:checked="true"
-                        app:track="@drawable/track_selector"
-                        app:thumbTint="@null"
-                        app:trackTint="@null">
-                    </androidx.appcompat.widget.SwitchCompat>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="20dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Events"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psmedium"
-                        android:textSize="@dimen/reg"/>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchEvents"
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:thumb="@drawable/thumb_selector"
-                        android:checked="true"
-                        app:track="@drawable/track_selector"
-                        app:thumbTint="@null"
-                        app:trackTint="@null">
-                    </androidx.appcompat.widget.SwitchCompat>
-
-                </LinearLayout>
-
-
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:text="Notification"
                 android:fontFamily="@font/psbold"
                 android:textSize="@dimen/small"
@@ -209,106 +131,13 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Announcements"
+                        android:text="New Support Group Messages"
                         android:textColor="@color/black"
                         android:fontFamily="@font/psmedium"
                         android:textSize="@dimen/reg"/>
 
                     <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchAnnouncements"
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:thumb="@drawable/thumb_selector"
-                        android:checked="true"
-                        app:track="@drawable/track_selector"
-                        app:thumbTint="@null"
-                        app:trackTint="@null">
-                    </androidx.appcompat.widget.SwitchCompat>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="20dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Counseling Session Confirmation"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psmedium"
-                        android:textSize="@dimen/reg"/>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchCounseling"
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:thumb="@drawable/thumb_selector"
-                        android:checked="true"
-                        app:track="@drawable/track_selector"
-                        app:thumbTint="@null"
-                        app:trackTint="@null">
-                    </androidx.appcompat.widget.SwitchCompat>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="20dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Peer Support Session Confirmation"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psmedium"
-                        android:textSize="@dimen/reg"/>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchPeerSupport"
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:thumb="@drawable/thumb_selector"
-                        android:checked="true"
-                        app:track="@drawable/track_selector"
-                        app:thumbTint="@null"
-                        app:trackTint="@null">
-                    </androidx.appcompat.widget.SwitchCompat>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="20dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Scheduled Session Reminder"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/psmedium"
-                        android:textSize="@dimen/reg"/>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchReminder"
+                        android:id="@+id/switchNewGroupMessages"
                         android:layout_width="wrap_content"
                         android:layout_height="25dp"
                         android:thumb="@drawable/thumb_selector"
