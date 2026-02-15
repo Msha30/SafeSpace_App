@@ -20,6 +20,8 @@ class CallActivity : AppCompatActivity() {
     private lateinit var localView: SurfaceViewRenderer
     private lateinit var remoteView: SurfaceViewRenderer
     private lateinit var hangupBtn: Button
+    private lateinit var muteBtn: Button
+    private lateinit var cameraBtn: Button
     private lateinit var statusText: TextView
     private lateinit var callTypeText: TextView
 
@@ -40,6 +42,10 @@ class CallActivity : AppCompatActivity() {
 
     private var isCallEnded = false // Prevents double cleanup
 
+    // Track mute and camera states
+    private var isMuted = false
+    private var isCameraOff = false
+
     companion object {
         private const val TAG = "CallActivity"
     }
@@ -57,6 +63,8 @@ class CallActivity : AppCompatActivity() {
         localView = findViewById(R.id.localView)
         remoteView = findViewById(R.id.remoteView)
         hangupBtn = findViewById(R.id.hangupBtn)
+        muteBtn = findViewById(R.id.muteBtn)
+        cameraBtn = findViewById(R.id.cameraBtn)
         statusText = findViewById(R.id.statusText)
         callTypeText = findViewById(R.id.callTypeText)
 
@@ -64,6 +72,20 @@ class CallActivity : AppCompatActivity() {
         submissionId = intent.getStringExtra("SUBMISSION_ID")
 
         Log.d(TAG, "CallActivity started with callId: $callId")
+
+        // Setup button click listeners
+        hangupBtn.setOnClickListener {
+            endCall()
+            finish()
+        }
+
+        muteBtn.setOnClickListener {
+            toggleMute()
+        }
+
+        cameraBtn.setOnClickListener {
+            toggleCamera()
+        }
 
         // Get call type from Firestore
         callId?.let { id ->
@@ -77,11 +99,6 @@ class CallActivity : AppCompatActivity() {
                 }
         }
 
-        hangupBtn.setOnClickListener {
-            endCall()
-            finish()
-        }
-
         if (checkPermissions()) {
             // Permissions granted, setup will happen after getting call type
         } else {
@@ -92,17 +109,21 @@ class CallActivity : AppCompatActivity() {
     private fun setupCallUI() {
         when (callType) {
             "face-to-face" -> {
-                // Hide video views, show info
+                // Hide video views and control buttons, show info
                 localView.visibility = View.GONE
                 remoteView.visibility = View.GONE
+                muteBtn.visibility = View.GONE
+                cameraBtn.visibility = View.GONE
                 callTypeText.text = "Face-to-Face Session"
                 statusText.text = "Session in Progress"
                 hangupBtn.text = "End Session"
             }
             "audio" -> {
-                // Hide video views, show audio indicator
+                // Hide video views and camera button, show mute button
                 localView.visibility = View.GONE
                 remoteView.visibility = View.GONE
+                cameraBtn.visibility = View.GONE
+                muteBtn.visibility = View.VISIBLE
                 callTypeText.text = "Voice Call"
                 statusText.text = "Connecting..."
 
@@ -113,9 +134,11 @@ class CallActivity : AppCompatActivity() {
                 }
             }
             "video", null -> {
-                // Show video views
+                // Show video views and all controls
                 localView.visibility = View.VISIBLE
                 remoteView.visibility = View.VISIBLE
+                muteBtn.visibility = View.VISIBLE
+                cameraBtn.visibility = View.VISIBLE
                 callTypeText.text = "Video Call"
                 statusText.text = "Connecting..."
 
@@ -126,6 +149,52 @@ class CallActivity : AppCompatActivity() {
                     listenForCall()
                 }
             }
+        }
+    }
+
+    private fun toggleMute() {
+        localAudioTrack?.let { audioTrack ->
+            isMuted = !isMuted
+            audioTrack.setEnabled(!isMuted)
+
+            runOnUiThread {
+                if (isMuted) {
+                    muteBtn.text = "🔇 Unmute"
+                    muteBtn.setBackgroundColor(getColor(android.R.color.holo_red_light))
+                    Toast.makeText(this, "Microphone muted", Toast.LENGTH_SHORT).show()
+                } else {
+                    muteBtn.text = "🔊 Mute"
+                    muteBtn.setBackgroundColor(getColor(android.R.color.darker_gray))
+                    Toast.makeText(this, "Microphone unmuted", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            Log.d(TAG, "Audio ${if (isMuted) "muted" else "unmuted"}")
+        }
+    }
+
+    private fun toggleCamera() {
+        if (callType != "video") return
+
+        localVideoTrack?.let { videoTrack ->
+            isCameraOff = !isCameraOff
+            videoTrack.setEnabled(!isCameraOff)
+
+            runOnUiThread {
+                if (isCameraOff) {
+                    cameraBtn.text = "📹 Turn On"
+                    cameraBtn.setBackgroundColor(getColor(android.R.color.holo_orange_light))
+                    localView.visibility = View.GONE
+                    Toast.makeText(this, "Camera off", Toast.LENGTH_SHORT).show()
+                } else {
+                    cameraBtn.text = "📹 Turn Off"
+                    cameraBtn.setBackgroundColor(getColor(android.R.color.darker_gray))
+                    localView.visibility = View.VISIBLE
+                    Toast.makeText(this, "Camera on", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            Log.d(TAG, "Camera ${if (isCameraOff) "off" else "on"}")
         }
     }
 
@@ -493,6 +562,8 @@ class CallActivity : AppCompatActivity() {
         runOnUiThread {
             statusText.text = "Call Ended"
             hangupBtn.text = "Close"
+            muteBtn.isEnabled = false
+            cameraBtn.isEnabled = false
             Toast.makeText(this, "Call has ended", Toast.LENGTH_SHORT).show()
         }
     }
@@ -540,6 +611,7 @@ class CallActivity : AppCompatActivity() {
             deleteCallDocument(callId!!)
         }
     }
+
     private fun deleteCallDocument(callId: String) {
         val callRef = db.collection("calls").document(callId)
 
