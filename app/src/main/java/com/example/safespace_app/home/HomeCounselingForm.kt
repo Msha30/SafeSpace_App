@@ -1,5 +1,7 @@
 package com.example.safespace_app.home
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -17,6 +19,8 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HomeCounselingForm : Fragment() {
 
@@ -25,11 +29,21 @@ class HomeCounselingForm : Fragment() {
 
     private lateinit var formContainer: LinearLayout
 
+    // Store selected preferred schedules (up to 3 date/time slots)
+    private val selectedSchedules = mutableListOf<ScheduleSlot>()
+
     /** Stores rendered views keyed by questionId */
     private val answerViews = mutableMapOf<String, View>()
+
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
     }
+
+    data class ScheduleSlot(
+        val date: Date,
+        val startTime: String, // Format: "HH:mm"
+        val endTime: String    // Format: "HH:mm"
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,9 +69,161 @@ class HomeCounselingForm : Fragment() {
 
         loadFormDefinition()
 
+        // Setup preferred schedule picker
+        setupPreferredSchedulePicker(view)
+
         view.findViewById<MaterialButton>(R.id.btnsubmit).setOnClickListener {
             submitForm()
         }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* ------------------- PREFERRED SCHEDULE PICKER ---------------------- */
+    /* ------------------------------------------------------------------ */
+
+    private fun setupPreferredSchedulePicker(view: View) {
+        val prefSchedView = view.findViewById<TextInputEditText>(R.id.PrefSched)
+
+        // Make it read-only and clickable
+        prefSchedView?.apply {
+            isFocusable = false
+            isClickable = true
+            hint = "Tap to select preferred schedule"
+
+            setOnClickListener {
+                showSchedulePickerDialog()
+            }
+        }
+
+        // Update display
+        updateScheduleDisplay()
+    }
+
+    private fun showSchedulePickerDialog() {
+        if (selectedSchedules.size >= 3) {
+            Toast.makeText(requireContext(), "You can only select up to 3 schedule slots", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Show date picker first
+        showDatePicker { selectedDate ->
+            // Then show time picker for start time
+            showTimePicker("Select Start Time", 8, 0) { startHour, startMinute ->
+                // Then show time picker for end time
+                showTimePicker("Select End Time", startHour, startMinute) { endHour, endMinute ->
+                    val startTime = String.format("%02d:%02d", startHour, startMinute)
+                    val endTime = String.format("%02d:%02d", endHour, endMinute)
+
+                    // Validate time range
+                    if (endHour < startHour || (endHour == startHour && endMinute <= startMinute)) {
+                        Toast.makeText(requireContext(), "End time must be after start time", Toast.LENGTH_SHORT).show()
+                        return@showTimePicker
+                    }
+
+                    // Add the schedule slot
+                    selectedSchedules.add(ScheduleSlot(selectedDate, startTime, endTime))
+                    updateScheduleDisplay()
+
+                    // Ask if user wants to add more
+                    if (selectedSchedules.size < 3) {
+                        android.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Add Another Schedule?")
+                            .setMessage("You have selected ${selectedSchedules.size} of 3 possible schedule slots. Would you like to add another?")
+                            .setPositiveButton("Yes") { _, _ -> showSchedulePickerDialog() }
+                            .setNegativeButton("No", null)
+                            .show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showDatePicker(onDateSelected: (Date) -> Unit) {
+        val calendar = Calendar.getInstance()
+        val today = calendar.clone() as Calendar
+
+        // Calculate one week from today
+        val weekFromToday = calendar.clone() as Calendar
+        weekFromToday.add(Calendar.DAY_OF_YEAR, 7)
+
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val selectedCal = Calendar.getInstance()
+                selectedCal.set(year, month, dayOfMonth)
+
+                // Validate: no weekends
+                val dayOfWeek = selectedCal.get(Calendar.DAY_OF_WEEK)
+                if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
+                    Toast.makeText(requireContext(), "Please select a weekday (Monday-Friday)", Toast.LENGTH_SHORT).show()
+                    return@DatePickerDialog
+                }
+
+                onDateSelected(selectedCal.time)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        // Disable past dates
+        datePickerDialog.datePicker.minDate = today.timeInMillis
+
+        // Disable dates beyond one week
+        datePickerDialog.datePicker.maxDate = weekFromToday.timeInMillis
+
+        datePickerDialog.show()
+    }
+
+    private fun showTimePicker(title: String, defaultHour: Int, defaultMinute: Int, onTimeSelected: (Int, Int) -> Unit) {
+        val timePickerDialog = TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minute ->
+                // Validate time is between 8 AM and 5 PM
+                if (hourOfDay < 8 || hourOfDay > 17 || (hourOfDay == 17 && minute > 0)) {
+                    Toast.makeText(requireContext(), "Please select a time between 8:00 AM and 5:00 PM", Toast.LENGTH_SHORT).show()
+                    return@TimePickerDialog
+                }
+                onTimeSelected(hourOfDay, minute)
+            },
+            defaultHour,
+            defaultMinute,
+            false // Use 12-hour format
+        )
+
+        timePickerDialog.setTitle(title)
+        timePickerDialog.show()
+    }
+
+    private fun updateScheduleDisplay() {
+        val prefSchedView = view?.findViewById<TextInputEditText>(R.id.PrefSched)
+
+        if (selectedSchedules.isEmpty()) {
+            prefSchedView?.setText("")
+            return
+        }
+
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        val displayText = selectedSchedules.mapIndexed { index, slot ->
+            val dateStr = dateFormat.format(slot.date)
+            val startTime = formatTimeTo12Hour(slot.startTime)
+            val endTime = formatTimeTo12Hour(slot.endTime)
+            "${index + 1}. $dateStr, $startTime - $endTime"
+        }.joinToString("\n")
+
+        prefSchedView?.setText(displayText)
+    }
+
+    private fun formatTimeTo12Hour(time24: String): String {
+        val parts = time24.split(":")
+        var hour = parts[0].toInt()
+        val minute = parts[1]
+        val amPm = if (hour >= 12) "PM" else "AM"
+
+        if (hour == 0) hour = 12
+        else if (hour > 12) hour -= 12
+
+        return "$hour:$minute $amPm"
     }
 
     /* ------------------------------------------------------------------ */
@@ -238,13 +404,11 @@ class HomeCounselingForm : Fragment() {
                     rb?.text?.toString()?.trim() ?: ""
                 } ?: ""
 
-                val prefSchedView = view?.findViewById<TextInputEditText>(R.id.PrefSched)
-                val preferredSchedule = prefSchedView?.text?.toString()?.trim() ?: ""
-
-                if (preferredSchedule.isEmpty()) {
+                // Validate preferred schedule
+                if (selectedSchedules.isEmpty()) {
                     Toast.makeText(
                         requireContext(),
-                        "Please enter your preferred schedule.",
+                        "Please select at least one preferred schedule slot.",
                         Toast.LENGTH_SHORT
                     ).show()
                     return@addOnSuccessListener
@@ -313,12 +477,22 @@ class HomeCounselingForm : Fragment() {
                     answeredQuestions.add(questionMap)
                 }
 
+                // Convert schedules to Firebase-friendly format
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val preferredScheduleData = selectedSchedules.map { slot ->
+                    hashMapOf(
+                        "date" to dateFormat.format(slot.date),
+                        "startTime" to slot.startTime,
+                        "endTime" to slot.endTime
+                    )
+                }
+
                 // Build submission object
                 val submission = hashMapOf<String, Any>(
                     "title" to title,
                     "questions" to answeredQuestions,
                     "preferredPlatform" to preferredPlatform,
-                    "preferredSchedule" to preferredSchedule,
+                    "preferredSchedule" to preferredScheduleData,
                     "createdAt" to Timestamp.now(),
                     "createdBy" to currentUid
                 )
