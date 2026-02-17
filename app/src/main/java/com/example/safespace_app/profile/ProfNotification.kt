@@ -18,14 +18,6 @@ import kotlinx.coroutines.launch
 class ProfNotification : Fragment() {
 
     private lateinit var allNotificationsSwitch: SwitchCompat
-    private lateinit var newMessagesSwitch: SwitchCompat
-    private lateinit var newGroupMessagesSwitch: SwitchCompat
-    private lateinit var eventsSwitch: SwitchCompat
-    private lateinit var announcementsSwitch: SwitchCompat
-    private lateinit var counselingSwitch: SwitchCompat
-    private lateinit var peerSupportSwitch: SwitchCompat
-    private lateinit var reminderSwitch: SwitchCompat
-
     private var isLoadingSettings = false
 
     // Permission launcher
@@ -48,7 +40,8 @@ class ProfNotification : Fragment() {
             findNavController().navigateUp()
         }
 
-        initializeSwitches(rootView)
+        allNotificationsSwitch = rootView.findViewById(R.id.switchAllNotifications)
+
         setupSwitchListeners()
         loadSettings()
 
@@ -58,54 +51,39 @@ class ProfNotification : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        // Update switch based on system permission
+        // Sync switch with actual system permission
         isLoadingSettings = true
-        val systemPermissionGranted = NotificationPermissionHelper.isNotificationPermissionGranted(requireContext())
-        allNotificationsSwitch.isChecked = systemPermissionGranted
+        val granted = NotificationPermissionHelper
+            .isNotificationPermissionGranted(requireContext())
+        allNotificationsSwitch.isChecked = granted
         isLoadingSettings = false
     }
 
-    private fun initializeSwitches(view: View) {
-        allNotificationsSwitch = view.findViewById(R.id.switchAllNotifications)
-    }
-
     private fun setupSwitchListeners() {
-        // All notifications master switch
         allNotificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isLoadingSettings) return@setOnCheckedChangeListener
 
             if (isChecked) {
-                // User wants to enable notifications - request system permission
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    if (!NotificationPermissionHelper.isNotificationPermissionGranted(requireContext())) {
-                        // Need to request permission
-                        NotificationPermissionHelper.showPermissionRationaleDialog(requireContext()) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                        // Reset switch until permission granted
-                        isLoadingSettings = true
-                        allNotificationsSwitch.isChecked = false
-                        isLoadingSettings = false
-                        return@setOnCheckedChangeListener
+                // Enable → request runtime permission (Android 13+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    !NotificationPermissionHelper.isNotificationPermissionGranted(requireContext())
+                ) {
+                    NotificationPermissionHelper.showPermissionRationaleDialog(requireContext()) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
+
+                    // Reset until permission actually granted
+                    isLoadingSettings = true
+                    allNotificationsSwitch.isChecked = false
+                    isLoadingSettings = false
+                    return@setOnCheckedChangeListener
                 }
-
             } else {
-                // User wants to disable - open system settings
+                // Disable → open system notification settings
                 NotificationPermissionHelper.openAppSettings(requireContext())
-
             }
 
             saveSettings()
-        }
-
-        // Individual switches
-        newMessagesSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
-        }
-
-        newGroupMessagesSwitch.setOnCheckedChangeListener { _, _ ->
-            if (!isLoadingSettings) saveSettings()
         }
     }
 
@@ -113,18 +91,13 @@ class ProfNotification : Fragment() {
         isLoadingSettings = true
 
         lifecycleScope.launch {
-            // Check system permission first
-            val systemPermissionGranted = NotificationPermissionHelper.isNotificationPermissionGranted(requireContext())
+            val systemGranted = NotificationPermissionHelper
+                .isNotificationPermissionGranted(requireContext())
 
             val settings = NotificationSettingsManager.loadSettings()
 
-            // If system permission denied, override all settings
-            if (!systemPermissionGranted) {
-                allNotificationsSwitch.isChecked = false
-            } else {
-                allNotificationsSwitch.isChecked = settings.allNotifications
-
-            }
+            allNotificationsSwitch.isChecked =
+                if (!systemGranted) false else settings.allNotifications
 
             isLoadingSettings = false
         }
@@ -133,9 +106,8 @@ class ProfNotification : Fragment() {
     private fun saveSettings() {
         lifecycleScope.launch {
             val settings = NotificationSettingsManager.NotificationSettings(
-                allNotifications = allNotificationsSwitch.isChecked,
+                allNotifications = allNotificationsSwitch.isChecked
             )
-
             NotificationSettingsManager.saveSettings(settings)
         }
     }

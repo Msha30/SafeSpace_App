@@ -233,19 +233,51 @@ class Login : AppCompatActivity() {
                         val db = FirebaseFirestore.getInstance()
                         db.collection("account_details").document(uid).get()
                             .addOnSuccessListener { doc ->
-                                if (doc.exists()) {
-                                    Log.d("Login", "Found user data in Firestore")
-                                    navigateUser(doc)
-                                } else {
+                                if (!doc.exists()) {
                                     Log.d("Login", "No user data in Firestore, checking cache")
                                     sendCachedUserDataIfExists { cachedUserType ->
+                                        // Still block peer if not verified yet
+                                        if (cachedUserType.lowercase() == "peer") {
+                                            FirebaseAuth.getInstance().signOut()
+                                            Toast.makeText(
+                                                this@Login,
+                                                "Your peer account is still pending GCO verification.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            return@sendCachedUserDataIfExists
+                                        }
                                         navigateUserFromType(cachedUserType)
                                     }
+                                    return@addOnSuccessListener
                                 }
+
+                                val userType = doc.getString("userType") ?: "student"
+
+                                // 🔒 HARD BLOCK for unverified peers
+                                if (userType.lowercase() == "peer") {
+                                    val isVerified = doc.getString("isVerified") ?: "pending"
+                                    if (isVerified.lowercase() != "verified") {
+                                        FirebaseAuth.getInstance().signOut()
+                                        Toast.makeText(
+                                            this@Login,
+                                            "Your peer account is pending GCO verification. Please wait for approval.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        return@addOnSuccessListener
+                                    }
+                                }
+
+                                // Passed all checks → navigate
+                                navigateUserFromType(userType)
                             }
                             .addOnFailureListener { e ->
-                                Toast.makeText(this@Login, "Failed to load user data: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this@Login,
+                                    "Failed to load user data: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                     } catch (e: Exception) {
                         e.printStackTrace()
                         Log.e("Login", "❌ Login flow exception: ${e.message}")
